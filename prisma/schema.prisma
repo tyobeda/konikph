@@ -1,0 +1,67 @@
+// Prisma schema for PKS.art PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  phone     String    // Nomor WhatsApp (Wajib)
+  address   String    // Alamat Lengkap (Wajib)
+  avatar    String?
+  region    String    // e.g. "Jawa Barat", "DIY", "Sumut"
+  role      String?   @default("Kreator") // e.g. "DPW PKS", "Kreator"
+  artworks  Artwork[]
+  likes     Like[]
+  comments  Comment[]
+  createdAt DateTime  @default(now())
+}
+
+model Artwork {
+  id             String    @id @default(uuid())
+  title          String
+  description    String?
+  imageUrl       String
+  downloadUrl    String?
+  category       String    // e.g. "Poster", "Spanduk", "Social Media", "Infografis", "Templat"
+  region         String    // e.g. "DPW Jabar", "DKI", "DIY", "Sumut", "Nasional"
+  format         String?   @default("PSD/AI/CDR")
+  likesCount     Int       @default(0)
+  commentsCount  Int       @default(0)
+  downloadsCount Int       @default(0)
+  stampsCount    Int       @default(0)
+  authorId       String
+  author         User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes          Like[]
+  comments       Comment[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  artworkId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, artworkId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  artworkId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
