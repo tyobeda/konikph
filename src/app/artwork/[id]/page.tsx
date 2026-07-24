@@ -144,16 +144,16 @@ export default function ArtworkDetailPage() {
       {/* Header */}
       <Header />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      {/* Main Container (Scaled ~10% smaller with max-w-5xl) */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-5">
         
         {/* Top Back Nav Button */}
-        <div className="mb-4">
+        <div className="mb-3">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-[#F26522] transition-colors"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-600 hover:text-[#F26522] transition-colors"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} />
             <span>Kembali ke Galeri</span>
           </button>
         </div>
@@ -161,21 +161,21 @@ export default function ArtworkDetailPage() {
         {/* 📷 INSTAGRAM DESKTOP-STYLE 2-COLUMN POST CARD */}
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-start">
           
-          {/* LEFT SIDE: 100% Full Natural Uncropped Image (Zero Clipping at Bottom) */}
-          <div className="lg:col-span-7 bg-[#111827] relative p-0 w-full">
+          {/* LEFT SIDE: 100% Full Natural Uncropped Image */}
+          <div className="lg:col-span-7 bg-[#111827] relative p-0 w-full flex items-center justify-center">
             <img
               src={artwork.imageUrl}
               alt={artwork.title}
-              className="w-full h-auto block"
+              className="w-full h-auto block max-h-[75vh] object-contain"
             />
             {/* Category Badge Overlay */}
-            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-black uppercase px-3 py-1 rounded-lg tracking-wider">
+            <div className="absolute top-3.5 left-3.5 bg-black/60 backdrop-blur-md text-white text-[11px] font-black uppercase px-2.5 py-0.5 rounded-lg tracking-wider">
               {artwork.category}
             </div>
           </div>
 
-          {/* RIGHT SIDE: Author Info, Description, Actions & Scrollable Comments (Stretches to Match Image Height) */}
-          <div className="lg:col-span-5 p-5 sm:p-7 flex flex-col justify-between bg-white self-stretch border-t lg:border-t-0 lg:border-l border-gray-100">
+          {/* RIGHT SIDE: Author Info, Description, Actions & Scrollable Comments */}
+          <div className="lg:col-span-5 p-4 sm:p-5 lg:p-6 flex flex-col justify-between bg-white self-stretch border-t lg:border-t-0 lg:border-l border-gray-100">
             
             {/* Header: Author Profile Info */}
             <div>
