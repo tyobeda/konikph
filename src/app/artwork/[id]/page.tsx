@@ -145,7 +145,7 @@ export default function ArtworkDetailPage() {
       <Header />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         
         {/* Top Back Nav Button */}
         <div className="mb-4">
@@ -161,12 +161,12 @@ export default function ArtworkDetailPage() {
         {/* 📷 INSTAGRAM DESKTOP-STYLE 2-COLUMN POST CARD */}
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
           
-          {/* LEFT SIDE: Image Display Container */}
-          <div className="lg:col-span-7 bg-slate-900 flex items-center justify-center p-4 sm:p-8 relative min-h-[360px] lg:min-h-[580px]">
+          {/* LEFT SIDE: Full-Width/Height Image Display (No dark background box) */}
+          <div className="lg:col-span-7 bg-gray-50 flex items-center justify-center relative min-h-[380px] sm:min-h-[480px] lg:min-h-[620px] overflow-hidden">
             <img
               src={artwork.imageUrl}
               alt={artwork.title}
-              className="w-full h-auto max-h-[580px] object-contain rounded-2xl shadow-2xl"
+              className="w-full h-full object-cover lg:object-contain min-h-[380px] lg:min-h-[620px]"
             />
             {/* Category Badge overlay */}
             <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -209,7 +209,7 @@ export default function ArtworkDetailPage() {
             </div>
 
             {/* Middle: Scrollable Comments Section */}
-            <div className="flex-1 py-4 overflow-y-auto max-h-[260px] lg:max-h-[300px] space-y-3 pr-1 my-2">
+            <div className="flex-1 py-4 overflow-y-auto max-h-[260px] lg:max-h-[320px] space-y-3 pr-1 my-2">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <MessageSquare size={14} className="text-[#F26522]" />
                 <span>Komentar ({comments.length})</span>
@@ -302,10 +302,10 @@ export default function ArtworkDetailPage() {
           </div>
         </div>
 
-        {/* Desain & Artwork Terkait (Tetap di bawahnya) */}
+        {/* Desain & Artwork Terkait (Masonry Natural Height) */}
         <div className="mt-10">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Desain & Artwork Terkait</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="columns-1 sm:columns-2 lg:columns-4 gap-4 space-y-4">
             {relatedArtworks.map((item: any) => (
               <ArtworkCard key={item.id} artwork={item} />
             ))}
