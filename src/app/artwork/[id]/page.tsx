@@ -159,14 +159,14 @@ export default function ArtworkDetailPage() {
         </div>
 
         {/* 📷 INSTAGRAM DESKTOP-STYLE 2-COLUMN POST CARD */}
-        <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
+        <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-start">
           
-          {/* LEFT SIDE: 100% Full Uncropped Natural Height Image (Zero Cropping, Flush Edges) */}
-          <div className="lg:col-span-7 bg-[#111827] relative overflow-hidden flex items-center justify-center p-0">
+          {/* LEFT SIDE: 100% Full Natural Uncropped Image (Zero Clipping at Bottom) */}
+          <div className="lg:col-span-7 bg-[#111827] relative p-0 w-full">
             <img
               src={artwork.imageUrl}
               alt={artwork.title}
-              className="w-full h-auto object-contain block"
+              className="w-full h-auto block"
             />
             {/* Category Badge Overlay */}
             <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-black uppercase px-3 py-1 rounded-lg tracking-wider">
@@ -174,8 +174,8 @@ export default function ArtworkDetailPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE: Author Info, Description, Actions & Scrollable Comments */}
-          <div className="lg:col-span-5 p-5 sm:p-7 flex flex-col justify-between bg-white border-t lg:border-t-0 lg:border-l border-gray-100">
+          {/* RIGHT SIDE: Author Info, Description, Actions & Scrollable Comments (Stretches to Match Image Height) */}
+          <div className="lg:col-span-5 p-5 sm:p-7 flex flex-col justify-between bg-white self-stretch border-t lg:border-t-0 lg:border-l border-gray-100">
             
             {/* Header: Author Profile Info */}
             <div>
