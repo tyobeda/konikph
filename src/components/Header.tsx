@@ -71,35 +71,50 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
-
-  // Calculate & animate indicator position safely after client mount
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const activeEl = navItemRefs.current[activeLinkId];
-    if (activeEl) {
-      const newPos = {
-        left: activeEl.offsetLeft,
-        width: activeEl.offsetWidth,
-        opacity: 1,
-      };
-
-      setIndicatorStyle(newPos);
-      sessionStorage.setItem('pksart_last_nav_pos', JSON.stringify(newPos));
-    } else {
-      // Check stored position if element not found yet
+    // Read last nav position from sessionStorage on mount to start animation from last active tab
+    if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem('pksart_last_nav_pos');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          setIndicatorStyle(parsed);
+          if (parsed && typeof parsed.left === 'number') {
+            setIndicatorStyle(parsed);
+          }
         } catch (e) {}
-      } else {
-        setIndicatorStyle((prev: any) => ({ ...prev, opacity: 0 }));
       }
     }
-  }, [activeLinkId, pathname, currentHash, isMounted]);
+  }, []);
+
+  // Calculate & animate indicator position seamlessly after client mount
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const timer = setTimeout(() => {
+      const activeEl = navItemRefs.current[activeLinkId];
+      if (activeEl) {
+        const newPos = {
+          left: activeEl.offsetLeft,
+          width: activeEl.offsetWidth,
+          opacity: 1,
+        };
+
+        setIndicatorStyle(newPos);
+        sessionStorage.setItem('pksart_last_nav_pos', JSON.stringify(newPos));
+      } else {
+        const saved = sessionStorage.getItem('pksart_last_nav_pos');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setIndicatorStyle(parsed);
+          } catch (e) {}
+        } else {
+          setIndicatorStyle((prev: any) => ({ ...prev, opacity: 0 }));
+        }
+      }
+    }, 20);
+
+    return () => clearTimeout(timer);
+  }, [activeLinkId, pathname, isMounted]);
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
