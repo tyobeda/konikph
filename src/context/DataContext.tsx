@@ -170,7 +170,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [artworks, setArtworks] = useState<Artwork[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('pksart_artworks');
-      if (stored) {
+      if (stored && !stored.includes('unsplash.com')) {
         try { return JSON.parse(stored); } catch (e) {}
       }
     }

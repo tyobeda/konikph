@@ -19,7 +19,7 @@ export const DEFAULT_WELCOME_POPUP: WelcomePopupConfig = {
   displayFrequency: 'once',
   title: 'Selamat Datang di PKSart Official!',
   subtitle: 'Temukan dan unduh ribuan aset desain resmi poster, spanduk, feeds instagram, dan templat twibbon untuk publikasi daerah Anda.',
-  imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800',
+  imageUrl: '/img/877859417715829.jpg',
   ctaText: 'Jelajahi Karya Populer',
   ctaLink: '/#eksplorasi',
 };
