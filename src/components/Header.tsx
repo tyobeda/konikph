@@ -214,8 +214,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             </Link>
 
             {/* User Profile Dropdown or Auth Links */}
-            {currentUser ? (
-              <div className="relative">
+            {isMounted && currentUser ? (
+              <div suppressHydrationWarning className="relative">
                 <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   className="flex items-center gap-1.5 p-1 pl-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -238,8 +238,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 text-sm animate-in fade-in slide-in-from-top-2">
                     <div className="px-4 py-2.5 border-b border-gray-100">
-                      <p className="font-bold text-gray-900 truncate">{currentUser.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                      <p suppressHydrationWarning className="font-bold text-gray-900 truncate">{currentUser.name}</p>
+                      <p suppressHydrationWarning className="text-xs text-gray-500 truncate">{currentUser.email}</p>
                     </div>
 
                     {(currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) && (

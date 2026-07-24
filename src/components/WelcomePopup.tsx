@@ -26,9 +26,11 @@ export const DEFAULT_WELCOME_POPUP: WelcomePopupConfig = {
 
 export const WelcomePopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [popupData, setPopupData] = useState<WelcomePopupConfig>(DEFAULT_WELCOME_POPUP);
 
   useEffect(() => {
+    setIsMounted(true);
     // Read popup configuration from localStorage if updated by Admin
     const storedConfig = localStorage.getItem('pksart_welcome_popup');
     let config = DEFAULT_WELCOME_POPUP;
@@ -65,7 +67,7 @@ export const WelcomePopup: React.FC = () => {
     localStorage.setItem('pksart_popup_shown_once_device', 'true');
   };
 
-  if (!isOpen || !popupData.isEnabled) return null;
+  if (!isMounted || !isOpen || !popupData.isEnabled) return null;
 
   return (
     <div
