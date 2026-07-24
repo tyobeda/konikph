@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -43,13 +43,35 @@ export default function ProfilePage() {
   const [isSaved, setIsSaved] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(userData.avatar);
 
+  // Sync state when currentUser is loaded or updated
+  useEffect(() => {
+    if (currentUser) {
+      setUserData({
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        address: currentUser.address || '',
+        region: currentUser.region || '',
+        avatar: currentUser.avatar || '',
+        role: currentUser.role || 'Kreator',
+      });
+      setAvatarPreview(currentUser.avatar || '');
+    }
+  }, [currentUser]);
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         const result = await compressImageFile(file, 2, 500, 0.85);
         setAvatarPreview(result.dataUrl);
-        setUserData((prev) => ({ ...prev, avatar: result.dataUrl }));
+        const updatedUser = { ...userData, avatar: result.dataUrl };
+        setUserData(updatedUser);
+        if (currentUser?.id) {
+          updateUser(currentUser.id, updatedUser);
+        }
+        setIsSaved(true);
+        setTimeout(() => setIsSaved(false), 3000);
       } catch (err: any) {
         alert(err.message || 'Gagal memproses gambar avatar.');
       }
