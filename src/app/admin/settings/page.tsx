@@ -362,10 +362,10 @@ export default function AdminSettingsPage() {
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
                   Frekuensi Kemunculan Pop-up di Beranda
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <label
-                    className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                      popupConfig.displayFrequency === 'once'
+                    className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
+                      popupConfig.displayFrequency === 'once' || !popupConfig.displayFrequency
                         ? 'bg-orange-50/80 border-[#F26522] text-[#F26522] shadow-sm'
                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                     }`}
@@ -379,15 +379,38 @@ export default function AdminSettingsPage() {
                       className="mt-0.5 accent-[#F26522]"
                     />
                     <div>
-                      <p className="text-xs font-extrabold text-gray-900">1. Sekali Tampil (Sekali per Sesi)</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        Pop-up hanya muncul 1x saat pengunjung membuka web. Setelah ditutup, tidak akan mengganggu pengunjung lagi selama sesi aktif.
+                      <p className="text-xs font-extrabold text-gray-900">1. Sekali Tampil per Device/IP (Default)</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                        Pop-up hanya muncul 1x saja seumur hidup per pengunjung/IP. Setelah ditutup, tidak akan pernah muncul lagi di perangkat tersebut.
                       </p>
                     </div>
                   </label>
 
                   <label
-                    className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                    className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
+                      popupConfig.displayFrequency === 'session'
+                        ? 'bg-orange-50/80 border-[#F26522] text-[#F26522] shadow-sm'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="displayFrequency"
+                      disabled={!popupConfig.isEnabled}
+                      checked={popupConfig.displayFrequency === 'session'}
+                      onChange={() => setPopupConfig({ ...popupConfig, displayFrequency: 'session' })}
+                      className="mt-0.5 accent-[#F26522]"
+                    />
+                    <div>
+                      <p className="text-xs font-extrabold text-gray-900">2. Sekali per Sesi Browser</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                        Pop-up muncul 1x setiap kali browser baru dibuka. Jika ditutup, akan muncul lagi ketika browser dibuka kembali di lain waktu.
+                      </p>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all ${
                       popupConfig.displayFrequency === 'always'
                         ? 'bg-orange-50/80 border-[#F26522] text-[#F26522] shadow-sm'
                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
@@ -402,9 +425,9 @@ export default function AdminSettingsPage() {
                       className="mt-0.5 accent-[#F26522]"
                     />
                     <div>
-                      <p className="text-xs font-extrabold text-gray-900">2. Selalu Tampil (Setiap Buka Web)</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        Pop-up akan selalu otomatis muncul setiap kali pengunjung membuka/merefresh halaman utama beranda.
+                      <p className="text-xs font-extrabold text-gray-900">3. Selalu Tampil (Setiap Buka Web)</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                        Pop-up akan selalu otomatis muncul setiap kali pengunjung membuka atau merefresh halaman utama beranda.
                       </p>
                     </div>
                   </label>

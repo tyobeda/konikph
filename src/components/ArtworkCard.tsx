@@ -35,30 +35,16 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     alert(`Mengunduh karya "${artwork.title}" format (${artwork.format || 'PSD/AI'})...`);
   };
 
-  // Dynamic aspect ratio calculation according to artwork specifications (1:1, 16:9, 9:16/9:18, etc.)
-  const getAspectClass = () => {
-    switch (artwork.aspectRatio) {
-      case 'square':
-        return 'aspect-square'; // 1:1 Square
-      case 'landscape':
-        return 'aspect-[16/9]'; // 16:9 / 18:9 Banner Landscape
-      case 'portrait':
-        return 'aspect-[9/14]'; // 9:14 / 9:18 Vertical Story & Poster
-      default:
-        return 'aspect-auto min-h-[220px] max-h-[480px]'; // Natural height
-    }
-  };
-
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
-      {/* Thumbnail Area */}
-      <Link href={`/artwork/${artwork.id}`} className="relative block w-full overflow-hidden bg-gray-100">
-        <div className={`relative w-full ${getAspectClass()}`}>
+      {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
+      <Link href={`/artwork/${artwork.id}`} className="relative block w-full overflow-hidden bg-gray-50">
+        <div className="relative w-full overflow-hidden">
           <img
             src={imgSrc}
             alt={artwork.title}
             onError={() => setImgSrc(fallbackImage)}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-auto object-contain block group-hover:scale-[1.02] transition-transform duration-300"
             loading="lazy"
           />
           {/* Overlay gradient */}

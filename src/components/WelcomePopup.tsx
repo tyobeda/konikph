@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export interface WelcomePopupConfig {
   isEnabled: boolean;
-  displayFrequency: 'once' | 'always';
+  displayFrequency: 'once' | 'session' | 'always';
   title: string;
   subtitle: string;
   imageUrl: string;
@@ -16,7 +16,7 @@ export interface WelcomePopupConfig {
 
 export const DEFAULT_WELCOME_POPUP: WelcomePopupConfig = {
   isEnabled: true,
-  displayFrequency: 'once',
+  displayFrequency: 'once', // Default: Sekali per Pengunjung / IP / Device
   title: 'Selamat Datang di PKSart Official!',
   subtitle: 'Temukan dan unduh ribuan aset desain resmi poster, spanduk, feeds instagram, dan templat twibbon untuk publikasi daerah Anda.',
   imageUrl: '/img/877859417715829.jpg',
@@ -31,32 +31,38 @@ export const WelcomePopup: React.FC = () => {
   useEffect(() => {
     // Read popup configuration from localStorage if updated by Admin
     const storedConfig = localStorage.getItem('pksart_welcome_popup');
+    let config = DEFAULT_WELCOME_POPUP;
+
     if (storedConfig) {
       try {
-        const parsed: WelcomePopupConfig = JSON.parse(storedConfig);
-        setPopupData(parsed);
-        if (parsed.isEnabled) {
-          if (parsed.displayFrequency === 'always') {
-            setIsOpen(true);
-          } else {
-            // Check if user dismissed popup in current session
-            const dismissed = sessionStorage.getItem('pksart_popup_dismissed');
-            if (!dismissed) {
-              setIsOpen(true);
-            }
-          }
-        }
-      } catch (e) {
+        config = { ...DEFAULT_WELCOME_POPUP, ...JSON.parse(storedConfig) };
+        setPopupData(config);
+      } catch (e) {}
+    }
+
+    if (config.isEnabled) {
+      if (config.displayFrequency === 'always') {
         setIsOpen(true);
+      } else if (config.displayFrequency === 'session') {
+        // Check if user dismissed popup in current browser session
+        const dismissed = sessionStorage.getItem('pksart_popup_dismissed');
+        if (!dismissed) {
+          setIsOpen(true);
+        }
+      } else {
+        // Default 'once': Sekali saja per Pengunjung / IP / Device (Persistent in localStorage)
+        const shownOnce = localStorage.getItem('pksart_popup_shown_once_device');
+        if (!shownOnce) {
+          setIsOpen(true);
+        }
       }
-    } else {
-      setIsOpen(true);
     }
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
     sessionStorage.setItem('pksart_popup_dismissed', 'true');
+    localStorage.setItem('pksart_popup_shown_once_device', 'true');
   };
 
   if (!isOpen || !popupData.isEnabled) return null;
@@ -80,14 +86,14 @@ export const WelcomePopup: React.FC = () => {
           <X size={18} />
         </button>
 
-        {/* Banner Image */}
-        <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#F26522] to-red-600 flex items-center justify-center overflow-hidden">
+        {/* Banner Image - Uncropped Natural Fit */}
+        <div className="relative w-full max-h-[320px] bg-slate-900 flex items-center justify-center overflow-hidden">
           <img
             src={popupData.imageUrl}
             alt={popupData.title}
-            className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-500"
+            className="w-full h-auto max-h-[300px] object-contain opacity-95"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
           
           <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/20">
             <Sparkles size={14} className="text-amber-400" />
