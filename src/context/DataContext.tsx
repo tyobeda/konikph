@@ -254,26 +254,61 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     faviconUrl: '/favicon.ico',
   });
 
-  // LocalStorage Persist Synchronization
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Load stored state safely after client mount
   useEffect(() => {
+    setIsMounted(true);
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('pksart_current_user');
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && parsed.avatar) {
+            setCurrentUser(parsed);
+          }
+        } catch (e) {}
+      }
+
+      const storedUsers = localStorage.getItem('pksart_users');
+      if (storedUsers) {
+        try {
+          const parsed = JSON.parse(storedUsers);
+          if (parsed && parsed.length > 0) {
+            setUsers(parsed);
+          }
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  // LocalStorage Persist Synchronization (Guarded by isMounted)
+  useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('pksart_artworks', JSON.stringify(artworks));
-  }, [artworks]);
+  }, [artworks, isMounted]);
 
   useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('pksart_users', JSON.stringify(users));
-  }, [users]);
+  }, [users, isMounted]);
 
   useEffect(() => {
-    localStorage.setItem('pksart_current_user', JSON.stringify(currentUser));
-  }, [currentUser]);
+    if (!isMounted) return;
+    if (currentUser) {
+      localStorage.setItem('pksart_current_user', JSON.stringify(currentUser));
+    }
+  }, [currentUser, isMounted]);
 
   useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('pksart_twibbons', JSON.stringify(twibbons));
-  }, [twibbons]);
+  }, [twibbons, isMounted]);
 
   useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('pksart_dpw', JSON.stringify(dpwList));
-  }, [dpwList]);
+  }, [dpwList, isMounted]);
 
   // Actions
   const addArtwork = (art: Omit<Artwork, 'id' | 'createdAt' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'>) => {
@@ -324,9 +359,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUser = (id: string, updated: Partial<User>) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)));
+    setUsers((prev) => {
+      const nextUsers = prev.map((u) => (u.id === id ? { ...u, ...updated } : u));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pksart_users', JSON.stringify(nextUsers));
+      }
+      return nextUsers;
+    });
+
     if (currentUser?.id === id) {
-      setCurrentUser((prev) => (prev ? ({ ...prev, ...updated } as User) : null));
+      setCurrentUser((prev) => {
+        const nextUser = prev ? ({ ...prev, ...updated } as User) : null;
+        if (typeof window !== 'undefined' && nextUser) {
+          localStorage.setItem('pksart_current_user', JSON.stringify(nextUser));
+        }
+        return nextUser;
+      });
     }
   };
 
