@@ -252,15 +252,15 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-600 rounded-lg hover:bg-gray-100"
+              className="lg:hidden p-2 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200 shrink-0"
               aria-label="Toggle menu"
             >
-              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Search Input */}
+        {/* Mobile Search Bar (Top Sticky Header) */}
         <div className="md:hidden pb-3 pt-1">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
             <div className="absolute left-3 text-gray-400 pointer-events-none">
@@ -271,14 +271,47 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               value={internalSearch}
               onChange={handleSearchInput}
               placeholder="Cari desain, kreator, atau daerah..."
-              className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-sm rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none"
+              className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none"
             />
           </form>
         </div>
+      </div>
 
-        {/* Mobile Navigation Menu Drawer */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden py-3 border-t border-gray-100 flex flex-col gap-2">
+      {/* 📱 MOBILE RESPONSIVE DRAWER BACKDROP */}
+      {isMobileMenuOpen && (
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-200 cursor-pointer"
+        />
+      )}
+
+      {/* 📱 MOBILE SLIDE-OVER NAVIGATION DRAWER */}
+      <div
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white text-gray-900 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-y-auto">
+          {/* Drawer Top Brand Header */}
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/80">
+            <div className="flex items-center gap-2">
+              <PksLogo size="sm" />
+            </div>
+
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-1.5 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Drawer Nav Links */}
+          <div className="p-4 space-y-1 flex-1">
+            <p className="text-[10px] font-extrabold uppercase text-gray-400 px-3 mb-2 tracking-wider">
+              Navigasi Utama
+            </p>
+
             {navLinks.map((link) => {
               const isActive = activeLinkId === link.id;
               return (
@@ -289,18 +322,69 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     handleNavClick(e, link.id, link.href);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`px-3 py-2 font-semibold rounded-lg transition-colors flex items-center justify-between ${
+                  className={`w-full px-3.5 py-2.5 font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-between ${
                     isActive
-                      ? 'bg-orange-50 text-[#F26522] font-bold border-l-4 border-[#F26522]'
+                      ? 'bg-orange-50 text-[#F26522] border border-orange-200 shadow-sm'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <span>{link.label}</span>
+                  {isActive && <div className="w-2 h-2 rounded-full bg-[#F26522]" />}
                 </Link>
               );
             })}
+
+            <div className="pt-4 mt-4 border-t border-gray-100 space-y-2">
+              <p className="text-[10px] font-extrabold uppercase text-gray-400 px-3 mb-2 tracking-wider">
+                Aksi Cepat
+              </p>
+
+              <Link
+                href="/upload"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 px-3.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl text-center flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span>Unggah Karya Baru</span>
+              </Link>
+
+              <Link
+                href="/twibbon"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 px-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl text-center flex items-center justify-center gap-2"
+              >
+                <span>Buat Twibbon Resmi</span>
+              </Link>
+
+              <Link
+                href="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl text-center flex items-center justify-between"
+              >
+                <span>Super Admin Panel</span>
+                <span className="text-[9px] uppercase font-extrabold bg-[#F26522] text-white px-1.5 py-0.5 rounded">
+                  Admin
+                </span>
+              </Link>
+            </div>
           </div>
-        )}
+
+          {/* Drawer Footer User Profile */}
+          <div className="p-4 border-t border-gray-100 bg-gray-50/80">
+            <Link
+              href="/profile"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-200/60 transition-colors"
+            >
+              <div className="w-9 h-9 rounded-full bg-[#8D6E63] text-white font-bold flex items-center justify-center text-xs shadow-sm">
+                R
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-gray-900 truncate">Roni - Sumut</p>
+                <p className="text-[10px] text-gray-500 truncate">Pengaturan Profil Saya</p>
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
     </header>
   );
