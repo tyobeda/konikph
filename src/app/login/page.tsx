@@ -3,29 +3,67 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
+import { useData } from '@/context/DataContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { loginUser } = useData();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
 
     setIsSubmitting(true);
+    const result = loginUser(email, password);
+
     setTimeout(() => {
       setIsSubmitting(false);
-      router.push('/');
-    }, 800);
+      setToastMessage(result.message);
+
+      setTimeout(() => {
+        if (result.user?.role === 'Super Admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
+      }, 600);
+    }, 500);
+  };
+
+  const handleQuickSuperAdmin = () => {
+    setEmail('admin@pks.art');
+    setPassword('admin123');
+    setIsSubmitting(true);
+
+    setTimeout(() => {
+      const result = loginUser('admin@pks.art', 'admin123');
+      setIsSubmitting(false);
+      setToastMessage(result.message);
+
+      setTimeout(() => {
+        router.push('/admin');
+      }, 600);
+    }, 400);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans">
       
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-3">
+          <CheckCircle2 size={18} className="text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Header Link */}
       <div className="max-w-md w-full mx-auto mb-6 flex items-center justify-between">
         <Link
@@ -39,18 +77,37 @@ export default function LoginPage() {
         <PksLogo size="sm" />
       </div>
 
-      <div className="max-w-md w-full mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+      <div className="max-w-md w-full mx-auto bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-8">
         
+        {/* Quick Super Admin Card Notice */}
+        <div className="mb-6 p-4 bg-orange-50/80 border border-orange-200 rounded-2xl">
+          <div className="flex items-center gap-2 text-[#F26522] font-black text-xs uppercase tracking-wider mb-1">
+            <ShieldCheck size={16} />
+            <span>Kredensial Super Admin</span>
+          </div>
+          <div className="text-xs text-gray-700 space-y-0.5 font-mono bg-white p-2.5 rounded-xl border border-orange-100 mt-2">
+            <p><span className="font-bold text-gray-500">Email:</span> admin@pks.art</p>
+            <p><span className="font-bold text-gray-500">Sandi:</span> admin123</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleQuickSuperAdmin}
+            className="w-full mt-2.5 py-2 px-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+          >
+            ⚡ Masuk Otomatis sebagai Super Admin
+          </button>
+        </div>
+
         <div className="text-center mb-6">
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">
             Masuk ke PKSart
           </h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Masukkan email dan kata sandi akun terdaftar Anda.
+          <p className="text-xs text-gray-500 mt-1">
+            Masukkan email dan kata sandi akun Anda.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLoginSubmit} className="space-y-4">
           
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
@@ -59,10 +116,10 @@ export default function LoginPage() {
             <div className="relative">
               <Mail size={18} className="absolute left-3.5 top-3 text-gray-400" />
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@pks.art"
+                placeholder="admin@pks.art"
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
                 required
               />

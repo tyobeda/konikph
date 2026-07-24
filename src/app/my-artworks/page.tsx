@@ -27,7 +27,7 @@ export default function MyArtworksPage() {
 
   // Filter artworks created by current logged user
   const myArtworks = artworks.filter(
-    (art) => art.author.email === currentUser.email || art.author.name === currentUser.name
+    (art) => currentUser && (art.author.email === currentUser.email || art.author.name === currentUser.name)
   );
 
   const [filterTab, setFilterTab] = useState<'all' | 'Disetujui' | 'Pending' | 'Ditolak'>('all');

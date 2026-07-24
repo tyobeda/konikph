@@ -25,13 +25,13 @@ export default function ProfilePage() {
   const { currentUser, updateUser } = useData();
 
   const [userData, setUserData] = useState({
-    name: currentUser.name,
-    email: currentUser.email,
-    phone: currentUser.phone,
-    address: currentUser.address,
-    region: currentUser.region,
-    avatar: currentUser.avatar,
-    role: currentUser.role || 'Kreator',
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
+    address: currentUser?.address || '',
+    region: currentUser?.region || '',
+    avatar: currentUser?.avatar || '',
+    role: currentUser?.role || 'Kreator',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -58,7 +58,9 @@ export default function ProfilePage() {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateUser(currentUser.id, userData);
+    if (currentUser?.id) {
+      updateUser(currentUser.id, userData);
+    }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };

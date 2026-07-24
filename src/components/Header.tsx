@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { PksLogo } from './PksLogo';
 import { Search, ChevronDown, Menu, X } from 'lucide-react';
+import { useData } from '@/context/DataContext';
 
 interface HeaderProps {
   onSearchChange?: (query: string) => void;
@@ -14,6 +15,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = '' }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { currentUser, logoutUser } = useData();
   const [internalSearch, setInternalSearch] = useState(searchQuery);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -211,43 +213,93 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               <span>Unggah Karya</span>
             </Link>
 
-            {/* User Profile Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="flex items-center gap-1 p-1 pl-1.5 rounded-full hover:bg-gray-100 transition-colors"
-                aria-label="User Profile"
-              >
-                <div className="w-8 h-8 rounded-full bg-[#8D6E63] text-white font-bold flex items-center justify-center text-sm shadow-inner">
-                  R
-                </div>
-                <ChevronDown size={16} className="text-gray-500" />
-              </button>
+            {/* User Profile Dropdown or Auth Links */}
+            {currentUser ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  className="flex items-center gap-1.5 p-1 pl-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                  aria-label="User Profile"
+                >
+                  {currentUser.avatar ? (
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.name}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-[#F26522]"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs shadow-inner">
+                      {currentUser.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <ChevronDown size={16} className="text-gray-500" />
+                </button>
 
-              {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 text-sm animate-in fade-in slide-in-from-top-2">
-                  <div className="px-4 py-2.5 border-b border-gray-100">
-                    <p className="font-bold text-gray-900">Roni - Sumut</p>
-                    <p className="text-xs text-gray-500">roni@pks.art</p>
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 text-sm animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2.5 border-b border-gray-100">
+                      <p className="font-bold text-gray-900 truncate">{currentUser.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                    </div>
+
+                    {(currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                        className="flex items-center justify-between px-4 py-2 text-gray-800 font-bold hover:bg-orange-50 hover:text-[#F26522]"
+                      >
+                        <span>Admin Dashboard</span>
+                        <span className="text-[9px] uppercase font-extrabold bg-[#F26522] text-white px-1.5 py-0.5 rounded">
+                          {currentUser.role === 'Super Admin' ? 'Super' : 'DPW'}
+                        </span>
+                      </Link>
+                    )}
+
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
+                    >
+                      Pengaturan Profil
+                    </Link>
+
+                    <Link
+                      href="/my-artworks"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
+                    >
+                      Kelola Postingan Saya
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        logoutUser();
+                        router.push('/login');
+                      }}
+                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-bold text-xs border-t border-gray-100 transition-colors"
+                    >
+                      Keluar Akun
+                    </button>
                   </div>
-                  <Link href="/admin" className="flex items-center justify-between px-4 py-2 text-gray-800 font-bold hover:bg-orange-50 hover:text-[#F26522]">
-                    <span>Admin Dashboard</span>
-                    <span className="text-[10px] uppercase font-extrabold bg-[#F26522] text-white px-1.5 py-0.5 rounded">
-                      Super
-                    </span>
-                  </Link>
-                  <Link href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
-                    Pengaturan Profil
-                  </Link>
-                  <Link href="/my-artworks" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
-                    Kelola Postingan Saya
-                  </Link>
-                  <button className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium">
-                    Keluar
-                  </button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-3.5 py-2 text-xs font-bold text-gray-700 hover:text-[#F26522] hover:bg-gray-100 rounded-xl transition-all"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-3.5 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+                >
+                  Daftar
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Hamburger Toggle */}
             <button

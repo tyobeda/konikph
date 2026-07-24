@@ -16,7 +16,7 @@ import {
 import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
 import { CATEGORIES, REGIONS } from '@/lib/data';
-import { useData } from '@/context/DataContext';
+import { useData, SUPER_ADMIN_USER } from '@/context/DataContext';
 
 export default function UploadPage() {
   const router = useRouter();
@@ -62,7 +62,7 @@ export default function UploadPage() {
         category,
         region,
         format: fileFormat,
-        author: currentUser,
+        author: currentUser || SUPER_ADMIN_USER,
       });
 
       setIsSubmitting(false);

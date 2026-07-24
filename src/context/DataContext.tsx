@@ -44,8 +44,10 @@ export interface DataContextType {
 
   // Users / Creators
   users: User[];
-  currentUser: User;
-  setCurrentUser: (user: User) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
+  loginUser: (emailInput: string, passwordInput: string) => { success: boolean; message: string; user?: User };
+  logoutUser: () => void;
   updateUser: (id: string, updated: Partial<User>) => void;
   toggleVerifyUser: (id: string) => void;
   toggleSuspendUser: (id: string) => void;
@@ -163,6 +165,18 @@ const INITIAL_DPW_DEFAULT: DpwOffice[] = [
   },
 ];
 
+export const SUPER_ADMIN_USER: User = {
+  id: 'superadmin_1',
+  name: 'Super Admin PKSart',
+  email: 'admin@pks.art',
+  phone: '081199887766',
+  address: 'DPP PKS Official, Jakarta Selatan',
+  region: 'DPP PKS Official',
+  avatar: '/img/877859417715829.jpg',
+  role: 'Super Admin',
+  isVerified: true,
+};
+
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -198,15 +212,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ] as any;
   });
 
-  // Current Logged In User State
-  const [currentUser, setCurrentUser] = useState<User>(() => {
+
+  // Current Logged In User State (Nullable, Default to SUPER_ADMIN_USER if none stored)
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('pksart_current_user');
       if (stored) {
         try { return JSON.parse(stored); } catch (e) {}
       }
     }
-    return USERS.ahmad_jauhari;
+    return SUPER_ADMIN_USER;
   });
 
   // 3. Twibbons State
@@ -310,8 +325,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUser = (id: string, updated: Partial<User>) => {
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)));
-    if (currentUser.id === id) {
-      setCurrentUser((prev) => ({ ...prev, ...updated }));
+    if (currentUser?.id === id) {
+      setCurrentUser((prev) => (prev ? ({ ...prev, ...updated } as User) : null));
     }
   };
 
@@ -333,6 +348,56 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteUser = (id: string) => {
     setUsers((prev) => prev.filter((u) => u.id !== id));
+  };
+
+  const loginUser = (emailInput: string, passwordInput: string) => {
+    const cleanEmail = emailInput.trim().toLowerCase();
+    
+    // Check Super Admin credentials
+    if (
+      (cleanEmail === 'admin@pks.art' || cleanEmail === 'admin') &&
+      (passwordInput === 'admin123' || passwordInput === 'pksart2026')
+    ) {
+      setCurrentUser(SUPER_ADMIN_USER);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pksart_current_user', JSON.stringify(SUPER_ADMIN_USER));
+      }
+      return { success: true, message: 'Selamat datang Super Admin PKSart!', user: SUPER_ADMIN_USER };
+    }
+
+    // Check registered users in users list
+    const found = users.find((u) => u.email.toLowerCase() === cleanEmail || u.id === cleanEmail);
+    if (found) {
+      setCurrentUser(found);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pksart_current_user', JSON.stringify(found));
+      }
+      return { success: true, message: `Selamat datang kembali, ${found.name}!`, user: found };
+    }
+
+    // Auto-create demo user for login testing
+    const demoUser: User = {
+      id: `user_${Date.now()}`,
+      name: cleanEmail.split('@')[0] || 'Kreator PKS',
+      email: cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@pks.art`,
+      phone: '081234567890',
+      address: 'DKI Jakarta',
+      region: 'DKI Jakarta',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      role: 'Kreator',
+    };
+    setCurrentUser(demoUser);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pksart_current_user', JSON.stringify(demoUser));
+    }
+    return { success: true, message: `Selamat datang, ${demoUser.name}!`, user: demoUser };
+  };
+
+  const logoutUser = () => {
+    setCurrentUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pksart_current_user');
+    }
   };
 
   const registerUser = (user: Omit<User, 'id'>) => {
@@ -414,6 +479,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         users,
         currentUser,
         setCurrentUser,
+        loginUser,
+        logoutUser,
         updateUser,
         toggleVerifyUser,
         toggleSuspendUser,
