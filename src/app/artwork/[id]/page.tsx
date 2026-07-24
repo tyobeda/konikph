@@ -161,15 +161,15 @@ export default function ArtworkDetailPage() {
         {/* 📷 INSTAGRAM DESKTOP-STYLE 2-COLUMN POST CARD */}
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
           
-          {/* LEFT SIDE: 100% Uncropped Full Natural Height Image Display */}
-          <div className="lg:col-span-7 bg-[#F1F3F5] flex items-center justify-center p-3 sm:p-6 relative overflow-hidden min-h-[400px] lg:min-h-[560px]">
+          {/* LEFT SIDE: Flush Image Display (Zero Inner Padding, Matches Mockup 1:1) */}
+          <div className="lg:col-span-7 bg-black relative overflow-hidden flex items-center justify-center p-0 min-h-[380px] lg:min-h-[600px]">
             <img
               src={artwork.imageUrl}
               alt={artwork.title}
-              className="w-full h-auto max-h-[82vh] object-contain rounded-2xl shadow-md"
+              className="w-full h-full object-cover rounded-none"
             />
-            {/* Category Badge overlay */}
-            <div className="absolute top-5 left-5 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full">
+            {/* Category Badge Overlay */}
+            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-black uppercase px-3 py-1 rounded-lg tracking-wider">
               {artwork.category}
             </div>
           </div>
