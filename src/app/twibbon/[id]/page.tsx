@@ -235,39 +235,39 @@ export default function TwibbonEditorPage() {
               Kategori: {activeTwibbon.category} • Wilayah: {activeTwibbon.region}
             </p>
             
-            <div className="flex flex-wrap items-center gap-4 mt-3.5 pt-3.5 border-t border-gray-100 text-xs font-semibold text-gray-500">
+            <div className="flex flex-wrap items-center gap-4 mt-3.5 pt-3.5 border-t border-gray-100 text-xs font-medium text-gray-400">
               {/* Creator Info */}
               <div className="flex items-center gap-2">
                 <img
                   src={activeTwibbon.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
                   alt={activeTwibbon.author?.name}
-                  className="w-6 h-6 rounded-full object-cover border border-gray-200"
+                  className="w-6 h-6 rounded-full object-cover border border-gray-250"
                 />
-                <span className="text-gray-800 font-extrabold">{activeTwibbon.author?.name || 'Kreator PKSart'}</span>
+                <span className="text-gray-600 font-semibold">{activeTwibbon.author?.name || 'Kreator PKSart'}</span>
               </div>
               
               <span className="text-gray-300">•</span>
               
               {/* Used Count */}
               <div className="flex items-center gap-1">
-                <Layers size={14} className="text-purple-500" />
-                <span>Dipakai: <strong className="text-gray-800">{(activeTwibbon.usedCount || 0) + (isDownloading ? 1 : 0)} kali</strong></span>
+                <Layers size={13} className="text-purple-400" />
+                <span>Dipakai: <span className="text-gray-600 font-semibold">{(activeTwibbon.usedCount || 0) + (isDownloading ? 1 : 0)} kali</span></span>
               </div>
               
               <span className="text-gray-300">•</span>
 
               {/* Love Count */}
               <div className="flex items-center gap-1">
-                <Heart size={14} className="text-red-500 fill-red-50" />
-                <span>Disukai: <strong className="text-gray-800">{42 + (isFavorited ? 1 : 0)} orang</strong></span>
+                <Heart size={13} className="text-red-400 fill-red-50" />
+                <span>Disukai: <span className="text-gray-600 font-semibold">{42 + (isFavorited ? 1 : 0)} orang</span></span>
               </div>
 
               <span className="text-gray-300">•</span>
 
               {/* Share Count */}
               <div className="flex items-center gap-1">
-                <Share2 size={14} className="text-blue-500" />
-                <span>Dibagikan: <strong className="text-gray-800">{15 + (showShareToast ? 1 : 0)} kali</strong></span>
+                <Share2 size={13} className="text-blue-400" />
+                <span>Dibagikan: <span className="text-gray-600 font-semibold">{15 + (showShareToast ? 1 : 0)} kali</span></span>
               </div>
             </div>
           </div>
