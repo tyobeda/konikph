@@ -119,9 +119,7 @@ export default function TwibbonGalleryPage() {
     return matchesSearch && matchesTab;
   });
 
-  if (!isMounted) {
-    return null;
-  }
+
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
@@ -197,7 +195,25 @@ export default function TwibbonGalleryPage() {
         </div>
 
         {/* Twibbons Grid list */}
-        {filteredTwibbons.length === 0 ? (
+        {!isMounted ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div 
+                key={i} 
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm h-[320px] animate-pulse flex flex-col"
+              >
+                <div className="bg-gray-100 aspect-square w-full" />
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-100 rounded w-3/4" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
+                  <div className="h-8 bg-gray-150 rounded-xl w-full mt-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredTwibbons.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-150 shadow-sm p-6 max-w-xl mx-auto">
             <div className="w-16 h-16 bg-purple-50 text-[#F26522] rounded-full flex items-center justify-center mb-4 shadow-sm">
               <ImageIcon size={30} />
