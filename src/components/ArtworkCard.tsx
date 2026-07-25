@@ -60,17 +60,19 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       {/* Card Footer Info */}
       <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
         <div className="flex items-center gap-2.5 min-w-0">
-          {/* Creator Avatar */}
-          <img
-            src={artwork.author.avatar}
-            alt={artwork.author.name}
-            className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-gray-200"
-          />
+          {/* Creator Avatar Link */}
+          <Link href={`/creators/${artwork.author.id || 'admin'}`}>
+            <img
+              src={artwork.author.avatar}
+              alt={artwork.author.name}
+              className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-gray-200 hover:ring-[#F26522] transition-all"
+            />
+          </Link>
 
           <div className="min-w-0 flex flex-col">
-            {/* Creator Name & Province */}
+            {/* Creator Name & Province Link to Creator Profile */}
             <Link 
-              href={`/artwork/${artwork.id}`}
+              href={`/creators/${artwork.author.id || 'admin'}`}
               className="text-xs font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors"
             >
               {artwork.author.name} - {artwork.author.region}

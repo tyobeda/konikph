@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers } from 'lucide-react';
 import { Header } from '@/components/Header';
@@ -10,7 +11,7 @@ export default function TwibbonEditorPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { twibbons, updateTwibbon } = useData();
+  const { twibbons, updateTwibbon, users } = useData();
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -236,15 +237,24 @@ export default function TwibbonEditorPage() {
             </p>
             
             <div className="flex flex-wrap items-center gap-4 mt-3.5 pt-3.5 border-t border-gray-100 text-xs font-medium text-gray-400">
-              {/* Creator Info */}
-              <div className="flex items-center gap-2">
-                <img
-                  src={activeTwibbon.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
-                  alt={activeTwibbon.author?.name}
-                  className="w-6 h-6 rounded-full object-cover border border-gray-250"
-                />
-                <span className="text-gray-600 font-semibold">{activeTwibbon.author?.name || 'Kreator PKSart'}</span>
-              </div>
+            {(() => {
+              const creatorUser = users.find((u) => u.name === activeTwibbon.author?.name) || { id: 'admin' };
+              return (
+                <Link 
+                  href={`/creators/${creatorUser.id}`}
+                  className="flex items-center gap-2 hover:opacity-85 transition-opacity group"
+                >
+                  <img
+                    src={activeTwibbon.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
+                    alt={activeTwibbon.author?.name}
+                    className="w-6 h-6 rounded-full object-cover border border-gray-250 group-hover:border-[#F26522] transition-colors"
+                  />
+                  <span className="text-gray-600 font-semibold group-hover:text-[#F26522] transition-colors">
+                    {activeTwibbon.author?.name || 'Kreator PKSart'}
+                  </span>
+                </Link>
+              );
+            })()}
               
               <span className="text-gray-300">•</span>
               

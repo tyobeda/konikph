@@ -131,16 +131,20 @@ export default function CreatorsPage() {
                   <div>
                     {/* User Header Info */}
                     <div className="flex items-start gap-4 mb-4">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-14 h-14 rounded-full object-cover shrink-0 ring-2 ring-orange-100 shadow-sm"
-                      />
+                      <Link href={`/creators/${user.id}`} className="shrink-0">
+                        <img
+                          src={user.avatar}
+                          alt={user.name}
+                          className="w-14 h-14 rounded-full object-cover ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
+                        />
+                      </Link>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-extrabold text-base text-gray-900 truncate">
-                            {user.name}
-                          </h3>
+                          <Link href={`/creators/${user.id}`} className="hover:text-[#F26522] transition-colors truncate">
+                            <h3 className="font-extrabold text-base text-gray-900 hover:text-[#F26522] transition-colors truncate">
+                              {user.name}
+                            </h3>
+                          </Link>
                           {user.isVerified !== false && (
                             <BadgeCheck size={18} className="text-[#F26522] shrink-0" />
                           )}
@@ -193,10 +197,10 @@ export default function CreatorsPage() {
                       </a>
                     )}
                     <Link
-                      href={`/?search=${encodeURIComponent(user.name)}`}
+                      href={`/creators/${user.id}`}
                       className="flex-1 py-2 px-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl text-center transition-colors shadow-sm"
                     >
-                      Lihat Karya
+                      Buka Profil
                     </Link>
                   </div>
                 </div>

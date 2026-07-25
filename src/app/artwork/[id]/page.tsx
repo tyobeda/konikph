@@ -237,15 +237,19 @@ export default function ArtworkDetailPage() {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={artwork.author.avatar}
-                    alt={artwork.author.name}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-100 shadow-sm"
-                  />
+                  <Link href={`/creators/${artwork.author.id || 'admin'}`}>
+                    <img
+                      src={artwork.author.avatar}
+                      alt={artwork.author.name}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
+                    />
+                  </Link>
                   <div>
-                    <h2 className="text-sm font-extrabold text-gray-900 leading-snug">
-                      {artwork.author.name}
-                    </h2>
+                    <Link href={`/creators/${artwork.author.id || 'admin'}`}>
+                      <h2 className="text-sm font-extrabold text-gray-900 leading-snug hover:text-[#F26522] transition-colors">
+                        {artwork.author.name}
+                      </h2>
+                    </Link>
                     <p className="text-xs text-gray-500 font-medium">
                       {artwork.author.region} • Format {artwork.format || 'PSD/AI'}
                     </p>
@@ -286,15 +290,19 @@ export default function ArtworkDetailPage() {
 
                   return (
                     <div key={comment.id} className="flex gap-2.5 bg-gray-50/70 p-3 rounded-xl border border-gray-100 group">
-                      <img
-                        src={author.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
-                        alt={author.name}
-                        className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5"
-                      />
+                      <Link href={`/creators/${author.id || 'admin'}`}>
+                        <img
+                          src={author.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
+                          alt={author.name}
+                          className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 hover:ring-1 hover:ring-[#F26522] transition-all"
+                        />
+                      </Link>
                       <div className="flex-1 text-xs">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold text-gray-900">{author.name} - {author.region}</span>
+                            <Link href={`/creators/${author.id || 'admin'}`}>
+                              <span className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">{author.name} - {author.region}</span>
+                            </Link>
                             {comment.isEdited && (
                               <span className="text-[10px] text-gray-400 font-normal italic">(disunting)</span>
                             )}
