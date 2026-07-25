@@ -381,11 +381,11 @@ export default function AdminTwibbonPage() {
                   />
 
                   {filePreview || formData.imageUrl ? (
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="w-full flex flex-col items-center gap-2">
                       <img
                         src={filePreview || formData.imageUrl}
                         alt="Preview Twibbon"
-                        className="w-24 h-24 rounded-xl object-contain border border-purple-200 bg-white p-1 shadow-sm"
+                        className="w-full max-h-48 aspect-square rounded-xl object-contain border border-purple-200 bg-white p-2 shadow-sm"
                       />
                       <span className="text-xs font-bold text-[#F26522] group-hover:underline">
                         Ganti Berkas Gambar (PNG)
