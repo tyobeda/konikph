@@ -239,19 +239,6 @@ export default function TwibbonPage() {
                     />
                   )}
 
-                  {/* Top PKS Watermark */}
-                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none z-20">
-                    PKS Official Twibbon
-                  </div>
-
-                  {/* Bottom Frame Badge */}
-                  {frames[selectedFrame] && (
-                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent text-white text-center pointer-events-none z-20">
-                      <div className="inline-block bg-[#F26522] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
-                        {frames[selectedFrame]?.title}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Interaction Sliders */}
