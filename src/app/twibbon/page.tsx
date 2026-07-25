@@ -93,7 +93,13 @@ export default function TwibbonPage() {
                 )}
 
                 {/* Twibbon Overlay Frame Graphics */}
-                <div className="absolute inset-0 bg-gradient-to-t from-orange-500/40 via-red-600/30 to-black/50 pointer-events-none" />
+                {frames[selectedFrame]?.imageUrl && (
+                  <img
+                    src={frames[selectedFrame].imageUrl}
+                    alt="Bingkai Twibbon"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+                  />
+                )}
 
                 {/* Top PKS Watermark */}
                 <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none">
