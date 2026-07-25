@@ -3,15 +3,48 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Image as ImageIcon, Search, LayoutGrid, Layers } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Sparkles, 
+  Image as ImageIcon, 
+  Search, 
+  LayoutGrid, 
+  Layers, 
+  Heart, 
+  Plus, 
+  UploadCloud, 
+  X,
+  CheckCircle2
+} from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
+import { compressImageFile } from '@/lib/imageCompressor';
 
 export default function TwibbonGalleryPage() {
   const router = useRouter();
-  const { twibbons } = useData();
+  const { twibbons, addTwibbon, currentUser } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'favorites'>('all');
+
+  // Add Twibbon Template Modal States
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadCategory, setUploadCategory] = useState('Nasional');
+  const [uploadRegion, setUploadRegion] = useState('');
+  const [uploadFileUrl, setUploadFileUrl] = useState('');
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  // Favorites state
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('pksart_favorite_twibbons');
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -19,12 +52,72 @@ export default function TwibbonGalleryPage() {
 
   const approvedTwibbons = twibbons.filter((t) => t.status === 'Disetujui');
 
-  const filteredTwibbons = approvedTwibbons.filter(
-    (t) =>
+  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+      localStorage.setItem('pksart_favorite_twibbons', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploadingFile(true);
+      try {
+        const result = await compressImageFile(file, 2, 1920, 0.85);
+        setFilePreview(result.dataUrl);
+        setUploadFileUrl(result.dataUrl);
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses file PNG.');
+      } finally {
+        setIsUploadingFile(false);
+      }
+    }
+  };
+
+  const handleCreateTemplate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFileUrl) {
+      alert('Harap unggah berkas gambar bingkai PNG terlebih dahulu.');
+      return;
+    }
+
+    addTwibbon({
+      title: uploadTitle,
+      category: uploadCategory,
+      region: uploadRegion || 'Nasional',
+      imageUrl: uploadFileUrl,
+      author: {
+        name: currentUser?.name || 'Kreator PKSart',
+        avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      },
+      status: currentUser?.role === 'Super Admin' ? 'Disetujui' : 'Pending',
+      isFeatured: false,
+    });
+
+    setUploadSuccess(true);
+    setTimeout(() => {
+      setIsUploadModalOpen(false);
+      setUploadSuccess(false);
+      setUploadTitle('');
+      setUploadRegion('');
+      setUploadFileUrl('');
+      setFilePreview(null);
+    }, 2000);
+  };
+
+  const filteredTwibbons = approvedTwibbons.filter((t) => {
+    const matchesSearch =
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesTab = activeFilter === 'all' || favorites.includes(t.id);
+    return matchesSearch && matchesTab;
+  });
 
   if (!isMounted) {
     return null;
@@ -48,17 +141,59 @@ export default function TwibbonGalleryPage() {
             </p>
           </div>
 
-          {/* Search bar */}
-          <div className="relative w-full md:max-w-xs shrink-0">
-            <Search size={16} className="absolute left-3.5 top-3 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari bingkai twibbon..."
-              className="w-full bg-white text-sm rounded-xl pl-10 pr-4 py-2.5 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 shadow-sm transition-all"
-            />
+          <div className="flex items-center gap-3 w-full md:w-auto shrink-0 flex-wrap">
+            {/* Create Template Twibbon Button */}
+            <button
+              onClick={() => {
+                if (!currentUser) {
+                  router.push('/login?redirect=/twibbon');
+                } else {
+                  setIsUploadModalOpen(true);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+            >
+              <Plus size={16} />
+              <span>Buat Template Twibbon</span>
+            </button>
+
+            {/* Search bar */}
+            <div className="relative flex-1 md:max-w-xs">
+              <Search size={16} className="absolute left-3.5 top-3 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari bingkai twibbon..."
+                className="w-full bg-white text-sm rounded-xl pl-10 pr-4 py-2.5 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 shadow-sm transition-all"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Tab Filters */}
+        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold">
+          <button
+            onClick={() => setActiveFilter('all')}
+            className={`pb-3 relative transition-all ${
+              activeFilter === 'all'
+                ? 'text-[#F26522] border-b-2 border-[#F26522]'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <span>Semua Bingkai ({approvedTwibbons.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter('favorites')}
+            className={`pb-3 relative transition-all flex items-center gap-1.5 ${
+              activeFilter === 'favorites'
+                ? 'text-[#F26522] border-b-2 border-[#F26522]'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <Heart size={14} className={activeFilter === 'favorites' ? 'fill-[#F26522]' : ''} />
+            <span>Favorit Saya ({favorites.length})</span>
+          </button>
         </div>
 
         {/* Twibbons Grid list */}
@@ -67,24 +202,49 @@ export default function TwibbonGalleryPage() {
             <div className="w-16 h-16 bg-purple-50 text-[#F26522] rounded-full flex items-center justify-center mb-4 shadow-sm">
               <ImageIcon size={30} />
             </div>
-            <h3 className="text-base font-bold text-gray-900">Tidak Ada Bingkai Twibbon</h3>
+            <h3 className="text-base font-bold text-gray-900">
+              {activeFilter === 'favorites' ? 'Belum Ada Twibbon Favorit' : 'Tidak Ada Bingkai Twibbon'}
+            </h3>
             <p className="text-xs text-gray-500 mt-1 mb-6">
-              Tidak ada bingkai twibbon yang cocok dengan kata kunci pencarian Anda saat ini.
+              {activeFilter === 'favorites' 
+                ? 'Klik ikon hati pada bingkai twibbon di galeri untuk menambahkannya ke favorit Anda.'
+                : 'Tidak ada bingkai twibbon yang cocok dengan kata kunci pencarian Anda saat ini.'}
             </p>
-            <button
-              onClick={() => setSearchQuery('')}
-              className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all"
-            >
-              Reset Pencarian
-            </button>
+            {activeFilter === 'favorites' ? (
+              <button
+                onClick={() => setActiveFilter('all')}
+                className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all"
+              >
+                Lihat Semua Bingkai
+              </button>
+            ) : (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all"
+              >
+                Reset Pencarian
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredTwibbons.map((tw) => (
               <div 
                 key={tw.id}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group flex flex-col"
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group flex flex-col relative"
               >
+                {/* Favorite Heart Toggle Button Overlay */}
+                <button
+                  onClick={(e) => toggleFavorite(tw.id, e)}
+                  className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md text-gray-400 hover:text-red-500 transition-all active:scale-90"
+                  title={favorites.includes(tw.id) ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
+                >
+                  <Heart 
+                    size={16} 
+                    className={favorites.includes(tw.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'} 
+                  />
+                </button>
+
                 {/* Checkered pattern background for transparent twibbons */}
                 <div className="relative aspect-square w-full bg-gray-50 flex items-center justify-center p-6 border-b border-gray-50/80 overflow-hidden">
                   <div 
@@ -100,7 +260,7 @@ export default function TwibbonGalleryPage() {
                     alt={tw.title}
                     className="w-full h-full object-contain drop-shadow-md group-hover:scale-[1.03] transition-transform duration-300"
                   />
-                  <span className="absolute top-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     {tw.category}
                   </span>
                 </div>
@@ -135,6 +295,143 @@ export default function TwibbonGalleryPage() {
           </div>
         )}
       </main>
+
+      {/* Upload Twibbon Template Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-150 relative">
+            <button 
+              onClick={() => setIsUploadModalOpen(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+            >
+              <X size={18} />
+            </button>
+
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-1.5">
+              <Plus size={18} className="text-[#F26522]" />
+              <span>Buat Template Twibbon Baru</span>
+            </h3>
+
+            {uploadSuccess ? (
+              <div className="text-center py-8 space-y-3">
+                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h4 className="text-base font-bold text-gray-900">Template Berhasil Diajukan!</h4>
+                <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
+                  Template twibbon baru Anda berhasil dibuat. Silakan tunggu peninjauan dan persetujuan dari Super Admin agar tampil di galeri.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateTemplate} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Judul Template Twibbon
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadTitle}
+                    onChange={(e) => setUploadTitle(e.target.value)}
+                    placeholder="Contoh: Twibbon Milad PKS 26"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                    Unggah Bingkai Gambar PNG (Harus Transparan)
+                  </label>
+                  
+                  <label className="border-2 border-dashed border-purple-200 hover:border-[#F26522] bg-purple-50/50 hover:bg-orange-50/10 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
+                    <input
+                      type="file"
+                      accept="image/png"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+
+                    {filePreview ? (
+                      <div className="w-full flex flex-col items-center gap-2">
+                        <img
+                          src={filePreview}
+                          alt="Preview Upload"
+                          className="w-full max-h-40 aspect-square rounded-xl object-contain border border-purple-200 bg-white p-2 shadow-sm"
+                        />
+                        <span className="text-xs font-bold text-[#F26522] group-hover:underline">
+                          Ganti Gambar PNG
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 py-2">
+                        <div className="p-3 bg-white rounded-full text-purple-600 group-hover:text-[#F26522] shadow-sm transition-colors">
+                          <UploadCloud size={24} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-900">
+                            {isUploadingFile ? 'Sedang memproses berkas...' : 'Klik di sini untuk mengunggah berkas PNG'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            Format wajib PNG transparan persegi (rekomendasi 1080x1080px)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Kategori Twibbon
+                    </label>
+                    <select
+                      value={uploadCategory}
+                      onChange={(e) => setUploadCategory(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
+                    >
+                      <option value="Nasional">Nasional</option>
+                      <option value="Daerah">Daerah</option>
+                      <option value="Milenial">Milenial</option>
+                      <option value="Pemuda">Pemuda</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Wilayah / DPW
+                    </label>
+                    <input
+                      type="text"
+                      value={uploadRegion}
+                      onChange={(e) => setUploadRegion(e.target.value)}
+                      placeholder="Contoh: DPW Jatim"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsUploadModalOpen(false)}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-750 text-xs font-bold rounded-xl"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
+                  >
+                    Ajukan Template
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
