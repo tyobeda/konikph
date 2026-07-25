@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
 
@@ -12,6 +12,14 @@ export default function TwibbonPage() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Interaction State variables
+  const [scale, setScale] = useState(1.0);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isDownloading, setIsDownloading] = useState(false);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -28,15 +36,87 @@ export default function TwibbonPage() {
     const file = e.target.files?.[0];
     if (file) {
       setPhotoUrl(URL.createObjectURL(file));
+      // Reset position offsets and scale when uploading new photo
+      setScale(1.0);
+      setOffsetX(0);
+      setOffsetY(0);
     }
   };
 
-  const handleDownloadTwibbon = () => {
-    if (!photoUrl) {
+  const handleDownloadTwibbon = async () => {
+    if (!photoUrl || frames.length === 0) {
       alert('Harap unggah foto Anda terlebih dahulu untuk membuat Twibbon.');
       return;
     }
-    alert('Twibbon Anda berhasil diproses dan diunduh!');
+
+    setIsDownloading(true);
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1080;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Gagal memproses kanvas gambar.');
+
+      // Load user photo
+      const userImg = new Image();
+      userImg.crossOrigin = 'anonymous';
+      userImg.src = photoUrl;
+      await new Promise((resolve, reject) => {
+        userImg.onload = resolve;
+        userImg.onerror = reject;
+      });
+
+      // Load twibbon frame
+      const frameImg = new Image();
+      frameImg.crossOrigin = 'anonymous';
+      frameImg.src = frames[selectedFrame].imageUrl;
+      await new Promise((resolve, reject) => {
+        frameImg.onload = resolve;
+        frameImg.onerror = reject;
+      });
+
+      // 1. Draw user image with zoom and offset translated
+      // Preview container size maps to 1080x1080 canvas
+      const previewSize = 332; // inside size of max-w-[340px] minus borders
+      const scaleFactor = 1080 / previewSize;
+
+      ctx.clearRect(0, 0, 1080, 1080);
+      ctx.save();
+
+      // Translate context to center plus the offsets scaled to 1080px
+      ctx.translate(540 + offsetX * scaleFactor, 540 + offsetY * scaleFactor);
+      ctx.scale(scale, scale);
+
+      // Draw the user image centered
+      const imgRatio = userImg.width / userImg.height;
+      let drawW = 1080;
+      let drawH = 1080;
+      if (imgRatio > 1) {
+        drawW = 1080 * imgRatio;
+      } else {
+        drawH = 1080 / imgRatio;
+      }
+
+      ctx.drawImage(userImg, -drawW / 2, -drawH / 2, drawW, drawH);
+      ctx.restore();
+
+      // 2. Draw twibbon frame overlay
+      ctx.drawImage(frameImg, 0, 0, 1080, 1080);
+
+      // 3. Trigger download
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `twibbon-${frames[selectedFrame].title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      alert('Gagal mengunduh twibbon. Pastikan koneksi internet stabil.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -66,7 +146,7 @@ export default function TwibbonPage() {
                 <Sparkles size={22} className="text-orange-500" />
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Pilih bingkai twibbon resmi PKS, masukkan foto Anda, dan siap dibagikan ke media sosial.
+                Pilih bingkai twibbon resmi PKS, masukkan foto Anda, geser & perbesar foto, lalu unduh hasilnya.
               </p>
             </div>
           </div>
@@ -89,20 +169,59 @@ export default function TwibbonPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              
               {/* Interactive Preview Canvas Box */}
               <div className="flex flex-col items-center">
                 <p className="text-sm font-bold text-gray-700 mb-3 self-start">
                   Pratinjau Hasil Twibbon:
                 </p>
 
-                <div className="relative w-full max-w-[340px] aspect-square rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-gray-100 flex items-center justify-center">
+                <div 
+                  className="relative w-full max-w-[340px] aspect-square rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-gray-100 flex items-center justify-center cursor-move select-none"
+                  onMouseDown={(e) => {
+                    if (photoUrl) {
+                      e.preventDefault();
+                      setIsDragging(true);
+                      setDragStart({ x: e.clientX - offsetX, y: e.clientY - offsetY });
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    if (photoUrl && e.touches.length > 0) {
+                      setIsDragging(true);
+                      const touch = e.touches[0];
+                      setDragStart({ x: touch.clientX - offsetX, y: touch.clientY - offsetY });
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    if (isDragging) {
+                      setOffsetX(e.clientX - dragStart.x);
+                      setOffsetY(e.clientY - dragStart.y);
+                    }
+                  }}
+                  onTouchMove={(e) => {
+                    if (isDragging && e.touches.length > 0) {
+                      const touch = e.touches[0];
+                      setOffsetX(touch.clientX - dragStart.x);
+                      setOffsetY(touch.clientY - dragStart.y);
+                    }
+                  }}
+                  onMouseUp={() => setIsDragging(false)}
+                  onMouseLeave={() => setIsDragging(false)}
+                  onTouchEnd={() => setIsDragging(false)}
+                >
                   
                   {/* Uploaded User Photo */}
                   {photoUrl ? (
                     <img
                       src={photoUrl}
                       alt="Foto Profil User"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute pointer-events-none origin-center max-w-none transition-transform duration-75"
+                      style={{
+                        transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
                     />
                   ) : (
                     <div className="flex flex-col items-center text-gray-400 text-center p-4">
@@ -121,19 +240,43 @@ export default function TwibbonPage() {
                   )}
 
                   {/* Top PKS Watermark */}
-                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none">
+                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none z-20">
                     PKS Official Twibbon
                   </div>
 
                   {/* Bottom Frame Badge */}
                   {frames[selectedFrame] && (
-                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent text-white text-center pointer-events-none">
+                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent text-white text-center pointer-events-none z-20">
                       <div className="inline-block bg-[#F26522] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                         {frames[selectedFrame]?.title}
                       </div>
                     </div>
                   )}
                 </div>
+
+                {/* Interaction Sliders */}
+                {photoUrl && (
+                  <div className="w-full max-w-[340px] mt-5 px-1 space-y-3.5">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-gray-700">Skala Perbesar/Perkecil Foto:</span>
+                        <span className="text-xs font-extrabold text-[#F26522]">{Math.round(scale * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="3.0"
+                        step="0.01"
+                        value={scale}
+                        onChange={(e) => setScale(parseFloat(e.target.value))}
+                        className="w-full accent-[#F26522] bg-gray-200 h-1.5 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-400 text-center leading-relaxed">
+                      💡 Sentuh/klik & seret gambar di atas untuk menyesuaikan posisinya.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Controls & Options */}
@@ -161,7 +304,7 @@ export default function TwibbonPage() {
                   <label className="block text-sm font-bold text-gray-800 mb-2">
                     2. Pilih Desain Bingkai Twibbon
                   </label>
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                     {frames.map((frame, index) => (
                       <button
                         key={frame.id}
@@ -184,10 +327,20 @@ export default function TwibbonPage() {
                 {/* Download Action */}
                 <button
                   onClick={handleDownloadTwibbon}
-                  className="w-full py-3.5 px-6 bg-black hover:bg-gray-800 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-sm sm:text-base"
+                  disabled={isDownloading}
+                  className="w-full py-3.5 px-6 bg-black hover:bg-gray-800 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-sm sm:text-base disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  <Download size={20} />
-                  <span>Unduh Hasil Twibbon (PNG)</span>
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      <span>Sedang Memproses Gambar...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={20} />
+                      <span>Unduh Hasil Twibbon (PNG)</span>
+                    </>
+                  )}
                 </button>
 
               </div>
