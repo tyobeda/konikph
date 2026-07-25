@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
 import { ArtworkCard } from '@/components/ArtworkCard';
 import { CATEGORIES, REGIONS } from '@/lib/data';
@@ -271,11 +272,7 @@ export default function ExplorePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-500">
-        <div className="max-w-7xl mx-auto px-4">
-          <p>© {new Date().getFullYear()} PKSart. Gallery Design & Photos PKS Official.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -12,17 +12,29 @@ import {
   CheckCircle,
   MessageSquare,
   Send,
+  Edit2,
+  Trash2,
+  Check,
+  X,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { USERS } from '@/lib/data';
 import { ArtworkCard } from '@/components/ArtworkCard';
+import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 import { useData } from '@/context/DataContext';
 
 export default function ArtworkDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { artworks } = useData();
+  const { artworks, currentUser, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork } = useData();
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Find artwork or default to first item
   const artwork =
@@ -52,26 +64,80 @@ export default function ArtworkDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [showToast, setShowToast] = useState('');
-
-  const [comments, setComments] = useState([
-    {
-      id: 'c1',
-      name: 'Lita',
-      region: 'DIY',
-      text: 'Desainnya sangat menarik dan mudah diedit. Sukses selalu!',
-      time: '2 jam lalu',
-      avatar: USERS.lita_diy.avatar,
-    },
-    {
-      id: 'c2',
-      name: 'Roni',
-      region: 'Sumut',
-      text: 'Izin unduh untuk publikasi DPD daerah ya kang. Terima kasih!',
-      time: '5 jam lalu',
-      avatar: USERS.roni_sumut.avatar,
-    },
-  ]);
   const [newComment, setNewComment] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+
+  const currentComments = artwork.comments || [];
+
+  const getCommentAuthor = (comment: any) => {
+    if (comment && comment.author && typeof comment.author === 'object') {
+      return comment.author;
+    }
+    return {
+      name: comment?.name || 'Pengguna PKS',
+      region: comment?.region || 'Nasional',
+      avatar: comment?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      email: comment?.email || '',
+      id: comment?.authorId || '',
+    };
+  };
+
+  const getCommentContent = (comment: any) => {
+    return comment?.content || comment?.text || '';
+  };
+
+  const getCommentTime = (comment: any) => {
+    return comment?.createdAt || comment?.time || 'Baru saja';
+  };
+
+  const canEditComment = (comment: any) => {
+    const author = getCommentAuthor(comment);
+    const isOwner = currentUser && (
+      (author.email && author.email === currentUser.email) ||
+      (author.id && author.id === currentUser.id) ||
+      (author.name && author.name === currentUser.name)
+    );
+    if (!isOwner) return false;
+    // Allow edit if created within 60 seconds (1 minute)
+    if (comment.timestampMs) {
+      return Date.now() - comment.timestampMs <= 60000;
+    }
+    return true;
+  };
+
+  const canDeleteComment = (comment: any) => {
+    const author = getCommentAuthor(comment);
+    const isOwner = currentUser && (
+      (author.email && author.email === currentUser.email) ||
+      (author.id && author.id === currentUser.id) ||
+      (author.name && author.name === currentUser.name)
+    );
+    const isSuperAdmin = currentUser?.role === 'Super Admin';
+    return Boolean(isOwner || isSuperAdmin);
+  };
+
+  const handleStartEdit = (comment: any) => {
+    setEditingCommentId(comment.id);
+    setEditContent(getCommentContent(comment));
+  };
+
+  const handleSaveEdit = (commentId: string) => {
+    if (!editContent.trim()) return;
+    editCommentInArtwork(artwork.id, commentId, editContent);
+    setEditingCommentId(null);
+    setEditContent('');
+    triggerToast('Komentar berhasil diperbarui!');
+  };
+
+  const confirmDeleteComment = () => {
+    if (deletingCommentId) {
+      deleteCommentFromArtwork(artwork.id, deletingCommentId);
+      setDeletingCommentId(null);
+      triggerToast('Komentar berhasil dihapus');
+    }
+  };
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
@@ -114,19 +180,9 @@ export default function ArtworkDetailPage() {
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    setComments([
-      ...comments,
-      {
-        id: Date.now().toString(),
-        name: 'Roni',
-        region: 'Sumut',
-        text: newComment,
-        time: 'Baru saja',
-        avatar: USERS.roni_sumut.avatar,
-      },
-    ]);
+    addCommentToArtwork(artwork.id, newComment);
     setNewComment('');
-    triggerToast('Komentar ditambahkan!');
+    triggerToast('Komentar berhasil dikirim!');
   };
 
   const relatedArtworks = artworks.filter((item) => item.id !== artwork.id).slice(0, 4);
@@ -209,28 +265,104 @@ export default function ArtworkDetailPage() {
             </div>
 
             {/* Middle: Scrollable Comments Section */}
-            <div className="flex-1 py-4 overflow-y-auto max-h-[260px] lg:max-h-[320px] space-y-3 pr-1 my-2">
+            <div suppressHydrationWarning className="flex-1 py-4 overflow-y-auto max-h-[260px] lg:max-h-[320px] space-y-3 pr-1 my-2">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <MessageSquare size={14} className="text-[#F26522]" />
-                <span>Komentar ({comments.length})</span>
+                <span>Komentar ({currentComments.length})</span>
               </h3>
 
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2.5 bg-gray-50/70 p-3 rounded-xl border border-gray-100">
-                  <img
-                    src={comment.avatar}
-                    alt={comment.name}
-                    className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5"
-                  />
-                  <div className="flex-1 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-gray-900">{comment.name} - {comment.region}</span>
-                      <span className="text-[10px] text-gray-400">{comment.time}</span>
-                    </div>
-                    <p className="text-gray-700 mt-1 leading-normal">{comment.text}</p>
-                  </div>
+              {currentComments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200 p-4">
+                  <MessageSquare size={22} className="text-gray-300 mb-1.5" />
+                  <p className="text-xs font-bold text-gray-500 font-sans">Belum ada komentar</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Jadilah yang pertama menuliskan pendapat Anda!</p>
                 </div>
-              ))}
+              ) : (
+                currentComments.map((comment: any) => {
+                  const author = getCommentAuthor(comment);
+                  const content = getCommentContent(comment);
+                  const time = getCommentTime(comment);
+                  const isEditingThis = editingCommentId === comment.id;
+
+                  return (
+                    <div key={comment.id} className="flex gap-2.5 bg-gray-50/70 p-3 rounded-xl border border-gray-100 group">
+                      <img
+                        src={author.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
+                        alt={author.name}
+                        className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5"
+                      />
+                      <div className="flex-1 text-xs">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-gray-900">{author.name} - {author.region}</span>
+                            {comment.isEdited && (
+                              <span className="text-[10px] text-gray-400 font-normal italic">(disunting)</span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400">{time}</span>
+
+                            {/* Comment Edit & Delete Controls */}
+                            <div className="flex items-center gap-1">
+                              {canEditComment(comment) && !isEditingThis && (
+                                <button
+                                  onClick={() => handleStartEdit(comment)}
+                                  className="text-gray-400 hover:text-[#F26522] transition-colors p-0.5"
+                                  title="Edit Komentar (Maks 1 Menit)"
+                                >
+                                  <Edit2 size={12} />
+                                </button>
+                              )}
+
+                              {canDeleteComment(comment) && !isEditingThis && (
+                                <button
+                                  onClick={() => setDeletingCommentId(comment.id)}
+                                  className="text-gray-400 hover:text-red-600 transition-colors p-0.5"
+                                  title="Hapus Komentar"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Comment Content or Edit Form */}
+                        {isEditingThis ? (
+                          <div className="mt-2 space-y-2">
+                            <input
+                              type="text"
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              className="w-full bg-white border border-[#F26522] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-semibold focus:outline-none"
+                              autoFocus
+                            />
+                            <div className="flex items-center gap-1.5 justify-end">
+                              <button
+                                onClick={() => setEditingCommentId(null)}
+                                className="px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-0.5"
+                              >
+                                <X size={12} />
+                                <span>Batal</span>
+                              </button>
+                              <button
+                                onClick={() => handleSaveEdit(comment.id)}
+                                className="px-2.5 py-1 text-[11px] font-bold bg-[#F26522] text-white rounded-md hover:bg-[#d85417] transition-colors flex items-center gap-0.5 shadow-sm"
+                              >
+                                <Check size={12} />
+                                <span>Simpan</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-gray-700 mt-1 leading-normal">{content}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* Bottom Actions & Input Form */}
@@ -243,7 +375,7 @@ export default function ArtworkDetailPage() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Tulis komentar..."
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
+                  className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                 />
                 <button
                   type="submit"
@@ -315,11 +447,17 @@ export default function ArtworkDetailPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-500 mt-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <p>© {new Date().getFullYear()} PKSart. Gallery Design & Photos PKS Official.</p>
-        </div>
-      </footer>
+      <Footer />
+
+      {/* Custom Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={Boolean(deletingCommentId)}
+        title="Hapus Komentar?"
+        message="Apakah Anda yakin ingin menghapus komentar ini? Komentar yang telah dihapus tidak dapat dikembalikan."
+        confirmLabel="Ya, Hapus"
+        onConfirm={confirmDeleteComment}
+        onCancel={() => setDeletingCommentId(null)}
+      />
     </div>
   );
 }

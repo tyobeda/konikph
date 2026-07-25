@@ -133,7 +133,11 @@ export default function UploadPage() {
                       />
                       {compressionInfo && (
                         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                          <span>⚡ Kompresi Sukses: {compressionInfo.originalSizeMb}MB → {compressionInfo.compressedSizeMb}MB (Max 2MB)</span>
+                          {compressionInfo.isCompressed ? (
+                            <span>⚡ Kompresi Sukses: {compressionInfo.originalSizeMb}MB → {compressionInfo.compressedSizeMb}MB (Maks 2MB)</span>
+                          ) : (
+                            <span>✨ Ukuran Optimal: {compressionInfo.originalSizeMb}MB (Maks 2MB)</span>
+                          )}
                         </div>
                       )}
                     </div>

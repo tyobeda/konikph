@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Artwork, User, Comment } from '@/lib/types';
+import { Artwork, User, Comment, ResetRequest } from '@/lib/types';
 import { INITIAL_ARTWORKS, USERS } from '@/lib/data';
 
 export interface TwibbonFrame {
@@ -41,6 +41,8 @@ export interface DataContextType {
   toggleLikeArtwork: (id: string) => void;
   incrementDownloadCount: (id: string) => void;
   addCommentToArtwork: (id: string, content: string) => void;
+  editCommentInArtwork: (artworkId: string, commentId: string, newContent: string) => void;
+  deleteCommentFromArtwork: (artworkId: string, commentId: string) => void;
 
   // Users / Creators
   users: User[];
@@ -70,10 +72,33 @@ export interface DataContextType {
   siteSettings: {
     siteName: string;
     siteDescription: string;
-    logoUrl: string;
+    logoUrl: string;       // Logo Utama (Homepage)
+    logoAdminUrl: string;  // Logo Warna Terang (Admin Panel)
+    logoFooterUrl: string; // Logo Putih (Footer)
     faviconUrl: string;
+    // CTA Banner Settings
+    ctaTitle?: string;
+    ctaDescription?: string;
+    ctaButtonText?: string;
+    ctaButtonLink?: string;
+    ctaLogoUrl?: string;
+    ctaImageUrl?: string;
+    ctaBgUrl?: string;
+    ctaEnabled?: boolean;
+    ctaLinks?: { label: string; url: string }[];
+    ctaSocialText?: string;
+    ctaSocialUrl?: string;
   };
   updateSiteSettings: (settings: Partial<DataContextType['siteSettings']>) => void;
+
+  // Hydration Mount State Indicator
+  isMounted: boolean;
+
+  // Reset Requests Management
+  resetRequests: ResetRequest[];
+  addResetRequest: (name: string, email: string, phone: string) => void;
+  completeResetRequest: (id: string) => void;
+  deleteResetRequest: (id: string) => void;
 
   // Mass Reset / Delete
   massDeletePosts: () => void;
@@ -192,6 +217,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...art,
       status: (idx % 3 === 0 ? 'Disetujui' : idx % 3 === 1 ? 'Disetujui' : 'Pending') as any,
       isFeatured: idx === 0 || idx === 2,
+      comments: [
+        {
+          id: 'c1',
+          content: 'Desainnya sangat menarik dan mudah diedit. Sukses selalu!',
+          author: USERS.lita_diy,
+          createdAt: '2 jam lalu',
+        },
+        {
+          id: 'c2',
+          content: 'Izin unduh untuk publikasi DPD daerah ya kang. Terima kasih!',
+          author: USERS.roni_sumut,
+          createdAt: '5 jam lalu',
+        },
+      ]
     }));
   });
 
@@ -251,10 +290,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     siteName: 'PKSart - Galeri Desain & Foto PKS Official',
     siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
     logoUrl: '/favicon.ico',
+    logoAdminUrl: '/favicon.ico',
+    logoFooterUrl: '/favicon.ico',
     faviconUrl: '/favicon.ico',
+    // CTA Banner Defaults
+    ctaTitle: 'Ayo Gabung Jadi Kreator PKSart!',
+    ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
+    ctaButtonText: 'Daftar Sekarang',
+    ctaButtonLink: '/register',
+    ctaLogoUrl: '',
+    ctaImageUrl: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22white%22 fill-opacity=%220.15%22/><path d=%22M35 30H65V70H35V30Z%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22/><path d=%22M35 55L48 45L58 52L65 47%22 stroke=%22white%22 stroke-width=%223%22 fill=%22none%22/><circle cx=%2242%22 cy=%2242%22 r=%223%22 fill=%22white%22/></svg>',
+    ctaBgUrl: '',
+    ctaEnabled: true,
+    ctaLinks: [
+      { label: 'Beranda', url: '/' },
+      { label: 'Tentang PKSART', url: '#' },
+      { label: 'PKS Bicara', url: '#' },
+      { label: 'Khidmat PKS', url: '#' },
+      { label: 'Galeri PKSART', url: '#' },
+      { label: 'Jejaring', url: '#' },
+      { label: 'Gabung', url: '/register' },
+      { label: 'Download', url: '#' },
+      { label: 'Login/Upload', url: '/login' }
+    ],
+    ctaSocialText: 'Follow @pksart',
+    ctaSocialUrl: '#'
   });
 
   const [isMounted, setIsMounted] = useState(false);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const [resetRequests, setResetRequests] = useState<ResetRequest[]>([]);
 
   // Load stored state safely after client mount
   useEffect(() => {
@@ -279,10 +344,73 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } catch (e) {}
       }
+
+      const storedArtworks = localStorage.getItem('pksart_artworks');
+      if (storedArtworks) {
+        try {
+          const parsed = JSON.parse(storedArtworks);
+          if (parsed && parsed.length > 0) {
+            setArtworks(parsed);
+          }
+        } catch (e) {}
+      }
+
+      const storedSettings = localStorage.getItem('pksart_settings');
+      if (storedSettings) {
+        try {
+          const parsed = JSON.parse(storedSettings);
+          if (parsed && parsed.siteName) {
+            setSiteSettings(parsed);
+          }
+        } catch (e) {}
+      }
+
+      const storedResets = localStorage.getItem('pksart_reset_requests');
+      if (storedResets) {
+        try {
+          setResetRequests(JSON.parse(storedResets));
+        } catch (e) {}
+      }
+      setIsSettingsLoaded(true);
     }
   }, []);
 
-  // LocalStorage Persist Synchronization (Guarded by isMounted)
+  // LocalStorage Persist Synchronization (Guarded by isMounted & isSettingsLoaded)
+  useEffect(() => {
+    if (!isMounted || !isSettingsLoaded) return;
+    localStorage.setItem('pksart_settings', JSON.stringify(siteSettings));
+
+    // Dynamic head update
+    if (typeof window !== 'undefined') {
+      if (siteSettings.siteName) {
+        document.title = siteSettings.siteName;
+      }
+      if (siteSettings.faviconUrl) {
+        // Clear all previous favicon nodes to avoid duplicates/overrides
+        const existingLinks = document.querySelectorAll("link[rel*='icon']");
+        existingLinks.forEach((el) => el.parentNode?.removeChild(el));
+
+        // Create a single clean link element
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        
+        const isDataUri = siteSettings.faviconUrl.startsWith('data:');
+        link.type = siteSettings.faviconUrl.startsWith('data:image/svg') 
+          ? 'image/svg+xml' 
+          : isDataUri 
+          ? 'image/png' 
+          : 'image/x-icon';
+
+        // ONLY append query parameters to normal URLs, not data URIs
+        link.href = isDataUri 
+          ? siteSettings.faviconUrl 
+          : `${siteSettings.faviconUrl}?v=${Date.now()}`;
+          
+        document.head.appendChild(link);
+      }
+    }
+  }, [siteSettings, isMounted, isSettingsLoaded]);
+
   useEffect(() => {
     if (!isMounted) return;
     localStorage.setItem('pksart_artworks', JSON.stringify(artworks));
@@ -309,6 +437,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isMounted) return;
     localStorage.setItem('pksart_dpw', JSON.stringify(dpwList));
   }, [dpwList, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('pksart_reset_requests', JSON.stringify(resetRequests));
+  }, [resetRequests, isMounted]);
+
+  const addResetRequest = (name: string, email: string, phone: string) => {
+    const newReq: ResetRequest = {
+      id: 'req-' + Math.random().toString(36).substr(2, 9),
+      name,
+      email,
+      phone,
+      status: 'Pending',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setResetRequests((prev) => [newReq, ...prev]);
+  };
+
+  const completeResetRequest = (id: string) => {
+    setResetRequests((prev) =>
+      prev.map((req) => (req.id === id ? { ...req, status: 'Completed' } : req))
+    );
+  };
+
+  const deleteResetRequest = (id: string) => {
+    setResetRequests((prev) => prev.filter((req) => req.id !== id));
+  };
 
   // Actions
   const addArtwork = (art: Omit<Artwork, 'id' | 'createdAt' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'>) => {
@@ -346,16 +501,75 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addCommentToArtwork = (id: string, content: string) => {
-    setArtworks((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? {
-              ...a,
-              commentsCount: a.commentsCount + 1,
-            }
-          : a
-      )
-    );
+    if (!content.trim()) return;
+    const author = currentUser || SUPER_ADMIN_USER;
+
+    const newComment: Comment = {
+      id: `comment-${Date.now()}`,
+      content: content.trim(),
+      author: { ...author },
+      createdAt: 'Baru saja',
+      timestampMs: Date.now(),
+      isEdited: false,
+    };
+
+    setArtworks((prev) => {
+      const nextArtworks = prev.map((a) => {
+        if (a.id === id) {
+          const existing = a.comments || [];
+          return {
+            ...a,
+            commentsCount: (a.commentsCount || 0) + 1,
+            comments: [newComment, ...existing],
+          };
+        }
+        return a;
+      });
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pksart_artworks', JSON.stringify(nextArtworks));
+      }
+      return nextArtworks;
+    });
+  };
+
+  const editCommentInArtwork = (artworkId: string, commentId: string, newContent: string) => {
+    if (!newContent.trim()) return;
+    setArtworks((prev) => {
+      const nextArtworks = prev.map((a) => {
+        if (a.id === artworkId && a.comments) {
+          const updatedComments = a.comments.map((c) =>
+            c.id === commentId ? { ...c, content: newContent.trim(), isEdited: true } : c
+          );
+          return { ...a, comments: updatedComments };
+        }
+        return a;
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pksart_artworks', JSON.stringify(nextArtworks));
+      }
+      return nextArtworks;
+    });
+  };
+
+  const deleteCommentFromArtwork = (artworkId: string, commentId: string) => {
+    setArtworks((prev) => {
+      const nextArtworks = prev.map((a) => {
+        if (a.id === artworkId && a.comments) {
+          const filtered = a.comments.filter((c) => c.id !== commentId);
+          return {
+            ...a,
+            commentsCount: Math.max(0, (a.commentsCount || 1) - 1),
+            comments: filtered,
+          };
+        }
+        return a;
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pksart_artworks', JSON.stringify(nextArtworks));
+      }
+      return nextArtworks;
+    });
   };
 
   const updateUser = (id: string, updated: Partial<User>) => {
@@ -416,6 +630,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check registered users in users list
     const found = users.find((u) => u.email.toLowerCase() === cleanEmail || u.id === cleanEmail);
     if (found) {
+      if (found.status === 'Pending') {
+        return { success: false, message: 'Akun Anda sedang ditinjau dan menunggu persetujuan dari Administrator PKSart.' };
+      }
+      if (found.status === 'Suspended') {
+        return { success: false, message: 'Akun Anda dinonaktifkan/ditangguhkan oleh Administrator.' };
+      }
       setCurrentUser(found);
       if (typeof window !== 'undefined') {
         localStorage.setItem('pksart_current_user', JSON.stringify(found));
@@ -431,8 +651,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone: '081234567890',
       address: 'DKI Jakarta',
       region: 'DKI Jakarta',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
       role: 'Kreator',
+      status: 'Active',
     };
     setCurrentUser(demoUser);
     if (typeof window !== 'undefined') {
@@ -452,10 +673,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newUser: User = {
       ...user,
       id: `u-${Date.now()}`,
-      avatar: user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      avatar: user.avatar || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
+      status: 'Pending',
+      isVerified: false,
+      totalArtworks: 0,
+      totalDownloads: 0,
     };
     setUsers((prev) => [newUser, ...prev]);
-    setCurrentUser(newUser);
   };
 
   const addTwibbon = (tw: Omit<TwibbonFrame, 'id' | 'usedCount' | 'createdAt'>) => {
@@ -523,6 +747,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleLikeArtwork,
         incrementDownloadCount,
         addCommentToArtwork,
+        editCommentInArtwork,
+        deleteCommentFromArtwork,
 
         users,
         currentUser,
@@ -547,6 +773,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         siteSettings,
         updateSiteSettings,
+        isMounted,
+
+        resetRequests,
+        addResetRequest,
+        completeResetRequest,
+        deleteResetRequest,
 
         massDeletePosts,
         massDeleteUsers,

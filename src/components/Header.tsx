@@ -65,19 +65,41 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const activeLinkId = getActiveLinkId();
   const navItemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
-  // Deterministic state initialization for 100% hydration match
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
   const [isMounted, setIsMounted] = useState(false);
+  const [isTransitionActive, setIsTransitionActive] = useState(false);
+
+  const updateIndicatorPos = (enableTransition = true) => {
+    const activeEl = navItemRefs.current[activeLinkId];
+    if (activeEl && activeEl.offsetWidth > 0) {
+      const newPos = {
+        left: activeEl.offsetLeft,
+        width: activeEl.offsetWidth,
+        opacity: 1,
+      };
+      setIndicatorStyle((prev) => {
+        if (prev.left === newPos.left && prev.width === newPos.width && prev.opacity === newPos.opacity) {
+          return prev;
+        }
+        return newPos;
+      });
+      if (enableTransition) {
+        setIsTransitionActive(true);
+      }
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pksart_last_nav_pos', JSON.stringify(newPos));
+      }
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
-    // Read last nav position from sessionStorage on mount to start animation from last active tab
     if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem('pksart_last_nav_pos');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed.left === 'number') {
+          if (parsed && typeof parsed.left === 'number' && parsed.width > 0) {
             setIndicatorStyle(parsed);
           }
         } catch (e) {}
@@ -85,35 +107,23 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
     }
   }, []);
 
-  // Calculate & animate indicator position seamlessly after client mount
   useEffect(() => {
     if (!isMounted) return;
 
+    // Snap to correct position instantly on page render
+    updateIndicatorPos(false);
+
+    // Enable transition shortly after page loads to ensure smooth glide afterwards
     const timer = setTimeout(() => {
-      const activeEl = navItemRefs.current[activeLinkId];
-      if (activeEl) {
-        const newPos = {
-          left: activeEl.offsetLeft,
-          width: activeEl.offsetWidth,
-          opacity: 1,
-        };
+      setIsTransitionActive(true);
+    }, 150);
 
-        setIndicatorStyle(newPos);
-        sessionStorage.setItem('pksart_last_nav_pos', JSON.stringify(newPos));
-      } else {
-        const saved = sessionStorage.getItem('pksart_last_nav_pos');
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            setIndicatorStyle(parsed);
-          } catch (e) {}
-        } else {
-          setIndicatorStyle((prev: any) => ({ ...prev, opacity: 0 }));
-        }
-      }
-    }, 20);
-
-    return () => clearTimeout(timer);
+    const handleResize = () => updateIndicatorPos(false);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
   }, [activeLinkId, pathname, isMounted]);
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +211,10 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
 
             {/* 🟠 Seamless Animated Orange Sliding Line (Cross-Page Persistent) */}
             <span
-              className="absolute bottom-0 h-[3px] bg-[#F26522] rounded-t-full pointer-events-none transition-all duration-300 ease-out"
+              suppressHydrationWarning
+              className={`absolute bottom-0 h-[3px] bg-[#F26522] rounded-t-full pointer-events-none ${
+                isTransitionActive ? 'transition-all duration-300 ease-out' : ''
+              }`}
               style={{
                 left: `${indicatorStyle.left}px`,
                 width: `${indicatorStyle.width}px`,
@@ -229,14 +242,16 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             </Link>
 
             {/* User Profile Dropdown or Auth Links */}
-            {isMounted && currentUser ? (
+            {currentUser ? (
               <div suppressHydrationWarning className="relative">
                 <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   className="flex items-center gap-1.5 p-1 pl-1.5 rounded-full hover:bg-gray-100 transition-colors"
                   aria-label="User Profile"
                 >
-                  {currentUser.avatar ? (
+                  {!isMounted ? (
+                    <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse shrink-0" />
+                  ) : currentUser.avatar ? (
                     <img
                       src={currentUser.avatar}
                       alt={currentUser.name}
@@ -244,7 +259,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs shadow-inner">
-                      {currentUser.name.charAt(0).toUpperCase()}
+                      {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
                     </div>
                   )}
                   <ChevronDown size={16} className="text-gray-500" />

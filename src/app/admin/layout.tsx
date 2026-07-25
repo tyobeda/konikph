@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useData } from '@/context/DataContext';
 import {
   LayoutDashboard,
   Image as ImageIcon,
@@ -22,6 +23,8 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { siteSettings, isMounted } = useData();
+  const hasCustomAdminLogo = isMounted && siteSettings?.logoAdminUrl && siteSettings.logoAdminUrl !== '/favicon.ico' && siteSettings.logoAdminUrl.startsWith('data:image/');
 
   // Close mobile drawer whenever page navigation changes
   useEffect(() => {
@@ -44,20 +47,28 @@ export default function AdminLayout({
       
       {/* 📱 MOBILE STICKY HEADER WITH BURGER MENU */}
       <header className="md:hidden sticky top-0 z-50 bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-slate-700/60">
-        <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-[#F26522] text-white font-black flex items-center justify-center text-[10px]">
-            PKS
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-sm tracking-tight text-white">
-              PKS<span className="text-[#F26522]">art</span>
-            </span>
-            <span className="text-[9px] uppercase font-bold bg-[#F26522] px-1.5 py-0.5 rounded text-white">
-              Admin
-            </span>
-          </div>
+        <Link href="/admin" className="flex items-center gap-2 min-h-[28px]">
+          {!isMounted ? (
+            <div className="h-6 w-20 bg-slate-800 animate-pulse rounded" />
+          ) : hasCustomAdminLogo ? (
+            <img src={siteSettings.logoAdminUrl} alt="Logo Admin" className="h-7 w-auto object-contain" />
+          ) : (
+            <>
+              <div className="w-7 h-7 rounded-full bg-[#F26522] text-white font-black flex items-center justify-center text-[10px]">
+                PKS
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm tracking-tight text-white">
+                  PKS<span className="text-[#F26522]">art</span>
+                </span>
+                <span className="text-[9px] uppercase font-bold bg-[#F26522] px-1.5 py-0.5 rounded text-white">
+                  Admin
+                </span>
+              </div>
+            </>
+          )}
         </Link>
-
+        
         {/* Current Active Page Title Badge on Header */}
         <span className="hidden sm:inline-block text-xs font-semibold text-slate-300 truncate max-w-[140px]">
           {currentPageLabel}
@@ -90,13 +101,21 @@ export default function AdminLayout({
         <div className="flex flex-col h-full">
           {/* Drawer Header */}
           <div className="p-4 border-b border-slate-700/60 flex items-center justify-between">
-            <Link href="/admin" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
-                PKS
-              </div>
-              <span className="font-extrabold text-base tracking-tight text-white">
-                PKS<span className="text-[#F26522]">art</span> Panel
-              </span>
+            <Link href="/admin" className="flex items-center gap-2 min-h-[32px]">
+              {!isMounted ? (
+                <div className="h-7 w-24 bg-slate-800 animate-pulse rounded" />
+              ) : hasCustomAdminLogo ? (
+                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" className="h-8 w-auto object-contain" />
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
+                    PKS
+                  </div>
+                  <span className="font-extrabold text-base tracking-tight text-white">
+                    PKS<span className="text-[#F26522]">art</span> Panel
+                  </span>
+                </>
+              )}
             </Link>
           </div>
 
@@ -144,18 +163,26 @@ export default function AdminLayout({
         <div className="flex flex-col min-h-0 flex-1">
           {/* Brand Area */}
           <div className="p-5 border-b border-slate-700/60 flex items-center justify-between shrink-0">
-            <Link href="/admin" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
-                PKS
-              </div>
-              <div>
-                <span className="font-extrabold text-base tracking-tight text-white">
-                  PKS<span className="text-[#F26522]">art</span>
-                </span>
-                <span className="ml-2 text-[10px] uppercase font-bold bg-[#F26522] px-1.5 py-0.5 rounded text-white">
-                  Admin
-                </span>
-              </div>
+            <Link href="/admin" className="flex items-center gap-2 min-h-[36px]">
+              {!isMounted ? (
+                <div className="h-8 w-24 bg-slate-800 animate-pulse rounded" />
+              ) : hasCustomAdminLogo ? (
+                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" className="h-9 w-auto object-contain" />
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
+                    PKS
+                  </div>
+                  <div>
+                    <span className="font-extrabold text-base tracking-tight text-white">
+                      PKS<span className="text-[#F26522]">art</span>
+                    </span>
+                    <span className="ml-2 text-[10px] uppercase font-bold bg-[#F26522] px-1.5 py-0.5 rounded text-white">
+                      Admin
+                    </span>
+                  </div>
+                </>
+              )}
             </Link>
           </div>
 

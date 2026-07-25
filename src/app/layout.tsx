@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PKSart - Galeri Desain & Foto PKS Official",
   description: "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.",
+  icons: {
+    icon: '/favicon.ico',
+  }
 };
 
 export default function RootLayout({

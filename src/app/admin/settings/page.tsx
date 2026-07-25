@@ -37,7 +37,46 @@ export default function AdminSettingsPage() {
   const [siteName, setSiteName] = useState(siteSettings.siteName);
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription);
   const [logoPreview, setLogoPreview] = useState(siteSettings.logoUrl);
+  const [logoAdminPreview, setLogoAdminPreview] = useState(siteSettings.logoAdminUrl || siteSettings.logoUrl);
+  const [logoFooterPreview, setLogoFooterPreview] = useState(siteSettings.logoFooterUrl || siteSettings.logoUrl);
   const [faviconPreview, setFaviconPreview] = useState(siteSettings.faviconUrl);
+
+  // CTA States
+  const [ctaTitle, setCtaTitle] = useState(siteSettings.ctaTitle || '');
+  const [ctaDescription, setCtaDescription] = useState(siteSettings.ctaDescription || '');
+  const [ctaButtonText, setCtaButtonText] = useState(siteSettings.ctaButtonText || '');
+  const [ctaButtonLink, setCtaButtonLink] = useState(siteSettings.ctaButtonLink || '');
+  const [ctaLogoPreview, setCtaLogoPreview] = useState(siteSettings.ctaLogoUrl || '');
+  const [ctaImagePreview, setCtaImagePreview] = useState(siteSettings.ctaImageUrl || '');
+  const [ctaBgPreview, setCtaBgPreview] = useState(siteSettings.ctaBgUrl || '');
+  const [ctaEnabled, setCtaEnabled] = useState(siteSettings.ctaEnabled !== false);
+  const [ctaLinks, setCtaLinks] = useState<{ label: string; url: string }[]>(siteSettings.ctaLinks || []);
+  const [ctaSocialText, setCtaSocialText] = useState(siteSettings.ctaSocialText || '');
+  const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
+
+  // Sync state when siteSettings is loaded or updated
+  useEffect(() => {
+    if (siteSettings) {
+      setSiteName(siteSettings.siteName);
+      setSiteDescription(siteSettings.siteDescription);
+      setLogoPreview(siteSettings.logoUrl);
+      setLogoAdminPreview(siteSettings.logoAdminUrl || siteSettings.logoUrl);
+      setLogoFooterPreview(siteSettings.logoFooterUrl || siteSettings.logoUrl);
+      setFaviconPreview(siteSettings.faviconUrl);
+
+      setCtaTitle(siteSettings.ctaTitle || '');
+      setCtaDescription(siteSettings.ctaDescription || '');
+      setCtaButtonText(siteSettings.ctaButtonText || '');
+      setCtaButtonLink(siteSettings.ctaButtonLink || '');
+      setCtaLogoPreview(siteSettings.ctaLogoUrl || '');
+      setCtaImagePreview(siteSettings.ctaImageUrl || '');
+      setCtaBgPreview(siteSettings.ctaBgUrl || '');
+      setCtaEnabled(siteSettings.ctaEnabled !== false);
+      setCtaLinks(siteSettings.ctaLinks || []);
+      setCtaSocialText(siteSettings.ctaSocialText || '');
+      setCtaSocialUrl(siteSettings.ctaSocialUrl || '');
+    }
+  }, [siteSettings]);
 
   // Welcome Popup Configuration State
   const [initialPopupConfig, setInitialPopupConfig] = useState(DEFAULT_WELCOME_POPUP);
@@ -82,11 +121,129 @@ export default function AdminSettingsPage() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 2, 512, 0.9);
+        setLogoPreview(result.dataUrl);
+        triggerToast('Logo Utama berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses file logo.');
+      }
+    }
+  };
+
+  const handleLogoAdminUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 2, 512, 0.9);
+        setLogoAdminPreview(result.dataUrl);
+        triggerToast('Logo Admin (Warna Terang) berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses file logo.');
+      }
+    }
+  };
+
+  const handleLogoFooterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 2, 512, 0.9);
+        setLogoFooterPreview(result.dataUrl);
+        triggerToast('Logo Putih (Footer) berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses file logo.');
+      }
+    }
+  };
+
+  const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 1, 64, 0.9);
+        setFaviconPreview(result.dataUrl);
+        triggerToast('Favicon baru berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses file favicon.');
+      }
+    }
+  };
+
   const handleSaveGeneral = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSiteSettings({ siteName, siteDescription });
+    updateSiteSettings({
+      siteName,
+      siteDescription,
+      logoUrl: logoPreview,
+      logoAdminUrl: logoAdminPreview,
+      logoFooterUrl: logoFooterPreview,
+      faviconUrl: faviconPreview,
+    });
     setIsSaved(true);
     triggerToast('Pengaturan identitas situs berhasil disimpan!');
+    setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  const handleCtaLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 2, 512, 0.9);
+        setCtaLogoPreview(result.dataUrl);
+        triggerToast('Logo Banner CTA berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses file logo.');
+      }
+    }
+  };
+
+  const handleCtaImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 2, 800, 0.85);
+        setCtaImagePreview(result.dataUrl);
+        triggerToast('Gambar Banner CTA berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses gambar banner.');
+      }
+    }
+  };
+
+  const handleCtaBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await compressImageFile(file, 2, 1920, 0.8);
+        setCtaBgPreview(result.dataUrl);
+        triggerToast('Background Banner CTA berhasil dipilih!');
+      } catch (err: any) {
+        alert(err.message || 'Gagal memproses background banner.');
+      }
+    }
+  };
+
+  const handleSaveCta = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSiteSettings({
+      ctaTitle,
+      ctaDescription,
+      ctaButtonText,
+      ctaButtonLink,
+      ctaLogoUrl: ctaLogoPreview,
+      ctaImageUrl: ctaImagePreview,
+      ctaBgUrl: ctaBgPreview,
+      ctaEnabled,
+      ctaLinks,
+      ctaSocialText,
+      ctaSocialUrl,
+    });
+    setIsSaved(true);
+    triggerToast('Pengaturan Banner CTA Beranda berhasil disimpan!');
     setTimeout(() => setIsSaved(false), 3000);
   };
 
@@ -237,37 +394,83 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Logo & Favicon Upload */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
                 
-                {/* Logo Web */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <PksLogo size="sm" />
-                    <div>
-                      <p className="text-xs font-bold text-gray-900">Logo Utama Website</p>
-                      <p className="text-[11px] text-gray-400">PNG / SVG / WebP (512x512)</p>
-                    </div>
+                {/* Logo Web (Logo Utama) */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3.5">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Logo Utama Website</p>
+                    <p className="text-[10px] text-gray-400">Homepage Header (Transparan)</p>
                   </div>
-                  <label className="px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors">
+                  <div className="w-full h-28 bg-white rounded-lg border flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Logo Web" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <PksLogo size="sm" />
+                    )}
+                  </div>
+                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
                     <span>Ganti Logo</span>
-                    <input type="file" accept="image/*" className="hidden" />
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                  </label>
+                </div>
+
+                {/* Logo Warna Terang (Admin) */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3.5">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Logo Warna Terang</p>
+                    <p className="text-[10px] text-gray-400">Sidebar Admin Gelap (Transparan)</p>
+                  </div>
+                  <div className="w-full h-28 bg-gray-900 rounded-lg border border-gray-750 flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
+                    {logoAdminPreview ? (
+                      <img src={logoAdminPreview} alt="Logo Admin" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <span className="text-xs text-gray-500 font-bold">N/A</span>
+                    )}
+                  </div>
+                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
+                    <span>Ganti Logo</span>
+                    <input type="file" accept="image/*" onChange={handleLogoAdminUpload} className="hidden" />
+                  </label>
+                </div>
+
+                {/* Logo Putih (Footer) */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3.5">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Logo Putih (Footer)</p>
+                    <p className="text-[10px] text-gray-400">Footer Bawah (Transparan)</p>
+                  </div>
+                  <div className="w-full h-28 bg-gray-800 rounded-lg border border-gray-750 flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
+                    {logoFooterPreview ? (
+                      <img src={logoFooterPreview} alt="Logo Footer" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <span className="text-xs text-gray-500 font-bold">N/A</span>
+                    )}
+                  </div>
+                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
+                    <span>Ganti Logo</span>
+                    <input type="file" accept="image/*" onChange={handleLogoFooterUpload} className="hidden" />
                   </label>
                 </div>
 
                 {/* Favicon Web */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-orange-500/10 text-[#F26522] flex items-center justify-center font-bold text-xs">
-                      ICO
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-900">Favicon Browser</p>
-                      <p className="text-[11px] text-gray-400">ICO / PNG (32x32)</p>
-                    </div>
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3.5">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Favicon Browser</p>
+                    <p className="text-[10px] text-gray-400">ICO / PNG (32x32)</p>
                   </div>
-                  <label className="px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors">
+                  <div className="w-full h-28 bg-white rounded-lg border flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
+                    {faviconPreview ? (
+                      <img src={faviconPreview} alt="Favicon" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-lg bg-orange-500/10 text-[#F26522] flex items-center justify-center font-bold text-xs">
+                        ICO
+                      </div>
+                    )}
+                  </div>
+                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
                     <span>Ganti Favicon</span>
-                    <input type="file" accept="image/*" className="hidden" />
+                    <input type="file" accept="image/*" onChange={handleFaviconUpload} className="hidden" />
                   </label>
                 </div>
 
@@ -286,13 +489,232 @@ export default function AdminSettingsPage() {
             </form>
           </div>
 
-          {/* Section 2: Welcome Pop-up Settings */}
+          {/* Section 2: Pengaturan Banner CTA Beranda */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 mb-6 gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <HardDrive size={20} className="text-[#F26522]" />
+                  <span>2. Pengaturan Banner CTA Beranda (CTA Banner Homepage)</span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Atur tampilan spanduk promosi/ajakan bertindak (Call-To-Action) dinamis yang terletak di atas footer beranda.
+                </p>
+              </div>
+
+              {/* Toggle Switch */}
+              <div className="flex items-center gap-3 bg-gray-50 px-3.5 py-1.5 rounded-xl border border-gray-200">
+                <span className="text-xs font-bold text-gray-700">Tampilkan Banner:</span>
+                <button
+                  type="button"
+                  onClick={() => setCtaEnabled(!ctaEnabled)}
+                  className={`w-12 h-6 rounded-full p-0.5 transition-colors ${
+                    ctaEnabled ? 'bg-emerald-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                      ctaEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <span className={`text-xs font-bold ${ctaEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  {ctaEnabled ? 'Aktif' : 'Nonaktif'}
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveCta} className="space-y-6">
+              
+              {/* Text Fields */}
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                    Paragraf Deskripsi Spanduk (CTA Description Text)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={ctaDescription}
+                    onChange={(e) => setCtaDescription(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522] leading-relaxed"
+                    required
+                    disabled={!ctaEnabled}
+                    placeholder="Tulis deskripsi spanduk di sini..."
+                  />
+                </div>
+              </div>
+
+              {/* Big Upload Previews */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-100 pt-5 mt-2">
+                {/* Logo Banner */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Logo Spanduk (CTA Logo)</p>
+                    <p className="text-[10px] text-gray-400">Dimensi Landscape (Transparan)</p>
+                  </div>
+                  <div className="w-full h-32 flex items-center justify-center bg-[#141517] rounded-xl border border-gray-800 p-3 shadow-inner overflow-hidden shrink-0">
+                    {ctaLogoPreview ? (
+                      <img src={ctaLogoPreview} alt="Logo Banner" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <span className="text-xs text-gray-600 font-bold">N/A (Gelap)</span>
+                    )}
+                  </div>
+                  <label className={`w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors ${!ctaEnabled && 'opacity-50 pointer-events-none'}`}>
+                    <span>Ganti Logo</span>
+                    <input type="file" accept="image/*" onChange={handleCtaLogoUpload} className="hidden" disabled={!ctaEnabled} />
+                  </label>
+                </div>
+
+                {/* Gambar Samping (Main Image / Mascot) */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Gambar Ilustrasi / Maskot</p>
+                    <p className="text-[10px] text-gray-400">Grafis Bagian Kanan Spanduk</p>
+                  </div>
+                  <div className="w-full h-32 flex items-center justify-center bg-white rounded-xl border p-2 shadow-inner overflow-hidden shrink-0">
+                    {ctaImagePreview ? (
+                      <img src={ctaImagePreview} alt="Gambar Banner" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <span className="text-xs text-gray-400 font-bold">N/A (Terang)</span>
+                    )}
+                  </div>
+                  <label className={`w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors ${!ctaEnabled && 'opacity-50 pointer-events-none'}`}>
+                    <span>Ganti Ilustrasi</span>
+                    <input type="file" accept="image/*" onChange={handleCtaImageUpload} className="hidden" disabled={!ctaEnabled} />
+                  </label>
+                </div>
+
+                {/* Background Banner */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Latar Belakang Spanduk (Bg)</p>
+                    <p className="text-[10px] text-gray-400">Gambar Background Banner</p>
+                  </div>
+                  <div className="w-full h-32 flex items-center justify-center bg-gray-950 rounded-xl border border-gray-850 p-1 shadow-inner overflow-hidden shrink-0">
+                    {ctaBgPreview ? (
+                      <img src={ctaBgPreview} alt="Background Banner" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <span className="text-xs text-gray-700 font-bold">N/A (Default Gelap)</span>
+                    )}
+                  </div>
+                  <label className={`w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors ${!ctaEnabled && 'opacity-50 pointer-events-none'}`}>
+                    <span>Ganti Background</span>
+                    <input type="file" accept="image/*" onChange={handleCtaBgUpload} className="hidden" disabled={!ctaEnabled} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Social Media Link */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-5 mt-2">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                    Teks Tautan Sosial (Medsos)
+                  </label>
+                  <input
+                    type="text"
+                    value={ctaSocialText}
+                    onChange={(e) => setCtaSocialText(e.target.value)}
+                    placeholder="misal: Follow @pksart"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                    disabled={!ctaEnabled}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                    Tautan Sosial URL
+                  </label>
+                  <input
+                    type="text"
+                    value={ctaSocialUrl}
+                    onChange={(e) => setCtaSocialUrl(e.target.value)}
+                    placeholder="misal: #"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522]"
+                    disabled={!ctaEnabled}
+                  />
+                </div>
+              </div>
+
+              {/* 🔗 Dynamic Links List Editor (Placed exactly above Save Button) */}
+              <div className="border-t border-gray-100 pt-5 mt-2">
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-3">
+                  Daftar Tautan Spanduk (CTA Inline Links List)
+                </label>
+                <div className="space-y-2 max-w-4xl">
+                  {ctaLinks.map((link, idx) => (
+                    <div key={idx} className="flex items-center gap-2 py-1">
+                      <input
+                        type="text"
+                        value={link.label}
+                        onChange={(e) => {
+                          const updated = [...ctaLinks];
+                          updated[idx].label = e.target.value;
+                          setCtaLinks(updated);
+                        }}
+                        placeholder="Label Tautan (misal: Beranda)"
+                        className="w-1/3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                        required
+                        disabled={!ctaEnabled}
+                      />
+                      <input
+                        type="text"
+                        value={link.url}
+                        onChange={(e) => {
+                          const updated = [...ctaLinks];
+                          updated[idx].url = e.target.value;
+                          setCtaLinks(updated);
+                        }}
+                        placeholder="URL (misal: /tentang atau #)"
+                        className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                        required
+                        disabled={!ctaEnabled}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = ctaLinks.filter((_, i) => i !== idx);
+                          setCtaLinks(updated);
+                        }}
+                        className="p-1.5 text-red-500 hover:text-red-750 hover:bg-red-50 rounded-lg transition-all shrink-0"
+                        title="Hapus Tautan"
+                        disabled={!ctaEnabled}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={() => setCtaLinks([...ctaLinks, { label: '', url: '' }])}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-all mt-1"
+                    disabled={!ctaEnabled}
+                  >
+                    <span>+ Tambah Tautan</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95"
+                  disabled={!ctaEnabled}
+                >
+                  <Save size={16} />
+                  <span>Simpan Perubahan Banner CTA</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Section 3: Welcome Pop-up Settings */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 mb-6 gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                   <Sparkles size={20} className="text-[#F26522]" />
-                  <span>2. Pengaturan Welcome Pop-up Homepage</span>
+                  <span>3. Pengaturan Welcome Pop-up Homepage</span>
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Atur dialog pengumuman/pop-up promosi yang akan otomatis tampil saat pengunjung membuka beranda.

@@ -11,6 +11,7 @@ export interface User {
   status?: string;
   totalArtworks?: number;
   totalDownloads?: number;
+  gender?: string;
 }
 
 export interface Artwork {
@@ -31,11 +32,23 @@ export interface Artwork {
   aspectRatio?: 'square' | 'portrait' | 'landscape';
   status?: 'Disetujui' | 'Pending' | 'Ditolak';
   isFeatured?: boolean;
+  comments?: Comment[];
 }
 
 export interface Comment {
   id: string;
   content: string;
   author: User;
+  createdAt: string;
+  timestampMs?: number;
+  isEdited?: boolean;
+}
+
+export interface ResetRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: 'Pending' | 'Completed';
   createdAt: string;
 }

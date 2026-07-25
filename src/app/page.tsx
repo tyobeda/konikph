@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { FilterBar } from '@/components/FilterBar';
 import { ArtworkCard } from '@/components/ArtworkCard';
 import { WelcomePopup } from '@/components/WelcomePopup';
@@ -21,7 +22,7 @@ import {
 import { useData } from '@/context/DataContext';
 
 export default function HomePage() {
-  const { artworks, users, dpwList } = useData();
+  const { artworks, users, dpwList, siteSettings, isMounted } = useData();
   const [activeCategory, setActiveCategory] = useState('Semua Karya');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,12 +251,84 @@ export default function HomePage() {
         )}
       </main>
 
+      {/* Dynamic CTA Banner Section - Full Width, No Rounded Corners */}
+      {isMounted && siteSettings.ctaEnabled && (
+        <section 
+          className="w-full relative py-12 px-6 sm:px-12 md:py-16 md:px-16 flex flex-col md:flex-row items-center justify-between gap-8 bg-cover bg-center text-white mt-16 bg-[#141517] border-t border-gray-800"
+          style={{ 
+            backgroundImage: siteSettings.ctaBgUrl 
+              ? `url(${siteSettings.ctaBgUrl})` 
+              : 'none' 
+          }}
+        >
+          <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-8">
+            
+            {/* Left Content Area */}
+            <div className="flex-1 flex flex-col z-10 text-center md:text-left">
+              {/* Logo & Description Row */}
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                {siteSettings.ctaLogoUrl ? (
+                  <img 
+                    src={siteSettings.ctaLogoUrl} 
+                    alt="CTA Logo" 
+                    className="h-16 object-contain shrink-0" 
+                  />
+                ) : (
+                  <div className="text-2xl font-black text-white shrink-0 tracking-tight">
+                    PKS<span className="text-[#F26522]">art</span>
+                  </div>
+                )}
+                
+                {/* Vertical Divider (Hidden on mobile) */}
+                <div className="hidden md:block h-16 w-px bg-gray-700/60 shrink-0 self-center" />
+                
+                {/* Paragraph Text */}
+                <p className="text-xs sm:text-sm text-gray-300 font-normal leading-relaxed text-center md:text-left max-w-2xl whitespace-pre-line">
+                  {siteSettings.ctaDescription}
+                </p>
+              </div>
+
+              {/* Horizontal Links Separated by | */}
+              {siteSettings.ctaLinks && siteSettings.ctaLinks.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2.5 gap-y-1 text-xs sm:text-sm text-gray-400 font-semibold mt-8 mb-4">
+                  {siteSettings.ctaLinks.map((link, idx) => (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <span className="text-gray-700 font-normal">|</span>}
+                      <Link href={link.url} className="hover:text-white transition-colors">
+                        {link.label}
+                      </Link>
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+
+              {/* Social Media Link */}
+              {siteSettings.ctaSocialText && (
+                <div className="text-xs sm:text-sm text-gray-500 font-semibold hover:text-white transition-colors mt-2">
+                  <Link href={siteSettings.ctaSocialUrl || '#'}>
+                    {siteSettings.ctaSocialText}
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Right Mascot/Graphic Area */}
+            {siteSettings.ctaImageUrl && (
+              <div className="flex-1 max-w-md w-full flex justify-center md:justify-end z-10">
+                <img 
+                  src={siteSettings.ctaImageUrl} 
+                  alt="Mascots Mascot" 
+                  className="max-h-60 sm:max-h-64 object-contain drop-shadow-2xl transition-transform hover:scale-[1.02]" 
+                />
+              </div>
+            )}
+            
+          </div>
+        </section>
+      )}
+
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-500">
-        <div className="max-w-7xl mx-auto px-4">
-          <p>© {new Date().getFullYear()} PKSart. Gallery Design & Photos PKS Official.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

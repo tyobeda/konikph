@@ -19,10 +19,29 @@ export const compressImageFile = (
 ): Promise<CompressionResult> => {
   return new Promise((resolve, reject) => {
     const originalSizeMb = parseFloat((file.size / (1024 * 1024)).toFixed(2));
+    const isSvg = file.type === 'image/svg+xml' || file.name.endsWith('.svg');
+    const isIco = file.type.includes('icon') || file.type.includes('ico') || file.name.endsWith('.ico');
 
-    // Validasi tipe file
-    if (!file.type.startsWith('image/')) {
-      reject(new Error('Format file harus berupa gambar (JPG, PNG, WebP).'));
+    // Bypass canvas for SVG vectors and ICO icons to preserve quality/transparency
+    if ((isSvg || isIco) && originalSizeMb <= maxSizeMB) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        resolve({
+          dataUrl: event.target?.result as string,
+          originalSizeMb,
+          compressedSizeMb: originalSizeMb,
+          isCompressed: false,
+          message: 'Format vektor/icon dilewati dari kompresi canvas.',
+        });
+      };
+      reader.onerror = () => reject(new Error('Gagal membaca file.'));
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Validasi tipe file lainnya
+    if (!file.type.startsWith('image/') && !isIco) {
+      reject(new Error('Format file harus berupa gambar (JPG, PNG, WebP, SVG, ICO).'));
       return;
     }
 
@@ -63,7 +82,7 @@ export const compressImageFile = (
         ctx.drawImage(img, 0, 0, width, height);
 
         // Pilih format kompresi (PNG dipertahankan transparansinya jika twibbon, JPG/WebP untuk foto)
-        const exportType = file.type === 'image/png' && file.name.toLowerCase().includes('twibbon')
+        const exportType = file.type === 'image/png'
           ? 'image/png'
           : 'image/jpeg';
 
@@ -75,8 +94,16 @@ export const compressImageFile = (
         const compressedSizeBytes = Math.round(base64Length * 0.75);
         const compressedSizeMb = parseFloat((compressedSizeBytes / (1024 * 1024)).toFixed(2));
 
-        // Jika ukuran setelah kompresi masih > 2MB, berikan pesan pemberitahuan
-        if (compressedSizeMb > maxSizeMB) {
+        // Jika ukuran hasil kompresi malah lebih besar dari aslinya, dan aslinya masih di bawah batas, pakai aslinya
+        if (compressedSizeMb >= originalSizeMb && originalSizeMb <= maxSizeMB) {
+          resolve({
+            dataUrl: img.src,
+            originalSizeMb,
+            compressedSizeMb: originalSizeMb,
+            isCompressed: false,
+            message: `Gambar sudah sangat optimal (${originalSizeMb}MB).`,
+          });
+        } else if (compressedSizeMb > maxSizeMB) {
           resolve({
             dataUrl: compressedDataUrl,
             originalSizeMb,

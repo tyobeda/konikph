@@ -14,6 +14,8 @@ import {
   CheckCircle,
   ArrowLeft,
   Grid,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { REGIONS } from '@/lib/data';
@@ -22,7 +24,7 @@ import { compressImageFile } from '@/lib/imageCompressor';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { currentUser, updateUser } = useData();
+  const { currentUser, updateUser, addResetRequest } = useData();
 
   const [userData, setUserData] = useState({
     name: currentUser?.name || '',
@@ -40,8 +42,24 @@ export default function ProfilePage() {
     confirmPassword: '',
   });
 
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Reset password request states
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetName, setResetName] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetPhone, setResetPhone] = useState('');
+  const [resetSuccessMessage, setResetSuccessMessage] = useState(false);
+
   const [isSaved, setIsSaved] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(userData.avatar);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Sync state when currentUser is loaded or updated
   useEffect(() => {
@@ -59,17 +77,46 @@ export default function ProfilePage() {
     }
   }, [currentUser]);
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
+        <Header />
+        <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-100 rounded-xl w-1/3"></div>
+              <div className="h-4 bg-gray-100 rounded-xl w-1/2"></div>
+              <div className="flex items-center gap-5 pt-4">
+                <div className="w-20 h-20 rounded-full bg-gray-100"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-100 rounded w-24"></div>
+                  <div className="h-3 bg-gray-100 rounded w-36"></div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                <div className="h-12 bg-gray-50 rounded-xl"></div>
+                <div className="h-12 bg-gray-50 rounded-xl"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         const result = await compressImageFile(file, 2, 500, 0.85);
         setAvatarPreview(result.dataUrl);
-        const updatedUser = { ...userData, avatar: result.dataUrl };
-        setUserData(updatedUser);
-        if (currentUser?.id) {
-          updateUser(currentUser.id, updatedUser);
-        }
+        setUserData((prev) => {
+          const next = { ...prev, avatar: result.dataUrl };
+          if (currentUser?.id) {
+            updateUser(currentUser.id, next);
+          }
+          return next;
+        });
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 3000);
       } catch (err: any) {
@@ -81,7 +128,8 @@ export default function ProfilePage() {
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentUser?.id) {
-      updateUser(currentUser.id, userData);
+      const finalData = { ...userData, avatar: avatarPreview || userData.avatar };
+      updateUser(currentUser.id, finalData);
     }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
@@ -258,9 +306,7 @@ export default function ProfilePage() {
                   required
                 />
               </div>
-            </div>
-
-            {/* Password Change Section */}
+            </div>            {/* Password Change Section */}
             <div className="pt-6 border-t border-gray-100">
               <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                 <Lock size={16} className="text-[#F26522]" />
@@ -268,27 +314,75 @@ export default function ProfilePage() {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input
-                  type="password"
-                  placeholder="Kata Sandi Lama"
-                  value={passwordData.oldPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
-                  className="bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white"
-                />
-                <input
-                  type="password"
-                  placeholder="Kata Sandi Baru"
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className="bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white"
-                />
-                <input
-                  type="password"
-                  placeholder="Konfirmasi Kata Sandi"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  className="bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white"
-                />
+                {/* Kata Sandi Lama */}
+                <div className="relative">
+                  <input
+                    type={showOldPassword ? 'text' : 'password'}
+                    placeholder="Kata Sandi Lama"
+                    value={passwordData.oldPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl pl-3.5 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                    className="absolute right-3.5 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showOldPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                {/* Kata Sandi Baru */}
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    placeholder="Kata Sandi Baru"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl pl-3.5 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3.5 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                {/* Konfirmasi Kata Sandi */}
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Konfirmasi Kata Sandi"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl pl-3.5 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetName(currentUser?.name || '');
+                    setResetEmail(currentUser?.email || '');
+                    setResetPhone(currentUser?.phone || '');
+                    setShowResetModal(true);
+                    setResetSuccessMessage(false);
+                  }}
+                  className="text-xs font-bold text-gray-500 hover:text-[#F26522] transition-colors"
+                >
+                  Lupa Kata Sandi? Kirim Permintaan Reset ke Admin
+                </button>
               </div>
             </div>
 
@@ -304,6 +398,97 @@ export default function ProfilePage() {
 
         </div>
       </main>
+
+      {/* Password Reset Request Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 relative">
+            <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <Lock size={18} className="text-[#F26522]" />
+              <span>Minta Reset Kata Sandi</span>
+            </h3>
+            
+            {!resetSuccessMessage ? (
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addResetRequest(resetName, resetEmail, resetPhone);
+                  setResetSuccessMessage(true);
+                }}
+                className="space-y-4 mt-4"
+              >
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Permintaan reset kata sandi Anda akan dikirim ke Super Admin. Setelah disetujui, admin akan mengirimkan kata sandi baru Anda langsung via WhatsApp.
+                </p>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nama Lengkap</label>
+                  <input
+                    type="text"
+                    value={resetName}
+                    onChange={(e) => setResetName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Alamat Email</label>
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nomor WhatsApp</label>
+                  <input
+                    type="tel"
+                    value={resetPhone}
+                    onChange={(e) => setResetPhone(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(false)}
+                    className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-3.5 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Kirim Permintaan
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4 mt-4 text-center py-2">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                  ✓
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">Permintaan Dikirim!</h4>
+                <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto">
+                  Permintaan Anda berhasil diajukan ke admin. Silakan tunggu pemberitahuan pembaruan kata sandi baru dari admin yang akan dikirim langsung ke nomor WhatsApp <strong>{resetPhone}</strong> Anda.
+                </p>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(false)}
+                    className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition-colors w-full"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
