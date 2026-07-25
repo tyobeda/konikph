@@ -365,6 +365,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (e) {}
       }
 
+      const storedTwibbons = localStorage.getItem('pksart_twibbons');
+      if (storedTwibbons) {
+        try {
+          const parsed = JSON.parse(storedTwibbons);
+          if (parsed && parsed.length > 0) {
+            setTwibbons(parsed);
+          }
+        } catch (e) {}
+      }
+
+      const storedDpw = localStorage.getItem('pksart_dpw');
+      if (storedDpw) {
+        try {
+          const parsed = JSON.parse(storedDpw);
+          if (parsed && parsed.length > 0) {
+            setDpwList(parsed);
+          }
+        } catch (e) {}
+      }
+
       const storedResets = localStorage.getItem('pksart_reset_requests');
       if (storedResets) {
         try {
@@ -429,19 +449,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser, isMounted]);
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !isSettingsLoaded) return;
     localStorage.setItem('pksart_twibbons', JSON.stringify(twibbons));
-  }, [twibbons, isMounted]);
+  }, [twibbons, isMounted, isSettingsLoaded]);
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !isSettingsLoaded) return;
     localStorage.setItem('pksart_dpw', JSON.stringify(dpwList));
-  }, [dpwList, isMounted]);
+  }, [dpwList, isMounted, isSettingsLoaded]);
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !isSettingsLoaded) return;
     localStorage.setItem('pksart_reset_requests', JSON.stringify(resetRequests));
-  }, [resetRequests, isMounted]);
+  }, [resetRequests, isMounted, isSettingsLoaded]);
 
   const addResetRequest = (name: string, email: string, phone: string) => {
     const newReq: ResetRequest = {
