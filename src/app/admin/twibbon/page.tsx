@@ -100,6 +100,7 @@ export default function AdminTwibbonPage() {
 
   const openEditModal = (tw: TwibbonFrame) => {
     setEditingTwibbon(tw);
+    setFilePreview(null);
     setFormData({
       title: tw.title,
       category: tw.category,
@@ -365,62 +366,60 @@ export default function AdminTwibbonPage() {
                 />
               </div>
 
-              {!editingTwibbon && (
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                    Unggah Berkas Gambar Frame PNG (Transparan)
-                  </label>
-                  
-                  {/* File Upload Box */}
-                  <label className="border-2 border-dashed border-purple-200 hover:border-[#F26522] bg-purple-50/50 hover:bg-orange-50/30 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
-                    <input
-                      type="file"
-                      accept="image/png,image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  Unggah Berkas Gambar Frame PNG (Transparan)
+                </label>
+                
+                {/* File Upload Box */}
+                <label className="border-2 border-dashed border-purple-200 hover:border-[#F26522] bg-purple-50/50 hover:bg-orange-50/30 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
+                  <input
+                    type="file"
+                    accept="image/png,image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
 
-                    {filePreview || formData.imageUrl ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <img
-                          src={filePreview || formData.imageUrl}
-                          alt="Preview Twibbon"
-                          className="w-24 h-24 rounded-xl object-contain border border-purple-200 bg-white p-1 shadow-sm"
-                        />
-                        <span className="text-xs font-bold text-[#F26522] group-hover:underline">
-                          Ganti Berkas Gambar (PNG)
-                        </span>
+                  {filePreview || formData.imageUrl ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img
+                        src={filePreview || formData.imageUrl}
+                        alt="Preview Twibbon"
+                        className="w-24 h-24 rounded-xl object-contain border border-purple-200 bg-white p-1 shadow-sm"
+                      />
+                      <span className="text-xs font-bold text-[#F26522] group-hover:underline">
+                        Ganti Berkas Gambar (PNG)
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-2">
+                      <div className="p-3 bg-white rounded-full text-purple-600 group-hover:text-[#F26522] shadow-sm transition-colors">
+                        <UploadCloud size={24} />
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 py-2">
-                        <div className="p-3 bg-white rounded-full text-purple-600 group-hover:text-[#F26522] shadow-sm transition-colors">
-                          <UploadCloud size={24} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-extrabold text-gray-900">
-                            Klik di sini untuk mengunggah berkas PNG Twibbon
-                          </p>
-                          <p className="text-[11px] text-gray-400 font-medium mt-0.5">
-                            Disarankan format PNG transparansi (1080x1080px)
-                          </p>
-                        </div>
+                      <div>
+                        <p className="text-xs font-extrabold text-gray-900">
+                          Klik di sini untuk mengunggah berkas PNG Twibbon
+                        </p>
+                        <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                          Disarankan format PNG transparansi (1080x1080px)
+                        </p>
                       </div>
-                    )}
-                  </label>
+                    </div>
+                  )}
+                </label>
 
-                  {/* Fallback URL Input */}
-                  <div className="mt-2.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase">Atau tautan URL gambar (opsional):</span>
-                    <input
-                      type="text"
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      placeholder="https://domain.com/frame-twibbon.png"
-                      className="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                    />
-                  </div>
+                {/* Fallback URL Input */}
+                <div className="mt-2.5">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase">Atau tautan URL gambar (opsional):</span>
+                  <input
+                    type="text"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    placeholder="https://domain.com/frame-twibbon.png"
+                    className="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  />
                 </div>
-              )}
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
