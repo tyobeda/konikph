@@ -7,6 +7,13 @@ import { Home, Compass, PlusCircle, Layers, Users, User } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
   const pathname = usePathname();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const navItems = [
     { label: 'Beranda', href: '/', icon: Home },
