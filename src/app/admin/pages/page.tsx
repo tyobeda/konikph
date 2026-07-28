@@ -26,7 +26,8 @@ import {
   ArrowUp,
   ArrowDown,
   Info,
-  Copy
+  Copy,
+  CheckCircle,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
@@ -53,6 +54,18 @@ export default function AdminPagesPage() {
   const [pageSlug, setPageSlug] = useState('');
   const [pagePublished, setPagePublished] = useState(true);
   const [pageUseRootPath, setPageUseRootPath] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success'>('idle');
+
+  // Bind newly created page to editingPage when saved to avoid duplicates
+  useEffect(() => {
+    if (isEditorOpen && !editingPage && pageSlug) {
+      const found = customPages.find((p) => p.slug === pageSlug);
+      if (found) {
+        setEditingPage(found);
+      }
+    }
+  }, [customPages, isEditorOpen, editingPage, pageSlug]);
+
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
 
@@ -159,7 +172,10 @@ export default function AdminPagesPage() {
     } else {
       addCustomPage(pageData);
     }
-    setIsEditorOpen(false);
+    setSaveStatus('success');
+    setTimeout(() => {
+      setSaveStatus('idle');
+    }, 3000);
   };
 
   // Block handlers
@@ -344,8 +360,16 @@ export default function AdminPagesPage() {
 
       {/* 🚀 Elementor-Style Split Screen Page Builder Workspace */}
       {isEditorOpen && (
-        <div className="fixed inset-0 z-50 bg-[#F1F5F9] flex flex-col md:flex-row overflow-hidden font-sans">
+        <div className="fixed inset-0 z-50 bg-[#F1F5F9] flex flex-col md:flex-row overflow-hidden font-sans relative">
           
+          {/* Floating Success Alert Toast */}
+          {saveStatus === 'success' && (
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 border border-emerald-500/20 animate-in fade-in slide-in-from-top-4 duration-300">
+              <CheckCircle size={18} />
+              <span className="text-xs font-bold tracking-wide">Halaman Berhasil Disimpan!</span>
+            </div>
+          )}
+
           {/* ================= LEFT SIDEBAR (ELEMENTOR PANEL) ================= */}
           <div className="w-full md:w-96 bg-white text-slate-700 flex flex-col border-r border-gray-200/65 shrink-0 h-1/2 md:h-full shadow-2xl z-30">
             
@@ -398,26 +422,25 @@ export default function AdminPagesPage() {
                     <Settings size={14} />
                     <span>Pengaturan Halaman</span>
                   </h5>
-                  
-                  <div>
+                                  <div>
                     <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Judul Halaman</label>
                     <input
                       type="text"
                       value={pageTitle}
                       onChange={(e) => setPageTitle(e.target.value)}
                       placeholder="Contoh: Panduan Kreator"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-600 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Slug URL (/p/your-slug)</label>
+                    <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Slug URL (/p/your-slug)</label>
                     <input
                       type="text"
                       value={pageSlug}
                       onChange={(e) => setPageSlug(e.target.value)}
                       placeholder="contoh: panduan-kreator"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-600 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                     />
                   </div>
 
@@ -536,21 +559,21 @@ export default function AdminPagesPage() {
                         {blocks[selectedBlockIndex].type === 'hero' && (
                           <div className="space-y-3.5">
                             <div>
-                              <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Headline Utama</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Headline Utama</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].title || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Sub-Headline</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Sub-Headline</label>
                               <textarea
                                 value={blocks[selectedBlockIndex].subtitle || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'subtitle', e.target.value)}
                                 rows={3}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-slate-600 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
@@ -559,7 +582,7 @@ export default function AdminPagesPage() {
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaText || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
@@ -568,7 +591,7 @@ export default function AdminPagesPage() {
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaLink || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                           </div>
@@ -581,7 +604,7 @@ export default function AdminPagesPage() {
                               value={blocks[selectedBlockIndex].content || ''}
                               onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
                               rows={12}
-                              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-800 font-mono focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-slate-600 font-mono focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                             />
                             <p className="text-[9px] text-gray-400">Anda dapat menulis tag HTML kustom seperti &lt;h2&gt;, &lt;p&gt;, atau &lt;ul&gt; untuk memformat tulisan.</p>
                           </div>
@@ -595,7 +618,7 @@ export default function AdminPagesPage() {
                                 type="text"
                                 value={blocks[selectedBlockIndex].title || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-650 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
@@ -604,7 +627,7 @@ export default function AdminPagesPage() {
                                 value={blocks[selectedBlockIndex].description || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'description', e.target.value)}
                                 rows={3}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-slate-650 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
@@ -613,7 +636,7 @@ export default function AdminPagesPage() {
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaText || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-655 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
@@ -622,7 +645,7 @@ export default function AdminPagesPage() {
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaLink || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-655 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                           </div>
@@ -657,14 +680,14 @@ export default function AdminPagesPage() {
                                 value={tempFaqQ}
                                 onChange={(e) => setTempFaqQ(e.target.value)}
                                 placeholder="Pertanyaan?"
-                                className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900"
+                                className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-650"
                               />
                               <input
                                 type="text"
                                 value={tempFaqA}
                                 onChange={(e) => setTempFaqA(e.target.value)}
                                 placeholder="Jawaban..."
-                                className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900"
+                                className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-655"
                               />
                               <button
                                 type="button"
