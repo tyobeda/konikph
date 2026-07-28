@@ -622,16 +622,16 @@ export default function AdminPageWorkspace() {
                   <button
                     type="button"
                     onClick={() => setSelectedBlockIndex(null)}
-                    className="inline-flex items-center gap-1 py-1.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-all border border-gray-150"
+                    className="inline-flex items-center gap-1 py-1.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-all border border-gray-200"
                   >
                     <ChevronLeft size={14} />
                     <span>Kembali ke Widget</span>
                   </button>
 
                   <div className="border-t border-gray-100 pt-3">
-                    <h5 className="text-xs font-black uppercase text-gray-455 tracking-wider mb-3 flex items-center justify-between">
-                      <span>Konfigurasi: {blocks[selectedBlockIndex].type}</span>
-                      <span className="text-[10px] bg-[#F26522] text-white px-2 py-0.5 rounded">
+                    <h5 className="text-xs font-semibold text-gray-600 mb-3 flex items-center justify-between">
+                      <span>Konfigurasi: {blocks[selectedBlockIndex].type === 'cta' ? 'CTA' : blocks[selectedBlockIndex].type.charAt(0).toUpperCase() + blocks[selectedBlockIndex].type.slice(1)}</span>
+                      <span className="text-[10px] bg-[#F26522] text-white px-2 py-0.5 rounded font-medium">
                         Blok {selectedBlockIndex + 1}
                       </span>
                     </h5>
@@ -640,39 +640,39 @@ export default function AdminPageWorkspace() {
                     {blocks[selectedBlockIndex].type === 'hero' && (
                       <div className="space-y-3.5">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Headline Utama</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Headline Utama</label>
                           <input
                             type="text"
                             value={blocks[selectedBlockIndex].title || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Sub-Headline</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Sub-headline</label>
                           <textarea
                             value={blocks[selectedBlockIndex].subtitle || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'subtitle', e.target.value)}
                             rows={3}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Teks Tombol CTA</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Teks Tombol CTA</label>
                           <input
                             type="text"
                             value={blocks[selectedBlockIndex].ctaText || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Link Tombol CTA</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Link Tombol CTA</label>
                           <input
                             type="text"
                             value={blocks[selectedBlockIndex].ctaLink || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                       </div>
@@ -681,17 +681,17 @@ export default function AdminPageWorkspace() {
                     {blocks[selectedBlockIndex].type === 'text' && (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="block text-[10px] font-black text-gray-455 uppercase">Konten Teks</label>
+                          <label className="block text-xs font-medium text-gray-600">Konten Teks</label>
                           
                           {/* Visual vs Code Tab Selector */}
                           <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 select-none">
                             <button
                               type="button"
                               onClick={() => setTextEditorTab('visual')}
-                              className={`px-2.5 py-1 text-[9px] font-extrabold rounded transition-all ${
+                              className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all ${
                                 textEditorTab === 'visual'
-                                  ? 'bg-white text-slate-800 shadow-sm'
-                                  : 'text-slate-500 hover:text-slate-850'
+                                  ? 'bg-white text-slate-800 shadow-sm font-semibold'
+                                  : 'text-slate-500 hover:text-slate-800'
                               }`}
                             >
                               Visual
@@ -699,10 +699,10 @@ export default function AdminPageWorkspace() {
                             <button
                               type="button"
                               onClick={() => setTextEditorTab('code')}
-                              className={`px-2.5 py-1 text-[9px] font-extrabold rounded transition-all ${
+                              className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all ${
                                 textEditorTab === 'code'
-                                  ? 'bg-white text-slate-800 shadow-sm'
-                                  : 'text-slate-500 hover:text-slate-850'
+                                  ? 'bg-white text-slate-800 shadow-sm font-semibold'
+                                  : 'text-slate-500 hover:text-slate-800'
                               }`}
                             >
                               HTML / Code
@@ -715,7 +715,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('bold')}
-                            className="p-1.5 hover:bg-gray-250 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Tebal (Bold)"
                           >
                             <Bold size={14} />
@@ -723,7 +723,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('italic')}
-                            className="p-1.5 hover:bg-gray-250 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Miring (Italic)"
                           >
                             <Italic size={14} />
@@ -731,7 +731,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('underline')}
-                            className="p-1.5 hover:bg-gray-250 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Garis Bawah (Underline)"
                           >
                             <Underline size={14} />
@@ -739,7 +739,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('strikeThrough')}
-                            className="p-1.5 hover:bg-gray-250 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Coret (Strikethrough)"
                           >
                             <Strikethrough size={14} />
@@ -750,7 +750,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('justifyLeft')}
-                            className="p-1.5 hover:bg-gray-255 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Rata Kiri"
                           >
                             <AlignLeft size={14} />
@@ -758,7 +758,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('justifyCenter')}
-                            className="p-1.5 hover:bg-gray-255 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Rata Tengah"
                           >
                             <AlignCenter size={14} />
@@ -766,7 +766,7 @@ export default function AdminPageWorkspace() {
                           <button
                             type="button"
                             onClick={() => handleFormat('justifyRight')}
-                            className="p-1.5 hover:bg-gray-255 rounded text-gray-700 hover:text-black transition-colors"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Rata Kanan"
                           >
                             <AlignRight size={14} />
@@ -778,7 +778,7 @@ export default function AdminPageWorkspace() {
                           <div className="relative group/size">
                             <button
                               type="button"
-                              className="p-1.5 hover:bg-gray-255 rounded text-gray-700 hover:text-black transition-colors flex items-center gap-1 text-[10px] font-bold"
+                              className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors flex items-center gap-1 text-[10px] font-medium"
                               title="Ukuran Font"
                             >
                               <Type size={14} />
@@ -838,7 +838,7 @@ export default function AdminPageWorkspace() {
                                 updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
                               }}
                               dangerouslySetInnerHTML={{ __html: blocks[selectedBlockIndex].content || '' }}
-                              className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 min-h-[300px] max-h-[360px] overflow-y-auto shadow-inner prose prose-slate max-w-none text-xs text-slate-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                              className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 min-h-[300px] max-h-[360px] overflow-y-auto shadow-inner prose prose-slate max-w-none text-xs text-slate-800 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                             />
                             <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-[10px] text-slate-550 flex items-start gap-1.5 leading-relaxed">
                               <Info size={12} className="text-blue-500 mt-0.5 shrink-0" />
@@ -854,7 +854,7 @@ export default function AdminPageWorkspace() {
                               onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
                               rows={12}
                               placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan toolbar di atas atau **tebal** untuk teks tebal, [u]garis bawah[/u], [s]coret[/s], [align=center]tengah[/align], atau [size=lg]ukuran besar[/size]."
-                              className="w-full bg-gray-50 border border-gray-200 border-t-0 rounded-b-2xl p-3 text-xs text-gray-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                              className="w-full bg-gray-50 border border-gray-200 border-t-0 rounded-b-2xl p-3 text-xs text-gray-800 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                             />
                             <p className="text-[9px] text-gray-400">Tulis HTML kustom atau format markdown sederhana di atas.</p>
                           </div>
@@ -865,39 +865,39 @@ export default function AdminPageWorkspace() {
                     {blocks[selectedBlockIndex].type === 'cta' && (
                       <div className="space-y-3.5">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Judul Banner</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Judul Banner CTA</label>
                           <input
                             type="text"
                             value={blocks[selectedBlockIndex].title || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Pesan Deskripsi</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Pesan Deskripsi</label>
                           <textarea
                             value={blocks[selectedBlockIndex].description || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'description', e.target.value)}
                             rows={3}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Teks Tombol</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Teks Tombol CTA</label>
                           <input
                             type="text"
                             value={blocks[selectedBlockIndex].ctaText || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Link Tombol</label>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Link Tombol CTA</label>
                           <input
                             type="text"
                             value={blocks[selectedBlockIndex].ctaLink || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
                       </div>
@@ -905,19 +905,19 @@ export default function AdminPageWorkspace() {
 
                     {blocks[selectedBlockIndex].type === 'faq' && (
                       <div className="space-y-4">
-                        <label className="block text-[10px] font-black text-gray-455 uppercase">Daftar Tanya Jawab FAQ</label>
+                        <label className="block text-xs font-medium text-gray-600">Daftar Tanya Jawab (FAQ)</label>
                         
                         <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                           {(blocks[selectedBlockIndex].faqs || []).map((faq, fIdx) => (
                             <div key={fIdx} className="bg-gray-50 p-2.5 rounded-xl border border-gray-150 flex items-start justify-between gap-3 text-xs">
                               <div>
-                                <p className="font-bold text-gray-800">Q: {faq.question}</p>
+                                <p className="font-semibold text-gray-800">Q: {faq.question}</p>
                                 <p className="text-gray-500 mt-0.5">A: {faq.answer}</p>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => removeFaqItem(selectedBlockIndex, fIdx)}
-                                className="text-red-500 hover:text-red-655"
+                                className="text-red-500 hover:text-red-600"
                               >
                                 <X size={14} />
                               </button>
@@ -926,27 +926,27 @@ export default function AdminPageWorkspace() {
                         </div>
 
                         <div className="border border-gray-200 p-3 rounded-xl bg-gray-50 space-y-2">
-                          <p className="text-[9px] font-black uppercase text-[#F26522]">Tambah FAQ Baru:</p>
+                          <p className="text-xs font-semibold text-[#F26522]">Tambah FAQ Baru:</p>
                           <input
                             type="text"
                             value={tempFaqQ}
                             onChange={(e) => setTempFaqQ(e.target.value)}
                             placeholder="Pertanyaan?"
-                            className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900"
+                            className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-normal"
                           />
                           <input
                             type="text"
                             value={tempFaqA}
                             onChange={(e) => setTempFaqA(e.target.value)}
                             placeholder="Jawaban..."
-                            className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900"
+                            className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-normal"
                           />
                           <button
                             type="button"
                             onClick={() => addFaqItem(selectedBlockIndex)}
-                            className="w-full py-1.5 bg-[#F26522] text-white text-[10px] font-bold rounded-lg"
+                            className="w-full py-1.5 bg-[#F26522] text-white text-xs font-medium rounded-lg"
                           >
-                            + Tambah Item
+                            + Tambah Item FAQ
                           </button>
                         </div>
                       </div>
@@ -957,7 +957,7 @@ export default function AdminPageWorkspace() {
                       <button
                         type="button"
                         onClick={(e) => deleteBlock(selectedBlockIndex, e)}
-                        className="flex-1 py-2 bg-red-55 hover:bg-red-100 text-red-650 border border-red-200 text-xs font-bold rounded-xl text-center transition-colors"
+                        className="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-medium rounded-xl text-center transition-colors"
                       >
                         Hapus Blok
                       </button>
