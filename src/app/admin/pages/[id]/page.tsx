@@ -113,6 +113,7 @@ export default function AdminPageWorkspace() {
 
   // active editor tab inside sidebar
   const [sidebarTab, setSidebarTab] = useState<'content' | 'settings'>('content');
+  const [textEditorTab, setTextEditorTab] = useState<'visual' | 'code'>('code');
 
   // Load target page data or new template
   useEffect(() => {
@@ -552,132 +553,180 @@ export default function AdminPageWorkspace() {
                     )}
 
                     {blocks[selectedBlockIndex].type === 'text' && (
-                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Konten Teks (Editor Elementor)</label>
-                        
-                        {/* Editor Formatting Toolbar */}
-                        <div className="bg-gray-100 border border-gray-200 p-1.5 rounded-t-2xl flex flex-wrap gap-1 items-center select-none">
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('**', '**')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Tebal (Bold)"
-                          >
-                            <Bold size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('*', '*')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Miring (Italic)"
-                          >
-                            <Italic size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('[u]', '[/u]')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Garis Bawah (Underline)"
-                          >
-                            <Underline size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('[s]', '[/s]')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Coret (Strikethrough)"
-                          >
-                            <Strikethrough size={14} />
-                          </button>
-
-                          <div className="w-px h-4 bg-gray-300 mx-1" />
-
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('[align=left]', '[/align]')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Rata Kiri"
-                          >
-                            <AlignLeft size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('[align=center]', '[/align]')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Rata Tengah"
-                          >
-                            <AlignCenter size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertFormatting('[align=right]', '[/align]')}
-                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
-                            title="Rata Kanan"
-                          >
-                            <AlignRight size={14} />
-                          </button>
-
-                          <div className="w-px h-4 bg-gray-300 mx-1" />
-
-                          {/* Font Size Select Dropdown */}
-                          <div className="relative group/size">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[10px] font-black text-gray-455 uppercase">Konten Teks</label>
+                          
+                          {/* Visual vs Code Tab Selector */}
+                          <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 select-none">
                             <button
                               type="button"
-                              className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors flex items-center gap-1 text-[10px] font-bold"
-                              title="Ukuran Font"
+                              onClick={() => setTextEditorTab('visual')}
+                              className={`px-2.5 py-1 text-[9px] font-extrabold rounded transition-all ${
+                                textEditorTab === 'visual'
+                                  ? 'bg-white text-slate-800 shadow-sm'
+                                  : 'text-slate-500 hover:text-slate-850'
+                              }`}
                             >
-                              <Type size={14} />
-                              <span>Ukuran</span>
+                              Visual
                             </button>
-                            <div className="absolute left-0 top-full hidden group-hover/size:block bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-40 w-28 space-y-0.5">
-                              <button
-                                type="button"
-                                onClick={() => insertFormatting('[size=xs]', '[/size]')}
-                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[10px] rounded text-gray-700 font-semibold"
-                              >
-                                Sangat Kecil (XS)
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => insertFormatting('[size=sm]', '[/size]')}
-                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[11px] rounded text-gray-700 font-semibold"
-                              >
-                                Kecil (SM)
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => insertFormatting('[size=lg]', '[/size]')}
-                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-sm rounded text-gray-700 font-semibold"
-                              >
-                                Besar (LG)
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => insertFormatting('[size=xl]', '[/size]')}
-                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-base rounded text-gray-700 font-bold"
-                              >
-                                Ekstra Besar (XL)
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => insertFormatting('[size=2xl]', '[/size]')}
-                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-lg rounded text-gray-700 font-extrabold"
-                              >
-                                Super Besar (2XL)
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setTextEditorTab('code')}
+                              className={`px-2.5 py-1 text-[9px] font-extrabold rounded transition-all ${
+                                textEditorTab === 'code'
+                                  ? 'bg-white text-slate-800 shadow-sm'
+                                  : 'text-slate-500 hover:text-slate-850'
+                              }`}
+                            >
+                              HTML / Code
+                            </button>
                           </div>
                         </div>
 
-                        <textarea
-                          id="markdown-editor"
-                          value={blocks[selectedBlockIndex].content || ''}
-                          onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
-                          rows={12}
-                          placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan toolbar di atas atau **tebal** untuk teks tebal, *miring* untuk teks miring, [u]garis bawah[/u], [s]coret[/s], [align=center]tengah[/align], atau [size=lg]ukuran besar[/size]."
-                          className="w-full bg-gray-50 border border-gray-200 border-t-0 rounded-b-2xl p-3 text-xs text-gray-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
-                        />
-                        <p className="text-[9px] text-gray-400">Gunakan toolbar di atas untuk memasukkan format tulisan dengan cepat & mudah.</p>
+                        {textEditorTab === 'visual' ? (
+                          /* 🖥️ VISUAL / RENDERED LIVE PREVIEW MODE */
+                          <div className="space-y-2">
+                            <div className="bg-white border border-gray-200 rounded-2xl p-4 min-h-[300px] max-h-[360px] overflow-y-auto shadow-inner prose prose-slate max-w-none text-xs text-slate-805">
+                              {blocks[selectedBlockIndex].content ? (
+                                <div dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(blocks[selectedBlockIndex].content) }} />
+                              ) : (
+                                <p className="text-gray-400 italic text-[11px] text-center pt-20">Teks masih kosong. Tulis sesuatu di tab HTML / Code.</p>
+                              )}
+                            </div>
+                            <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-[10px] text-slate-550 flex items-start gap-1.5 leading-relaxed">
+                              <Info size={12} className="text-blue-500 mt-0.5 shrink-0" />
+                              <span>Ini adalah hasil pratinjau yang sudah dirender. Untuk mengetik dan memformat teks, silakan pindah ke tab <strong>HTML / Code</strong>.</span>
+                            </div>
+                          </div>
+                        ) : (
+                          /* 📝 HTML & CODE EDITOR WORKSPACE MODE */
+                          <div className="space-y-2">
+                            {/* Editor Formatting Toolbar */}
+                            <div className="bg-gray-100 border border-gray-200 p-1.5 rounded-t-2xl flex flex-wrap gap-1 items-center select-none">
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('**', '**')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Tebal (Bold)"
+                              >
+                                <Bold size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('*', '*')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Miring (Italic)"
+                              >
+                                <Italic size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[u]', '[/u]')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Garis Bawah (Underline)"
+                              >
+                                <Underline size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[s]', '[/s]')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Coret (Strikethrough)"
+                              >
+                                <Strikethrough size={14} />
+                              </button>
+
+                              <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[align=left]', '[/align]')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Rata Kiri"
+                              >
+                                <AlignLeft size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[align=center]', '[/align]')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Rata Tengah"
+                              >
+                                <AlignCenter size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[align=right]', '[/align]')}
+                                className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                                title="Rata Kanan"
+                              >
+                                <AlignRight size={14} />
+                              </button>
+
+                              <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                              {/* Font Size Select Dropdown */}
+                              <div className="relative group/size">
+                                <button
+                                  type="button"
+                                  className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors flex items-center gap-1 text-[10px] font-bold"
+                                  title="Ukuran Font"
+                                >
+                                  <Type size={14} />
+                                  <span>Ukuran</span>
+                                </button>
+                                <div className="absolute left-0 top-full hidden group-hover/size:block bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-40 w-28 space-y-0.5 animate-fadeIn">
+                                  <button
+                                    type="button"
+                                    onClick={() => insertFormatting('[size=xs]', '[/size]')}
+                                    className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[10px] rounded text-gray-700 font-semibold"
+                                  >
+                                    Sangat Kecil (XS)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => insertFormatting('[size=sm]', '[/size]')}
+                                    className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[11px] rounded text-gray-700 font-semibold"
+                                  >
+                                    Kecil (SM)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => insertFormatting('[size=lg]', '[/size]')}
+                                    className="w-full text-left px-2 py-1 hover:bg-gray-50 text-sm rounded text-gray-700 font-semibold"
+                                  >
+                                    Besar (LG)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => insertFormatting('[size=xl]', '[/size]')}
+                                    className="w-full text-left px-2 py-1 hover:bg-gray-50 text-base rounded text-gray-700 font-bold"
+                                  >
+                                    Ekstra Besar (XL)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => insertFormatting('[size=2xl]', '[/size]')}
+                                    className="w-full text-left px-2 py-1 hover:bg-gray-50 text-lg rounded text-gray-700 font-extrabold"
+                                  >
+                                    Super Besar (2XL)
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <textarea
+                              id="markdown-editor"
+                              value={blocks[selectedBlockIndex].content || ''}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
+                              rows={12}
+                              placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan toolbar di atas atau **tebal** untuk teks tebal, *miring* untuk teks miring, [u]garis bawah[/u], [s]coret[/s], [align=center]tengah[/align], atau [size=lg]ukuran besar[/size]."
+                              className="w-full bg-gray-50 border border-gray-200 border-t-0 rounded-b-2xl p-3 text-xs text-gray-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                            />
+                            <p className="text-[9px] text-gray-400">Tulis HTML kustom atau format markdown sederhana di atas.</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
