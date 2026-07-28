@@ -10,11 +10,7 @@ import { useData } from '@/context/DataContext';
 const parseMarkdownToHtml = (text: string) => {
   if (!text) return '';
   
-  // Escape HTML tags to prevent cross-site scripting
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  let html = text;
     
   // Markdown processing
   html = html.replace(/^### (.*$)/gim, '<h4 class="text-base font-bold text-slate-800 mt-4 mb-2">$1</h4>');
@@ -43,7 +39,7 @@ const parseMarkdownToHtml = (text: string) => {
   const paragraphs = html.split(/\n{2,}/);
   return paragraphs.map(p => {
     const trimmed = p.trim();
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<div')) {
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<div') || trimmed.startsWith('<p') || trimmed.startsWith('<span')) {
       return trimmed;
     }
     return `<p class="mb-4 leading-relaxed text-slate-650 text-sm sm:text-base">${trimmed.replace(/\n/g, '<br />')}</p>`;
