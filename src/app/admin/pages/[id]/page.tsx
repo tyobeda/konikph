@@ -98,9 +98,10 @@ export default function AdminPageWorkspace() {
 
   // Drag states
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
-  const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const prevPositions = useRef<Map<number, number>>(new Map());
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const canvasBlockRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const navBlockRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const dragImageRef = useRef<HTMLDivElement | null>(null);
 
   // Success Toast state
   const [showToast, setShowToast] = useState(false);
@@ -153,43 +154,28 @@ export default function AdminPageWorkspace() {
     }
   }, [id, customPages]);
 
-  // ─── FLIP Animation helpers ──────────────────────────────────────────────
-  // Record Y-positions BEFORE the DOM changes ("First" step of FLIP)
-  const recordPositions = useCallback(() => {
-    const map = new Map<number, number>();
-    blocks.forEach((_, i) => {
-      const el = blockRefs.current[i];
-      if (el) map.set(i, el.getBoundingClientRect().top);
-    });
-    prevPositions.current = map;
-  }, [blocks]);
-
-  // Apply FLIP transitions after re-render ("Invert" + "Play" steps)
-  const playFlipAnimations = useCallback(() => {
-    blocks.forEach((_, i) => {
-      const el = blockRefs.current[i];
-      if (!el) return;
-      const oldY = prevPositions.current.get(i);
-      const newY = el.getBoundingClientRect().top;
-      if (oldY === undefined || oldY === newY) return;
-      const delta = oldY - newY;
-      // Invert: jump to old position instantly
-      el.style.transition = 'none';
-      el.style.transform = `translateY(${delta}px)`;
-      // Play: animate back to 0 (new position)
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.style.transition = 'transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-          el.style.transform = 'translateY(0)';
-        });
-      });
-    });
-  }, [blocks]);
+  // ── Animated drag helpers ──
+  const ensureDragImage = useCallback(() => {
+    if (!dragImageRef.current) {
+      const el = document.createElement('div');
+      el.style.width = '1px';
+      el.style.height = '1px';
+      el.style.opacity = '0.01';
+      el.style.position = 'fixed';
+      el.style.top = '-9999px';
+      document.body.appendChild(el);
+      dragImageRef.current = el;
+    }
+    return dragImageRef.current;
+  }, []);
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
-    setDropTargetIndex(null);
+    setDragOverIndex(index);
     e.dataTransfer.effectAllowed = 'move';
+    // Hide native browser drag ghost
+    const img = ensureDragImage();
+    e.dataTransfer.setDragImage(img, 0, 0);
     if (window.getSelection) {
       window.getSelection()?.removeAllRanges();
     }
@@ -197,35 +183,56 @@ export default function AdminPageWorkspace() {
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
     if (draggedIndex === null || draggedIndex === index) return;
-    setDropTargetIndex(index);
+    setDragOverIndex(index);
   };
 
   const handleDrop = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-
-    // Record positions BEFORE the swap
-    recordPositions();
-
+    if (draggedIndex === null || draggedIndex === index) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
     const newBlocks = [...blocks];
     const draggedBlock = newBlocks[draggedIndex];
     newBlocks.splice(draggedIndex, 1);
     newBlocks.splice(index, 0, draggedBlock);
-
     setBlocks(newBlocks);
     setSelectedBlockIndex(index);
     setDraggedIndex(null);
-    setDropTargetIndex(null);
-
-    // Let React re-render first, then play the FLIP animation
-    requestAnimationFrame(() => playFlipAnimations());
+    setDragOverIndex(null);
   };
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
-    setDropTargetIndex(null);
+    setDragOverIndex(null);
+  };
+
+  /** Compute CSS style for a block during drag to animate neighbours out of the way */
+  const getDragAnimStyle = (idx: number, refsArray: React.MutableRefObject<(HTMLDivElement | null)[]>): React.CSSProperties => {
+    if (draggedIndex === null || dragOverIndex === null || draggedIndex === dragOverIndex) return {};
+    if (idx === draggedIndex) {
+      return { opacity: 0.35, transform: 'scale(0.97)', transition: 'opacity 200ms ease, transform 200ms ease' };
+    }
+    // Compute how much to shift siblings
+    const draggedEl = refsArray.current[draggedIndex];
+    if (!draggedEl) return {};
+    const draggedH = draggedEl.offsetHeight + 8; // include gap
+    const from = draggedIndex;
+    const to = dragOverIndex;
+    if (from < to) {
+      // Dragged downward: items between from+1..to shift UP
+      if (idx > from && idx <= to) {
+        return { transform: `translateY(-${draggedH}px)`, transition: 'transform 250ms cubic-bezier(.4,.0,.2,1)' };
+      }
+    } else {
+      // Dragged upward: items between to..from-1 shift DOWN
+      if (idx >= to && idx < from) {
+        return { transform: `translateY(${draggedH}px)`, transition: 'transform 250ms cubic-bezier(.4,.0,.2,1)' };
+      }
+    }
+    return { transition: 'transform 250ms cubic-bezier(.4,.0,.2,1)' };
   };
 
   const insertFormatting = (prefix: string, suffix: string) => {
@@ -976,22 +983,19 @@ export default function AdminPageWorkspace() {
 
                 return (
                   <div
-                    key={`block-${idx}`}
-                    ref={(el) => { blockRefs.current[idx] = el; }}
+                    key={idx}
+                    ref={(el) => { canvasBlockRefs.current[idx] = el; }}
                     onClick={() => setSelectedBlockIndex(idx)}
                     draggable
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDrop={(e) => handleDrop(e, idx)}
                     onDragEnd={handleDragEnd}
+                    style={getDragAnimStyle(idx, canvasBlockRefs)}
                     className={`group relative rounded-2xl cursor-grab active:cursor-grabbing select-none ${
                       isSelected 
                         ? 'ring-2 ring-blue-500 ring-offset-4 shadow-md' 
                         : 'hover:ring-2 hover:ring-blue-400 hover:ring-offset-4'
-                    } ${draggedIndex === idx ? 'opacity-30 scale-[0.97]' : ''} ${
-                      dropTargetIndex === idx && draggedIndex !== idx
-                        ? 'ring-2 ring-orange-400 ring-offset-2'
-                        : ''
                     }`}
                   >
                     {/* Hover/Selection Floating Label */}
@@ -1089,16 +1093,19 @@ export default function AdminPageWorkspace() {
                 return (
                   <div
                     key={idx}
+                    ref={(el) => { navBlockRefs.current[idx] = el; }}
                     onClick={() => setSelectedBlockIndex(idx)}
                     draggable
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
+                    onDrop={(e) => handleDrop(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-semibold select-none ${
+                    style={getDragAnimStyle(idx, navBlockRefs)}
+                    className={`p-3 rounded-xl border cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-semibold select-none ${
                       isSelected
                         ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm'
                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
-                    } ${draggedIndex === idx ? 'opacity-40 scale-[0.98]' : ''}`}
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-gray-400">#{idx + 1}</span>
