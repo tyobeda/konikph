@@ -460,8 +460,8 @@ export default function AdminPageWorkspace() {
               P
             </div>
             <div>
-              <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Visual Page Builder</h4>
-              <p className="text-xs text-slate-800 truncate max-w-[180px] font-bold">{pageTitle || 'Halaman Baru'}</p>
+              <h4 className="text-xs font-medium text-gray-500">Visual Page Builder</h4>
+              <p className="text-xs text-slate-800 truncate max-w-[180px] font-semibold">{pageTitle || 'Halaman Baru'}</p>
             </div>
           </div>
 
@@ -470,10 +470,10 @@ export default function AdminPageWorkspace() {
             <button
               type="button"
               onClick={() => setSidebarTab('content')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 sidebarTab === 'content' 
-                  ? 'bg-white text-slate-850 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-850'
+                  ? 'bg-white text-slate-800 shadow-sm font-semibold' 
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Layout
@@ -481,10 +481,10 @@ export default function AdminPageWorkspace() {
             <button
               type="button"
               onClick={() => setSidebarTab('settings')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 sidebarTab === 'settings' 
-                  ? 'bg-white text-slate-850 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-850'
+                  ? 'bg-white text-slate-800 shadow-sm font-semibold' 
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Setelan
@@ -498,30 +498,30 @@ export default function AdminPageWorkspace() {
           {/* TAB 1: SETTINGS TAB */}
           {sidebarTab === 'settings' && (
             <div className="space-y-4">
-              <h5 className="text-xs font-black uppercase text-gray-400 tracking-wider pb-2 border-b border-gray-200 flex items-center gap-1.5">
+              <h5 className="text-xs font-semibold text-gray-600 pb-2 border-b border-gray-200 flex items-center gap-1.5">
                 <Settings size={14} />
                 <span>Pengaturan Halaman</span>
               </h5>
               
               <div>
-                <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Judul Halaman</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Judul Halaman</label>
                 <input
                   type="text"
                   value={pageTitle}
                   onChange={(e) => setPageTitle(e.target.value)}
                   placeholder="Contoh: Panduan Kreator"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Slug URL (/p/your-slug)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Slug URL (/p/your-slug)</label>
                 <input
                   type="text"
                   value={pageSlug}
                   onChange={(e) => setPageSlug(e.target.value)}
                   placeholder="contoh: panduan-kreator"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                 />
               </div>
 
@@ -533,7 +533,7 @@ export default function AdminPageWorkspace() {
                   onChange={(e) => setPagePublished(e.target.checked)}
                   className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
                 />
-                <label htmlFor="sidebar-published" className="text-xs font-bold text-gray-700 cursor-pointer uppercase select-none">
+                <label htmlFor="sidebar-published" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
                   Terbitkan Halaman (Public)
                 </label>
               </div>
@@ -546,18 +546,18 @@ export default function AdminPageWorkspace() {
                   onChange={(e) => setPageUseRootPath(e.target.checked)}
                   className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
                 />
-                <label htmlFor="sidebar-userootpath" className="text-xs font-bold text-gray-700 cursor-pointer uppercase select-none">
+                <label htmlFor="sidebar-userootpath" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
                   Gunakan Root Link (pks.art/slug)
                 </label>
               </div>
 
-              <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/60 text-[10px] text-gray-500 space-y-1">
-                <div className="flex items-center gap-1 text-gray-700 font-bold mb-1">
+              <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/60 text-[11px] text-gray-500 space-y-1">
+                <div className="flex items-center gap-1 text-gray-700 font-medium mb-1">
                   <Info size={12} className="text-[#F26522]" />
                   <span>Aturan Slug Halaman:</span>
                 </div>
                 <p>Slug hanya menggunakan huruf kecil, angka, dan tanda hubung (-).</p>
-                <p>Contoh: <strong>tentang-pksart</strong></p>
+                <p>Contoh: <strong className="font-semibold">tentang-pksart</strong></p>
               </div>
             </div>
           )}
@@ -568,7 +568,7 @@ export default function AdminPageWorkspace() {
               {selectedBlockIndex === null ? (
                 // SHOW WIDGET DRAWER PANEL
                 <div className="space-y-5">
-                  <h5 className="text-xs font-black uppercase text-gray-400 tracking-wider pb-2 border-b border-gray-200 flex items-center gap-1.5">
+                  <h5 className="text-xs font-semibold text-gray-600 pb-2 border-b border-gray-200 flex items-center gap-1.5">
                     <PlusCircle size={14} />
                     <span>Widget Elemen (Elementor)</span>
                   </h5>
@@ -1118,7 +1118,7 @@ export default function AdminPageWorkspace() {
         <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Layout size={16} className="text-gray-400" />
-            <h5 className="text-xs font-black uppercase text-gray-500 tracking-wider">Navigator Struktur</h5>
+            <h5 className="text-xs font-semibold text-gray-600">Navigator Struktur</h5>
           </div>
         </div>
 
@@ -1139,17 +1139,17 @@ export default function AdminPageWorkspace() {
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`p-3 rounded-xl border cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-semibold select-none ${
+                    className={`p-3 rounded-xl border cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-medium select-none ${
                       isSelected
-                        ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm'
+                        ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm font-semibold'
                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
                     } ${draggedIndex === idx ? 'opacity-40 scale-[0.97]' : ''}`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-gray-400">#{idx + 1}</span>
+                      <span className="text-[10px] font-semibold text-gray-400">#{idx + 1}</span>
                       <span className="capitalize">{b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : 'FAQ Accordion'}</span>
                     </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-gray-405 bg-gray-200/60 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-medium text-gray-500 bg-gray-200/50 px-1.5 py-0.5 rounded capitalize">
                       {b.type}
                     </span>
                   </div>
