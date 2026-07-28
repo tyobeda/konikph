@@ -175,7 +175,7 @@ const INITIAL_CUSTOM_PAGES: CustomPage[] = [
       },
       {
         type: 'text',
-        content: '<h2 id="misi" class="text-xl font-bold text-gray-900 mb-2">Misi PKSart</h2><p class="text-gray-600 leading-relaxed mb-4">PKSart didirikan untuk memberikan kemudahan bagi seluruh pengurus, kader, dan simpatisan dalam mengakses materi publikasi visual yang kreatif, dinamis, dan premium. Kami percaya bahwa dakwah visual di era digital memerlukan materi berkualitas tinggi dan mudah disebarluaskan.</p>'
+        content: '## Misi PKSart\n\nPKSart didirikan untuk memberikan kemudahan bagi seluruh pengurus, kader, dan simpatisan dalam mengakses materi publikasi visual yang kreatif, dinamis, dan premium.\n\nKami percaya bahwa dakwah visual di era digital memerlukan materi berkualitas tinggi dan mudah disebarluaskan:\n- Kreatif & Premium\n- Mudah diakses secara Nasional\n- Terstandarisasi secara Official'
       },
       {
         type: 'cta',

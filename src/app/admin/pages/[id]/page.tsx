@@ -25,6 +25,34 @@ import {
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
 
+const parseMarkdownToHtml = (text: string) => {
+  if (!text) return '';
+  
+  // Escape HTML tags to prevent cross-site scripting
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+    
+  // Markdown processing
+  html = html.replace(/^### (.*$)/gim, '<h4 class="text-base font-bold text-slate-800 mt-4 mb-2">$1</h4>');
+  html = html.replace(/^## (.*$)/gim, '<h3 class="text-lg font-bold text-slate-900 mt-5 mb-2">$1</h3>');
+  html = html.replace(/^# (.*$)/gim, '<h2 class="text-xl font-bold text-slate-900 mt-6 mb-3 border-b pb-1">$1</h2>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="list-disc ml-5 mb-1 text-slate-600">$1</li>');
+  
+  // Wrap paragraphs
+  const paragraphs = html.split(/\n{2,}/);
+  return paragraphs.map(p => {
+    const trimmed = p.trim();
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul')) {
+      return trimmed;
+    }
+    return `<p class="mb-4 leading-relaxed text-slate-650 text-xs sm:text-sm">${trimmed.replace(/\n/g, '<br />')}</p>`;
+  }).join('\n');
+};
+
 interface Block {
   type: 'hero' | 'text' | 'cta' | 'faq';
   title?: string;
@@ -481,14 +509,15 @@ export default function AdminPageWorkspace() {
 
                     {blocks[selectedBlockIndex].type === 'text' && (
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Teks / HTML Markup</label>
+                        <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Konten Teks (Markdown)</label>
                         <textarea
                           value={blocks[selectedBlockIndex].content || ''}
                           onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
                           rows={12}
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-800 font-mono focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan **tebal** untuk teks tebal, *miring* untuk teks miring, atau daftar list seperti:&#10;- Poin pertama&#10;- Poin kedua"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                         />
-                        <p className="text-[9px] text-gray-400">Anda dapat menulis tag HTML kustom seperti &lt;h2&gt;, &lt;p&gt;, atau &lt;ul&gt; untuk memformat tulisan.</p>
+                        <p className="text-[9px] text-gray-400">Mendukung tag markdown sederhana: # H1, ## H2, ### H3, **Tebal**, *Miring*, dan - List Poin.</p>
                       </div>
                     )}
 
@@ -694,7 +723,7 @@ export default function AdminPageWorkspace() {
                     {block.type === 'text' && (
                       <div 
                         className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 text-gray-700 leading-relaxed text-xs sm:text-sm prose prose-slate max-w-none"
-                        dangerouslySetInnerHTML={{ __html: block.content || '<p>Konten paragraf teks kosong.</p>' }}
+                        dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(block.content || '') }}
                       />
                     )}
 
