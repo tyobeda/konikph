@@ -310,20 +310,20 @@ export default function AdminPagesPage() {
 
       {/* 🚀 Elementor-Style Split Screen Page Builder Workspace */}
       {isEditorOpen && (
-        <div className="fixed inset-0 z-50 bg-[#1E293B] flex flex-col md:flex-row overflow-hidden font-sans">
+        <div className="fixed inset-0 z-50 bg-[#F1F5F9] flex flex-col md:flex-row overflow-hidden font-sans">
           
           {/* ================= LEFT SIDEBAR (ELEMENTOR PANEL) ================= */}
-          <div className="w-full md:w-96 bg-slate-900 text-slate-100 flex flex-col border-r border-slate-800 shrink-0 h-1/2 md:h-full shadow-2xl z-30">
+          <div className="w-full md:w-96 bg-white text-gray-800 flex flex-col border-r border-gray-250 shrink-0 h-1/2 md:h-full shadow-2xl z-30">
             
             {/* Top Toolbar Info */}
-            <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+            <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#F26522] flex items-center justify-center font-black text-white text-xs">
                   P
                 </div>
                 <div>
-                  <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Visual Page Builder</h4>
-                  <p className="text-xs text-white truncate max-w-[180px] font-bold">{pageTitle || 'Halaman Baru'}</p>
+                  <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Visual Page Builder</h4>
+                  <p className="text-xs text-gray-800 truncate max-w-[180px] font-bold">{pageTitle || 'Halaman Baru'}</p>
                 </div>
               </div>
 
@@ -333,7 +333,7 @@ export default function AdminPagesPage() {
                   type="button"
                   onClick={() => setSidebarTab('content')}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                    sidebarTab === 'content' ? 'bg-[#F26522] text-white' : 'text-slate-400 hover:text-white'
+                    sidebarTab === 'content' ? 'bg-[#F26522] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
                   Layout
@@ -342,7 +342,7 @@ export default function AdminPagesPage() {
                   type="button"
                   onClick={() => setSidebarTab('settings')}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                    sidebarTab === 'settings' ? 'bg-[#F26522] text-white' : 'text-slate-400 hover:text-white'
+                    sidebarTab === 'settings' ? 'bg-[#F26522] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
                   Setelan
@@ -356,30 +356,30 @@ export default function AdminPagesPage() {
               {/* TAB 1: SETTINGS TAB */}
               {sidebarTab === 'settings' && (
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider pb-2 border-b border-slate-800 flex items-center gap-1.5">
+                  <h5 className="text-xs font-black uppercase text-gray-400 tracking-wider pb-2 border-b border-gray-200 flex items-center gap-1.5">
                     <Settings size={14} />
                     <span>Pengaturan Halaman</span>
                   </h5>
                   
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Judul Halaman</label>
+                    <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Judul Halaman</label>
                     <input
                       type="text"
                       value={pageTitle}
                       onChange={(e) => setPageTitle(e.target.value)}
                       placeholder="Contoh: Panduan Kreator"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#F26522]"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Slug URL (/p/your-slug)</label>
+                    <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Slug URL (/p/your-slug)</label>
                     <input
                       type="text"
                       value={pageSlug}
                       onChange={(e) => setPageSlug(e.target.value)}
                       placeholder="contoh: panduan-kreator"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#F26522]"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                     />
                   </div>
 
@@ -389,15 +389,15 @@ export default function AdminPagesPage() {
                       id="sidebar-published"
                       checked={pagePublished}
                       onChange={(e) => setPagePublished(e.target.checked)}
-                      className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-slate-750 rounded cursor-pointer accent-[#F26522]"
+                      className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
                     />
-                    <label htmlFor="sidebar-published" className="text-xs font-bold text-slate-200 cursor-pointer uppercase select-none">
+                    <label htmlFor="sidebar-published" className="text-xs font-bold text-gray-700 cursor-pointer uppercase select-none">
                       Terbitkan Halaman (Public)
                     </label>
                   </div>
 
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 text-[10px] text-slate-400 space-y-1">
-                    <div className="flex items-center gap-1 text-slate-300 font-bold mb-1">
+                  <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/60 text-[10px] text-gray-500 space-y-1">
+                    <div className="flex items-center gap-1 text-gray-700 font-bold mb-1">
                       <Info size={12} className="text-[#F26522]" />
                       <span>Aturan Slug Halaman:</span>
                     </div>
@@ -413,7 +413,7 @@ export default function AdminPagesPage() {
                   {selectedBlockIndex === null ? (
                     // SHOW WIDGET DRAWER PANEL
                     <div className="space-y-5">
-                      <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider pb-2 border-b border-slate-800 flex items-center gap-1.5">
+                      <h5 className="text-xs font-black uppercase text-gray-400 tracking-wider pb-2 border-b border-gray-200 flex items-center gap-1.5">
                         <PlusCircle size={14} />
                         <span>Widget Elemen (Elementor)</span>
                       </h5>
@@ -423,60 +423,60 @@ export default function AdminPagesPage() {
                         <button
                           type="button"
                           onClick={() => addBlock('hero')}
-                          className="flex flex-col items-center justify-center p-4 bg-slate-850 hover:bg-[#F26522]/10 border border-slate-800 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                          className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                         >
-                          <Sparkles className="text-purple-400 group-hover:scale-110 transition-transform mb-2" size={24} />
-                          <span className="text-xs font-extrabold block text-slate-200">Hero Header</span>
-                          <span className="text-[9px] text-slate-400 mt-0.5">Headline & CTA</span>
+                          <Sparkles className="text-purple-500 group-hover:scale-110 transition-transform mb-2" size={24} />
+                          <span className="text-xs font-extrabold block text-gray-700">Hero Header</span>
+                          <span className="text-[9px] text-gray-450 mt-0.5">Headline & CTA</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => addBlock('text')}
-                          className="flex flex-col items-center justify-center p-4 bg-slate-850 hover:bg-[#F26522]/10 border border-slate-800 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                          className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                         >
-                          <AlignLeft className="text-sky-400 group-hover:scale-110 transition-transform mb-2" size={24} />
-                          <span className="text-xs font-extrabold block text-slate-200">Teks HTML</span>
-                          <span className="text-[9px] text-slate-400 mt-0.5">Konten paragraf</span>
+                          <AlignLeft className="text-sky-500 group-hover:scale-110 transition-transform mb-2" size={24} />
+                          <span className="text-xs font-extrabold block text-gray-700">Teks HTML</span>
+                          <span className="text-[9px] text-gray-450 mt-0.5">Konten paragraf</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => addBlock('cta')}
-                          className="flex flex-col items-center justify-center p-4 bg-slate-850 hover:bg-[#F26522]/10 border border-slate-800 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                          className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                         >
-                          <Megaphone className="text-amber-400 group-hover:scale-110 transition-transform mb-2" size={24} />
-                          <span className="text-xs font-extrabold block text-slate-200">CTA Banner</span>
-                          <span className="text-[9px] text-slate-400 mt-0.5">Tombol aksi</span>
+                          <Megaphone className="text-amber-500 group-hover:scale-110 transition-transform mb-2" size={24} />
+                          <span className="text-xs font-extrabold block text-gray-700">CTA Banner</span>
+                          <span className="text-[9px] text-gray-450 mt-0.5">Tombol aksi</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => addBlock('faq')}
-                          className="flex flex-col items-center justify-center p-4 bg-slate-850 hover:bg-[#F26522]/10 border border-slate-800 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                          className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                         >
-                          <HelpCircle className="text-emerald-400 group-hover:scale-110 transition-transform mb-2" size={24} />
-                          <span className="text-xs font-extrabold block text-slate-200">FAQ List</span>
-                          <span className="text-[9px] text-slate-400 mt-0.5">Tanya-Jawab</span>
+                          <HelpCircle className="text-emerald-500 group-hover:scale-110 transition-transform mb-2" size={24} />
+                          <span className="text-xs font-extrabold block text-gray-700">FAQ List</span>
+                          <span className="text-[9px] text-gray-450 mt-0.5">Tanya-Jawab</span>
                         </button>
                       </div>
 
                       {/* Outline List */}
                       <div className="space-y-2 pt-3">
-                        <h6 className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Struktur Halaman:</h6>
+                        <h6 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Struktur Halaman:</h6>
                         {blocks.length === 0 ? (
-                          <p className="text-xs text-slate-400 italic">Halaman masih kosong.</p>
+                          <p className="text-xs text-gray-500 italic">Halaman masih kosong.</p>
                         ) : (
-                          <div className="divide-y divide-slate-850">
+                          <div className="divide-y divide-gray-100">
                             {blocks.map((b, idx) => (
                               <button
                                 key={idx}
                                 type="button"
                                 onClick={() => setSelectedBlockIndex(idx)}
-                                className="w-full py-2.5 flex items-center justify-between text-left text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+                                className="w-full py-2.5 flex items-center justify-between text-left text-xs font-semibold text-gray-650 hover:text-[#F26522] transition-colors border-b border-gray-100"
                               >
                                 <span>{idx + 1}. {b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : 'FAQ Accordion'}</span>
-                                <span className="text-[10px] text-slate-500 italic uppercase">{b.type}</span>
+                                <span className="text-[10px] text-gray-400 italic uppercase">{b.type}</span>
                               </button>
                             ))}
                           </div>
@@ -489,14 +489,14 @@ export default function AdminPagesPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedBlockIndex(null)}
-                        className="inline-flex items-center gap-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold rounded-lg transition-all"
+                        className="inline-flex items-center gap-1 py-1.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-all border border-gray-150"
                       >
                         <ChevronLeft size={14} />
                         <span>Kembali ke Widget</span>
                       </button>
 
-                      <div className="border-t border-slate-800 pt-3">
-                        <h5 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3 flex items-center justify-between">
+                      <div className="border-t border-gray-100 pt-3">
+                        <h5 className="text-xs font-black uppercase text-gray-455 tracking-wider mb-3 flex items-center justify-between">
                           <span>Konfigurasi: {blocks[selectedBlockIndex].type}</span>
                           <span className="text-[10px] bg-[#F26522] text-white px-2 py-0.5 rounded">
                             Blok {selectedBlockIndex + 1}
@@ -507,39 +507,39 @@ export default function AdminPagesPage() {
                         {blocks[selectedBlockIndex].type === 'hero' && (
                           <div className="space-y-3.5">
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Headline Utama</label>
+                              <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Headline Utama</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].title || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Sub-Headline</label>
+                              <label className="block text-[10px] font-black text-gray-450 uppercase mb-1">Sub-Headline</label>
                               <textarea
                                 value={blocks[selectedBlockIndex].subtitle || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'subtitle', e.target.value)}
                                 rows={3}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Teks Tombol CTA</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Teks Tombol CTA</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaText || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Link Tombol CTA</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Link Tombol CTA</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaLink || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                           </div>
@@ -547,53 +547,53 @@ export default function AdminPagesPage() {
 
                         {blocks[selectedBlockIndex].type === 'text' && (
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Teks / HTML Markup</label>
+                            <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Teks / HTML Markup</label>
                             <textarea
                               value={blocks[selectedBlockIndex].content || ''}
                               onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
                               rows={12}
-                              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none"
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-800 font-mono focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                             />
-                            <p className="text-[9px] text-slate-500">Anda dapat menulis tag HTML kustom seperti &lt;h2&gt;, &lt;p&gt;, atau &lt;ul&gt; untuk memformat tulisan.</p>
+                            <p className="text-[9px] text-gray-400">Anda dapat menulis tag HTML kustom seperti &lt;h2&gt;, &lt;p&gt;, atau &lt;ul&gt; untuk memformat tulisan.</p>
                           </div>
                         )}
 
                         {blocks[selectedBlockIndex].type === 'cta' && (
                           <div className="space-y-3.5">
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Judul Banner</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Judul Banner</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].title || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pesan Deskripsi</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Pesan Deskripsi</label>
                               <textarea
                                 value={blocks[selectedBlockIndex].description || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'description', e.target.value)}
                                 rows={3}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Teks Tombol</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Teks Tombol</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaText || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Link Tombol</label>
+                              <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Link Tombol</label>
                               <input
                                 type="text"
                                 value={blocks[selectedBlockIndex].ctaLink || ''}
                                 onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                               />
                             </div>
                           </div>
@@ -601,19 +601,19 @@ export default function AdminPagesPage() {
 
                         {blocks[selectedBlockIndex].type === 'faq' && (
                           <div className="space-y-4">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase">Daftar Tanya Jawab FAQ</label>
+                            <label className="block text-[10px] font-black text-gray-455 uppercase">Daftar Tanya Jawab FAQ</label>
                             
                             <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                               {(blocks[selectedBlockIndex].faqs || []).map((faq, fIdx) => (
-                                <div key={fIdx} className="bg-slate-850 p-2.5 rounded-xl border border-slate-800 flex items-start justify-between gap-3 text-xs">
+                                <div key={fIdx} className="bg-gray-50 p-2.5 rounded-xl border border-gray-150 flex items-start justify-between gap-3 text-xs">
                                   <div>
-                                    <p className="font-bold text-slate-200">Q: {faq.question}</p>
-                                    <p className="text-slate-400 mt-0.5">A: {faq.answer}</p>
+                                    <p className="font-bold text-gray-800">Q: {faq.question}</p>
+                                    <p className="text-gray-500 mt-0.5">A: {faq.answer}</p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => removeFaqItem(selectedBlockIndex, fIdx)}
-                                    className="text-red-400 hover:text-red-500"
+                                    className="text-red-500 hover:text-red-650"
                                   >
                                     <X size={14} />
                                   </button>
@@ -621,21 +621,21 @@ export default function AdminPagesPage() {
                               ))}
                             </div>
 
-                            <div className="border border-slate-850 p-3 rounded-xl bg-slate-950 space-y-2">
+                            <div className="border border-gray-200 p-3 rounded-xl bg-gray-50 space-y-2">
                               <p className="text-[9px] font-black uppercase text-[#F26522]">Tambah FAQ Baru:</p>
                               <input
                                 type="text"
                                 value={tempFaqQ}
                                 onChange={(e) => setTempFaqQ(e.target.value)}
                                 placeholder="Pertanyaan?"
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                                className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900"
                               />
                               <input
                                 type="text"
                                 value={tempFaqA}
                                 onChange={(e) => setTempFaqA(e.target.value)}
                                 placeholder="Jawaban..."
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                                className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900"
                               />
                               <button
                                 type="button"
@@ -649,11 +649,11 @@ export default function AdminPagesPage() {
                         )}
 
                         {/* Selected Block Action Controls */}
-                        <div className="border-t border-slate-800 mt-4 pt-4 flex gap-2">
+                        <div className="border-t border-gray-100 mt-4 pt-4 flex gap-2">
                           <button
                             type="button"
                             onClick={(e) => deleteBlock(selectedBlockIndex, e)}
-                            className="flex-1 py-2 bg-red-950/20 hover:bg-red-900/40 text-red-400 border border-red-900/60 text-xs font-bold rounded-xl text-center"
+                            className="flex-1 py-2 bg-red-55 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl text-center transition-colors"
                           >
                             Hapus Blok
                           </button>
@@ -664,14 +664,14 @@ export default function AdminPagesPage() {
                 </>
               )}
 
-            </div>
+              </div>
 
             {/* Sidebar Bottom Action Buttons */}
-            <div className="p-4 bg-slate-950 border-t border-slate-850 flex gap-2">
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-2">
               <button
                 type="button"
                 onClick={() => setIsEditorOpen(false)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold rounded-xl transition-all"
+                className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-750 text-xs font-bold rounded-xl transition-all"
               >
                 Tutup
               </button>
@@ -687,7 +687,7 @@ export default function AdminPagesPage() {
           </div>
 
           {/* ================= RIGHT CANVAS PREVIEW (LIVE PREVIEW AREA) ================= */}
-          <div className="flex-1 bg-slate-800 overflow-y-auto p-4 sm:p-8 flex justify-center items-start h-1/2 md:h-full">
+          <div className="flex-1 bg-gray-100 overflow-y-auto p-4 sm:p-8 flex justify-center items-start h-1/2 md:h-full">
             <div className="w-full max-w-3xl bg-white min-h-full rounded-2xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-600/40">
               
               {/* Simulated Browser Address Bar */}
