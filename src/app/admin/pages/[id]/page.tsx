@@ -12,6 +12,7 @@ import {
   Layout,
   PlusCircle,
   Plus,
+  Heading,
   HelpCircle,
   Megaphone,
   AlignLeft,
@@ -82,9 +83,11 @@ const parseMarkdownToHtml = (text: string) => {
 
 interface Block {
   id: string;
-  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading';
   title?: string;
   subtitle?: string;
+  titleSize?: 'h1' | 'h2' | 'h3' | 'h4';
+  titleAlign?: 'left' | 'center' | 'right';
   ctaText?: string;
   ctaLink?: string;
   content?: string;
@@ -373,12 +376,21 @@ export default function AdminPageWorkspace() {
   const [isNavMinimized, setIsNavMinimized] = useState(false);
 
   const addBlock = (
-    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator',
+    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading',
     atIndex?: number
   ) => {
     const id = genBlockId();
     let newBlock: Block;
-    if (type === 'hero') {
+    if (type === 'heading') {
+      newBlock = { 
+        id, 
+        type, 
+        title: 'Judul Section / Halaman Baru', 
+        subtitle: 'Sub-judul pendukung (opsional)', 
+        titleSize: 'h2', 
+        titleAlign: 'left' 
+      };
+    } else if (type === 'hero') {
       newBlock = { id, type, title: 'Judul Hero Baru', subtitle: 'Deskripsi singkat hero block.', ctaText: 'Klik Di Sini', ctaLink: '#', fullWidth: false };
     } else if (type === 'text') {
       newBlock = { id, type, content: '<h3 class="text-lg font-bold mb-2">Subjudul Teks</h3><p>Tulis konten teks kustom Anda di sini menggunakan format HTML standar...</p>' };
@@ -718,6 +730,7 @@ export default function AdminPageWorkspace() {
                     <p className="text-[10px] text-gray-500 italic">Klik (+), klik kartu, atau tarik (drag) widget langsung ke posisi canvas:</p>
                     <div className="grid grid-cols-2 gap-2.5">
                       {[
+                        { type: 'heading', title: 'Judul (Title)', desc: 'Section Heading', icon: Heading, color: 'text-orange-500' },
                         { type: 'hero', title: 'Hero Header', desc: 'Headline & CTA', icon: Sparkles, color: 'text-purple-500' },
                         { type: 'text', title: 'Teks HTML', desc: 'Konten paragraf', icon: AlignLeft, color: 'text-sky-500' },
                         { type: 'cta', title: 'CTA Banner', desc: 'Tombol aksi', icon: Megaphone, color: 'text-amber-500' },
@@ -788,6 +801,61 @@ export default function AdminPageWorkspace() {
                     </h5>
 
                     {/* RENDER FORM FIELDS DEPENDING ON SELECTED BLOCK */}
+                    {blocks[selectedBlockIndex].type === 'heading' && (
+                      <div className="space-y-3.5">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Teks Judul Utama</label>
+                          <input
+                            type="text"
+                            value={blocks[selectedBlockIndex].title || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)}
+                            placeholder="Judul Section / Halaman..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Sub-judul Pendukung (Opsional)</label>
+                          <input
+                            type="text"
+                            value={blocks[selectedBlockIndex].subtitle || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'subtitle', e.target.value)}
+                            placeholder="Deskripsi singkat di bawah judul..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Ukuran Font Judul</label>
+                            <select
+                              value={blocks[selectedBlockIndex].titleSize || 'h2'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'titleSize', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 cursor-pointer"
+                            >
+                              <option value="h1">H1 (Sangat Besar - 36px)</option>
+                              <option value="h2">H2 (Besar - 28px)</option>
+                              <option value="h3">H3 (Sedang - 22px)</option>
+                              <option value="h4">H4 (Kecil - 18px)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Posisi (Alignment)</label>
+                            <select
+                              value={blocks[selectedBlockIndex].titleAlign || 'left'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'titleAlign', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 cursor-pointer"
+                            >
+                              <option value="left">Rata Kiri</option>
+                              <option value="center">Rata Tengah</option>
+                              <option value="right">Rata Kanan</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {blocks[selectedBlockIndex].type === 'hero' && (
                       <div className="space-y-3.5">
                         <div>
@@ -1397,6 +1465,34 @@ export default function AdminPageWorkspace() {
 
                       {/* RENDER CONTENT BLOCKS */}
                       
+                      {/* 0. HEADING BLOCK */}
+                      {block.type === 'heading' && (
+                        <div className={`p-4 text-${block.titleAlign || 'left'}`}>
+                          {block.titleSize === 'h1' ? (
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                              {block.title || 'Judul Utama'}
+                            </h1>
+                          ) : block.titleSize === 'h3' ? (
+                            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+                              {block.title || 'Judul Section'}
+                            </h3>
+                          ) : block.titleSize === 'h4' ? (
+                            <h4 className="text-sm sm:text-base font-semibold text-slate-900 leading-snug">
+                              {block.title || 'Judul Kecil'}
+                            </h4>
+                          ) : (
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+                              {block.title || 'Judul Utama'}
+                            </h2>
+                          )}
+                          {block.subtitle && (
+                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                              {block.subtitle}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       {/* 1. HERO BLOCK */}
                       {block.type === 'hero' && (
                         <div className={`bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-6 sm:p-10 shadow-md relative overflow-hidden transition-all ${block.fullWidth ? '-mx-6 -mt-6 -mb-2 rounded-none' : 'rounded-2xl'}`}>
@@ -1515,9 +1611,7 @@ export default function AdminPageWorkspace() {
                     {/* 7. SEPARATOR BLOCK */}
                     {block.type === 'separator' && (
                       <div className="py-4 flex items-center justify-center">
-                        <div className="w-full border-t border-gray-200/80 relative flex justify-center items-center">
-                          <div className="w-2 h-2 rounded-full bg-[#F26522] absolute" />
-                        </div>
+                        <div className="w-full border-t border-gray-200/80" />
                       </div>
                     )}
 

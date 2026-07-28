@@ -47,9 +47,11 @@ const parseMarkdownToHtml = (text: string) => {
 };
 
 interface PageBlock {
-  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading';
   title?: string;
   subtitle?: string;
+  titleSize?: 'h1' | 'h2' | 'h3' | 'h4';
+  titleAlign?: 'left' | 'center' | 'right';
   ctaText?: string;
   ctaLink?: string;
   content?: string;
@@ -177,6 +179,39 @@ export default function RootCustomPageRenderer() {
           <div className="space-y-10">
             {blocks.map((block, blockIdx) => {
               
+              // 0. HEADING BLOCK
+              if (block.type === 'heading') {
+                return (
+                  <div 
+                    key={blockIdx} 
+                    className={`py-2 text-${block.titleAlign || 'left'}`}
+                  >
+                    {block.titleSize === 'h1' ? (
+                      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                        {block.title || 'Judul Utama'}
+                      </h1>
+                    ) : block.titleSize === 'h3' ? (
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                        {block.title || 'Judul Section'}
+                      </h3>
+                    ) : block.titleSize === 'h4' ? (
+                      <h4 className="text-lg sm:text-xl font-semibold text-slate-900 leading-snug">
+                        {block.title || 'Judul Kecil'}
+                      </h4>
+                    ) : (
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                        {block.title || 'Judul Utama'}
+                      </h2>
+                    )}
+                    {block.subtitle && (
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
+                        {block.subtitle}
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+
               // 1. HERO BLOCK
               if (block.type === 'hero') {
                 return (
@@ -363,9 +398,7 @@ export default function RootCustomPageRenderer() {
               if (block.type === 'separator') {
                 return (
                   <div key={blockIdx} className="py-6 flex items-center justify-center">
-                    <div className="w-full border-t border-gray-200 relative flex justify-center items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#F26522] absolute" />
-                    </div>
+                    <div className="w-full border-t border-gray-200" />
                   </div>
                 );
               }
