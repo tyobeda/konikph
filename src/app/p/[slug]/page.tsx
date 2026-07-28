@@ -23,15 +23,30 @@ const parseMarkdownToHtml = (text: string) => {
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="list-disc ml-5 mb-1 text-slate-600">$1</li>');
+
+  // BBCode tags
+  html = html.replace(/\[u\](.*?)\[\/u\]/g, '<span class="underline">$1</span>');
+  html = html.replace(/\[s\](.*?)\[\/s\]/g, '<del class="line-through text-gray-400">$1</del>');
+  html = html.replace(/\[align=(left|center|right)\](.*?)\[\/align\]/g, '<div class="text-$1">$2</div>');
+  html = html.replace(/\[size=(xs|sm|lg|xl|2xl)\](.*?)\[\/size\]/g, (match, size, content) => {
+    const sizeClasses: { [key: string]: string } = {
+      xs: 'text-xs',
+      sm: 'text-sm',
+      lg: 'text-lg',
+      xl: 'text-xl font-bold',
+      '2xl': 'text-2xl font-bold'
+    };
+    return `<span class="${sizeClasses[size] || 'text-base'}">${content}</span>`;
+  });
   
   // Wrap paragraphs
   const paragraphs = html.split(/\n{2,}/);
   return paragraphs.map(p => {
     const trimmed = p.trim();
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul')) {
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<div')) {
       return trimmed;
     }
-    return `<p class="mb-4 leading-relaxed text-slate-600 text-sm sm:text-base">${trimmed.replace(/\n/g, '<br />')}</p>`;
+    return `<p class="mb-4 leading-relaxed text-slate-650 text-sm sm:text-base">${trimmed.replace(/\n/g, '<br />')}</p>`;
   }).join('\n');
 };
 

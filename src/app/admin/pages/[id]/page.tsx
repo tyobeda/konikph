@@ -20,7 +20,14 @@ import {
   ArrowDown,
   Info,
   CheckCircle,
-  Loader2
+  Loader2,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  AlignCenter,
+  AlignRight,
+  Type
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
@@ -41,15 +48,30 @@ const parseMarkdownToHtml = (text: string) => {
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="list-disc ml-5 mb-1 text-slate-600">$1</li>');
+
+  // BBCode tags
+  html = html.replace(/\[u\](.*?)\[\/u\]/g, '<span class="underline">$1</span>');
+  html = html.replace(/\[s\](.*?)\[\/s\]/g, '<del class="line-through text-gray-400">$1</del>');
+  html = html.replace(/\[align=(left|center|right)\](.*?)\[\/align\]/g, '<div class="text-$1">$2</div>');
+  html = html.replace(/\[size=(xs|sm|lg|xl|2xl)\](.*?)\[\/size\]/g, (match, size, content) => {
+    const sizeClasses: { [key: string]: string } = {
+      xs: 'text-xs',
+      sm: 'text-sm',
+      lg: 'text-lg',
+      xl: 'text-xl font-bold',
+      '2xl': 'text-2xl font-bold'
+    };
+    return `<span class="${sizeClasses[size] || 'text-base'}">${content}</span>`;
+  });
   
   // Wrap paragraphs
   const paragraphs = html.split(/\n{2,}/);
   return paragraphs.map(p => {
     const trimmed = p.trim();
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul')) {
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<div')) {
       return trimmed;
     }
-    return `<p class="mb-4 leading-relaxed text-slate-650 text-xs sm:text-sm">${trimmed.replace(/\n/g, '<br />')}</p>`;
+    return `<p class="mb-4 leading-relaxed text-slate-655 text-xs sm:text-sm">${trimmed.replace(/\n/g, '<br />')}</p>`;
   }).join('\n');
 };
 
@@ -155,6 +177,28 @@ export default function AdminPageWorkspace() {
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
+  };
+
+  const insertFormatting = (prefix: string, suffix: string) => {
+    if (selectedBlockIndex === null) return;
+    const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    
+    const selectedText = text.substring(start, end);
+    const replacement = prefix + selectedText + suffix;
+    
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+    updateBlockField(selectedBlockIndex, 'content', newContent);
+    
+    // Restore selection focus
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+    }, 50);
   };
 
   const addBlock = (type: 'hero' | 'text' | 'cta' | 'faq') => {
@@ -509,15 +553,131 @@ export default function AdminPageWorkspace() {
 
                     {blocks[selectedBlockIndex].type === 'text' && (
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Konten Teks (Markdown)</label>
+                        <label className="block text-[10px] font-black text-gray-455 uppercase mb-1">Konten Teks (Editor Elementor)</label>
+                        
+                        {/* Editor Formatting Toolbar */}
+                        <div className="bg-gray-100 border border-gray-200 p-1.5 rounded-t-2xl flex flex-wrap gap-1 items-center select-none">
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('**', '**')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Tebal (Bold)"
+                          >
+                            <Bold size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('*', '*')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Miring (Italic)"
+                          >
+                            <Italic size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('[u]', '[/u]')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Garis Bawah (Underline)"
+                          >
+                            <Underline size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('[s]', '[/s]')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Coret (Strikethrough)"
+                          >
+                            <Strikethrough size={14} />
+                          </button>
+
+                          <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('[align=left]', '[/align]')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Rata Kiri"
+                          >
+                            <AlignLeft size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('[align=center]', '[/align]')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Rata Tengah"
+                          >
+                            <AlignCenter size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertFormatting('[align=right]', '[/align]')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Rata Kanan"
+                          >
+                            <AlignRight size={14} />
+                          </button>
+
+                          <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                          {/* Font Size Select Dropdown */}
+                          <div className="relative group/size">
+                            <button
+                              type="button"
+                              className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors flex items-center gap-1 text-[10px] font-bold"
+                              title="Ukuran Font"
+                            >
+                              <Type size={14} />
+                              <span>Ukuran</span>
+                            </button>
+                            <div className="absolute left-0 top-full hidden group-hover/size:block bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-40 w-28 space-y-0.5">
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[size=xs]', '[/size]')}
+                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[10px] rounded text-gray-700 font-semibold"
+                              >
+                                Sangat Kecil (XS)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[size=sm]', '[/size]')}
+                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[11px] rounded text-gray-700 font-semibold"
+                              >
+                                Kecil (SM)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[size=lg]', '[/size]')}
+                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-sm rounded text-gray-700 font-semibold"
+                              >
+                                Besar (LG)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[size=xl]', '[/size]')}
+                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-base rounded text-gray-700 font-bold"
+                              >
+                                Ekstra Besar (XL)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertFormatting('[size=2xl]', '[/size]')}
+                                className="w-full text-left px-2 py-1 hover:bg-gray-50 text-lg rounded text-gray-700 font-extrabold"
+                              >
+                                Super Besar (2XL)
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
                         <textarea
+                          id="markdown-editor"
                           value={blocks[selectedBlockIndex].content || ''}
                           onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
                           rows={12}
-                          placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan **tebal** untuk teks tebal, *miring* untuk teks miring, atau daftar list seperti:&#10;- Poin pertama&#10;- Poin kedua"
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan toolbar di atas atau **tebal** untuk teks tebal, *miring* untuk teks miring, [u]garis bawah[/u], [s]coret[/s], [align=center]tengah[/align], atau [size=lg]ukuran besar[/size]."
+                          className="w-full bg-gray-50 border border-gray-200 border-t-0 rounded-b-2xl p-3 text-xs text-gray-805 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                         />
-                        <p className="text-[9px] text-gray-400">Mendukung tag markdown sederhana: # H1, ## H2, ### H3, **Tebal**, *Miring*, dan - List Poin.</p>
+                        <p className="text-[9px] text-gray-400">Gunakan toolbar di atas untuk memasukkan format tulisan dengan cepat & mudah.</p>
                       </div>
                     )}
 
