@@ -511,28 +511,6 @@ export default function AdminPagesPage() {
                           <span className="text-[9px] text-gray-450 mt-0.5">Tanya-Jawab</span>
                         </button>
                       </div>
-
-                      {/* Outline List */}
-                      <div className="space-y-2 pt-3">
-                        <h6 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Struktur Halaman:</h6>
-                        {blocks.length === 0 ? (
-                          <p className="text-xs text-gray-500 italic">Halaman masih kosong.</p>
-                        ) : (
-                          <div className="divide-y divide-gray-100">
-                            {blocks.map((b, idx) => (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => setSelectedBlockIndex(idx)}
-                                className="w-full py-2.5 flex items-center justify-between text-left text-xs font-semibold text-gray-650 hover:text-[#F26522] transition-colors border-b border-gray-100"
-                              >
-                                <span>{idx + 1}. {b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : 'FAQ Accordion'}</span>
-                                <span className="text-[10px] text-gray-400 italic uppercase">{b.type}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
                     </div>
                   ) : (
                     // SHOW ACTIVE BLOCK EDITOR PANEL (SETTINGS FOR SELECTED BLOCK)
@@ -875,6 +853,53 @@ export default function AdminPagesPage() {
 
               </div>
               
+            </div>
+          </div>
+
+          {/* ================= RIGHT SIDEBAR (ELEMENTOR NAVIGATOR) ================= */}
+          <div className="w-72 bg-white border-l border-gray-250 shrink-0 flex flex-col h-1/2 md:h-full shadow-2xl z-30 select-none">
+            {/* Navigator Header */}
+            <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Layout size={16} className="text-gray-400" />
+                <h5 className="text-xs font-black uppercase text-gray-500 tracking-wider">Navigator Struktur</h5>
+              </div>
+            </div>
+
+            {/* Draggable Navigator List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {blocks.length === 0 ? (
+                <p className="text-xs text-gray-500 italic text-center py-10">Struktur halaman kosong.</p>
+              ) : (
+                <div className="space-y-2">
+                  {blocks.map((b, idx) => {
+                    const isSelected = selectedBlockIndex === idx;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedBlockIndex(idx)}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-semibold select-none ${
+                          isSelected
+                            ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm'
+                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                        } ${draggedIndex === idx ? 'opacity-40 scale-[0.98]' : ''}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-gray-400">#{idx + 1}</span>
+                          <span className="capitalize">{b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : 'FAQ Accordion'}</span>
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-wider text-gray-405 bg-gray-200/60 px-1.5 py-0.5 rounded">
+                          {b.type}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
