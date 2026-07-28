@@ -11,6 +11,7 @@ import {
   Sparkles,
   Layout,
   PlusCircle,
+  Plus,
   HelpCircle,
   Megaphone,
   AlignLeft,
@@ -132,6 +133,8 @@ export default function AdminPageWorkspace() {
 
   // Drag states
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dropIndicatorIndex, setDropIndicatorIndex] = useState<number | null>(null);
+  const [draggingNewWidget, setDraggingNewWidget] = useState<string | null>(null);
   const dragImageRef = useRef<HTMLDivElement | null>(null);
   const canvasBlockRefs = useRef<(HTMLDivElement | null)[]>([]);
   const navBlockRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -369,7 +372,10 @@ export default function AdminPageWorkspace() {
 
   const [isNavMinimized, setIsNavMinimized] = useState(false);
 
-  const addBlock = (type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator') => {
+  const addBlock = (
+    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator',
+    atIndex?: number
+  ) => {
     const id = genBlockId();
     let newBlock: Block;
     if (type === 'hero') {
@@ -381,15 +387,30 @@ export default function AdminPageWorkspace() {
     } else if (type === 'faq') {
       newBlock = { id, type, faqs: [{ question: 'Pertanyaan FAQ Baru?', answer: 'Tulis jawaban detail di sini.' }] };
     } else if (type === 'image') {
-      newBlock = { id, type, imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80', imageAlt: 'Deskripsi Gambar' };
+      newBlock = { 
+        id, 
+        type, 
+        imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80', 
+        imageAlt: 'Deskripsi Gambar',
+        imageSize: 'full',
+        imageAlign: 'center',
+        imageLink: '' 
+      };
     } else if (type === 'quote') {
       newBlock = { id, type, quoteText: 'Kreativitas adalah kecerdasan yang bersenang-senang.', quoteAuthor: 'Albert Einstein' };
     } else {
       newBlock = { id, type };
     }
     
-    setBlocks([...blocks, newBlock]);
-    setSelectedBlockIndex(blocks.length);
+    if (typeof atIndex === 'number' && atIndex >= 0 && atIndex <= blocks.length) {
+      const newBlocks = [...blocks];
+      newBlocks.splice(atIndex, 0, newBlock);
+      setBlocks(newBlocks);
+      setSelectedBlockIndex(atIndex);
+    } else {
+      setBlocks([...blocks, newBlock]);
+      setSelectedBlockIndex(blocks.length);
+    }
   };
 
   const deleteBlock = (index: number, e?: React.MouseEvent) => {
@@ -693,76 +714,57 @@ export default function AdminPageWorkspace() {
                   </h5>
 
                   {/* Elements toolbox grid */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => addBlock('hero')}
-                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <Sparkles className="text-purple-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">Hero Header</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Headline & CTA</span>
-                    </button>
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-gray-500 italic">Klik (+), klik kartu, atau tarik (drag) widget langsung ke posisi canvas:</p>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {[
+                        { type: 'hero', title: 'Hero Header', desc: 'Headline & CTA', icon: Sparkles, color: 'text-purple-500' },
+                        { type: 'text', title: 'Teks HTML', desc: 'Konten paragraf', icon: AlignLeft, color: 'text-sky-500' },
+                        { type: 'cta', title: 'CTA Banner', desc: 'Tombol aksi', icon: Megaphone, color: 'text-amber-500' },
+                        { type: 'faq', title: 'FAQ List', desc: 'Tanya-Jawab', icon: HelpCircle, color: 'text-emerald-500' },
+                        { type: 'image', title: 'Gambar', desc: 'Media foto', icon: ImageIcon, color: 'text-emerald-600' },
+                        { type: 'quote', title: 'Kutipan', desc: 'Quote & Sumber', icon: Quote, color: 'text-indigo-500' },
+                        { type: 'separator', title: 'Pemisah', desc: 'Garis pembatas', icon: Minus, color: 'text-gray-500', full: true },
+                      ].map((w) => {
+                        const Icon = w.icon;
+                        return (
+                          <div
+                            key={w.type}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('newWidgetType', w.type);
+                              e.dataTransfer.effectAllowed = 'copy';
+                              setDraggingNewWidget(w.type);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingNewWidget(null);
+                              setDropIndicatorIndex(null);
+                            }}
+                            onClick={() => addBlock(w.type as any)}
+                            className={`relative group flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/30 border border-gray-200 hover:border-[#F26522] rounded-2xl cursor-grab active:cursor-grabbing transition-all text-center select-none shadow-2xs hover:shadow-sm ${
+                              w.full ? 'col-span-2' : ''
+                            }`}
+                          >
+                            {/* Plus (+) badge button in top-right corner */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addBlock(w.type as any);
+                              }}
+                              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white group-hover:bg-[#F26522] group-hover:text-white border border-gray-200 group-hover:border-[#F26522] text-gray-500 flex items-center justify-center transition-all shadow-2xs hover:scale-110 active:scale-95"
+                              title={`Tambah widget ${w.title}`}
+                            >
+                              <Plus size={12} />
+                            </button>
 
-                    <button
-                      type="button"
-                      onClick={() => addBlock('text')}
-                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <AlignLeft className="text-sky-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">Teks HTML</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Konten paragraf</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => addBlock('cta')}
-                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <Megaphone className="text-amber-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">CTA Banner</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Tombol aksi</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => addBlock('faq')}
-                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <HelpCircle className="text-emerald-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">FAQ List</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Tanya-Jawab</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => addBlock('image')}
-                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <ImageIcon className="text-emerald-600 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">Gambar</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Media foto</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => addBlock('quote')}
-                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <Quote className="text-indigo-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">Kutipan</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Quote & Sumber</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => addBlock('separator')}
-                      className="col-span-2 flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
-                    >
-                      <Minus className="text-gray-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
-                      <span className="text-xs font-semibold block text-gray-700">Pemisah (Separator)</span>
-                      <span className="text-[9px] text-gray-400 mt-0.5">Garis pembatas antar-blok</span>
-                    </button>
+                            <Icon className={`${w.color} group-hover:scale-110 transition-transform mb-1.5`} size={22} />
+                            <span className="text-xs font-semibold block text-gray-700">{w.title}</span>
+                            <span className="text-[9px] text-gray-400 mt-0.5">{w.desc}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -1315,55 +1317,101 @@ export default function AdminPageWorkspace() {
           </div>
 
           {/* LIVE BUILDER CANVAS */}
-          <div className="flex-1 p-6 space-y-8 select-none">
+          <div 
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (draggingNewWidget) {
+                e.dataTransfer.dropEffect = 'copy';
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const newWidgetType = e.dataTransfer.getData('newWidgetType') || draggingNewWidget;
+              if (newWidgetType) {
+                const targetIdx = dropIndicatorIndex !== null ? dropIndicatorIndex : blocks.length;
+                addBlock(newWidgetType as any, targetIdx);
+                setDropIndicatorIndex(null);
+                setDraggingNewWidget(null);
+              }
+            }}
+            className="flex-1 p-6 space-y-8 select-none transition-all"
+          >
             
             {blocks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
+              <div 
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (draggingNewWidget) setDropIndicatorIndex(0);
+                }}
+                className={`flex flex-col items-center justify-center py-20 text-center text-slate-400 border-2 border-dashed rounded-3xl transition-colors ${
+                  draggingNewWidget ? 'border-[#F26522] bg-orange-50/40 text-[#F26522]' : 'border-transparent'
+                }`}
+              >
                 <Layout size={40} className="mb-2 stroke-1" />
                 <p className="text-xs font-bold">Canvas Halaman Kosong</p>
-                <p className="text-[10px] mt-0.5">Pilih widget di panel kiri untuk mulai membangun layout halaman.</p>
+                <p className="text-[10px] mt-0.5">Tarik (drag) widget di sini atau klik (+) untuk mulai membuat halaman.</p>
               </div>
             ) : (
               blocks.map((block, idx) => {
                 const isSelected = selectedBlockIndex === idx;
 
                 return (
-                  <div
-                    key={block.id}
-                    ref={(el) => { canvasBlockRefs.current[idx] = el; }}
-                    onClick={() => setSelectedBlockIndex(idx)}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={(e) => handleDragOver(e, idx)}
-                    onDragEnd={handleDragEnd}
-                    className={`group relative rounded-2xl cursor-grab active:cursor-grabbing select-none ${
-                      isSelected 
-                        ? 'ring-2 ring-blue-500 ring-offset-4 shadow-md' 
-                        : 'hover:ring-2 hover:ring-blue-400 hover:ring-offset-4'
-                    } ${draggedIndex === idx ? 'opacity-40 scale-[0.97]' : ''}`}
-                  >
-                    {/* Hover/Selection Floating Label */}
-                    <div className="absolute -top-3 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1.5">
-                      <span>Blok {idx + 1}: {block.type}</span>
-                    </div>
-
-                    {/* RENDER CONTENT BLOCKS */}
-                    
-                    {/* 1. HERO BLOCK */}
-                    {block.type === 'hero' && (
-                      <div className={`bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-6 sm:p-10 shadow-md relative overflow-hidden transition-all ${block.fullWidth ? '-mx-6 -mt-6 -mb-2 rounded-none' : 'rounded-2xl'}`}>
-                        <div className="absolute right-0 top-0 w-32 h-32 bg-[#F26522]/10 rounded-full blur-2xl" />
-                        <div className="relative z-10 space-y-2">
-                          <h3 className="text-xl sm:text-2xl font-black leading-tight">{block.title || 'Judul Hero'}</h3>
-                          <p className="text-xs text-slate-350 leading-relaxed">{block.subtitle || 'Sub-headline deskripsi.'}</p>
-                          {block.ctaText && (
-                            <span className="inline-block mt-2 px-4 py-2 bg-[#F26522] text-white text-[10px] font-bold rounded-lg shadow-sm">
-                              {block.ctaText}
-                            </span>
-                          )}
-                        </div>
+                  <React.Fragment key={block.id}>
+                    {/* Animated Drop Indicator Target Line */}
+                    {dropIndicatorIndex === idx && draggingNewWidget && (
+                      <div className="my-2 border-2 border-dashed border-[#F26522] bg-orange-50/80 rounded-2xl p-4 text-center text-xs font-bold text-[#F26522] animate-pulse flex items-center justify-center gap-2 shadow-xs">
+                        <Plus size={16} />
+                        <span>Lepas widget ({draggingNewWidget.toUpperCase()}) di sini</span>
                       </div>
                     )}
+
+                    <div
+                      ref={(el) => { canvasBlockRefs.current[idx] = el; }}
+                      onClick={() => setSelectedBlockIndex(idx)}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, idx)}
+                      onDragOver={(e) => {
+                        if (draggingNewWidget) {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'copy';
+                          setDropIndicatorIndex(idx);
+                        } else {
+                          handleDragOver(e, idx);
+                        }
+                      }}
+                      onDragEnd={() => {
+                        handleDragEnd();
+                        setDraggingNewWidget(null);
+                        setDropIndicatorIndex(null);
+                      }}
+                      className={`group relative rounded-2xl cursor-grab active:cursor-grabbing select-none ${
+                        isSelected 
+                          ? 'ring-2 ring-blue-500 ring-offset-4 shadow-md' 
+                          : 'hover:ring-2 hover:ring-blue-400 hover:ring-offset-4'
+                      } ${draggedIndex === idx ? 'opacity-40 scale-[0.97]' : ''}`}
+                    >
+                      {/* Hover/Selection Floating Label */}
+                      <div className="absolute -top-3 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1.5">
+                        <span>Blok {idx + 1}: {block.type}</span>
+                      </div>
+
+                      {/* RENDER CONTENT BLOCKS */}
+                      
+                      {/* 1. HERO BLOCK */}
+                      {block.type === 'hero' && (
+                        <div className={`bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-6 sm:p-10 shadow-md relative overflow-hidden transition-all ${block.fullWidth ? '-mx-6 -mt-6 -mb-2 rounded-none' : 'rounded-2xl'}`}>
+                          <div className="absolute right-0 top-0 w-32 h-32 bg-[#F26522]/10 rounded-full blur-2xl" />
+                          <div className="relative z-10 space-y-2">
+                            <h3 className="text-xl sm:text-2xl font-black leading-tight">{block.title || 'Judul Hero'}</h3>
+                            <p className="text-xs text-slate-350 leading-relaxed">{block.subtitle || 'Sub-headline deskripsi.'}</p>
+                            {block.ctaText && (
+                              <span className="inline-block mt-2 px-4 py-2 bg-[#F26522] text-white text-[10px] font-bold rounded-lg shadow-sm">
+                                {block.ctaText}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                     {/* 2. TEXT BLOCK */}
                     {block.type === 'text' && (
@@ -1474,8 +1522,9 @@ export default function AdminPageWorkspace() {
                     )}
 
                   </div>
-                );
-              })
+                </React.Fragment>
+              );
+            })
             )}
 
           </div>
