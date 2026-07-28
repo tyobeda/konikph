@@ -570,7 +570,9 @@ export default function AdminPageWorkspace() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Slug URL (/p/your-slug)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Slug URL ({pageUseRootPath ? `pks.art/${pageSlug || 'your-slug'}` : `pks.art/p/${pageSlug || 'your-slug'}`})
+                </label>
                 <input
                   type="text"
                   value={pageSlug}
