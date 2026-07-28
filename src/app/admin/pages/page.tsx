@@ -55,6 +55,36 @@ export default function AdminPagesPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
 
+  // Drag states
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    if (window.getSelection) {
+      window.getSelection()?.removeAllRanges();
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    // Live block movement swap
+    const newBlocks = [...blocks];
+    const draggedBlock = newBlocks[draggedIndex];
+    newBlocks.splice(draggedIndex, 1);
+    newBlocks.splice(index, 0, draggedBlock);
+    
+    setBlocks(newBlocks);
+    setDraggedIndex(index);
+    setSelectedBlockIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   // Temp faq state
   const [tempFaqQ, setTempFaqQ] = useState('');
   const [tempFaqA, setTempFaqA] = useState('');
@@ -723,11 +753,15 @@ export default function AdminPagesPage() {
                       <div
                         key={idx}
                         onClick={() => setSelectedBlockIndex(idx)}
-                        className={`group relative rounded-2xl transition-all duration-200 cursor-pointer ${
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className={`group relative rounded-2xl transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
                           isSelected 
                             ? 'ring-2 ring-blue-500 ring-offset-4' 
                             : 'hover:ring-2 hover:ring-blue-400 hover:ring-offset-4'
-                        }`}
+                        } ${draggedIndex === idx ? 'opacity-40 scale-[0.98]' : ''}`}
                       >
                         {/* Hover/Selection Floating Label */}
                         <div className="absolute -top-3 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1.5">
