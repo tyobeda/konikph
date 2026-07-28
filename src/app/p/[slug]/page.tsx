@@ -130,8 +130,18 @@ export default function CustomPageRenderer() {
   }
 
   let blocks: PageBlock[] = [];
+  let pageWidth: '70' | 'full' = '70';
+  let containerStyle: 'boxed' | 'clean' = 'boxed';
+
   try {
-    blocks = JSON.parse(activePage.content);
+    const parsed = JSON.parse(activePage.content);
+    if (Array.isArray(parsed)) {
+      blocks = parsed;
+    } else if (parsed && typeof parsed === 'object') {
+      blocks = parsed.blocks || [];
+      pageWidth = parsed.pageWidth || '70';
+      containerStyle = parsed.containerStyle || 'boxed';
+    }
   } catch (e) {
     blocks = [];
   }
@@ -140,7 +150,9 @@ export default function CustomPageRenderer() {
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px]">
       <Header />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10 transition-all ${
+        pageWidth === 'full' ? 'max-w-7xl' : 'max-w-4xl'
+      }`}>
         
         {/* Page title container */}
         <div className="border-b border-gray-150 pb-4 flex items-center justify-between">
@@ -172,7 +184,7 @@ export default function CustomPageRenderer() {
                   <div 
                     key={blockIdx}
                     className={`relative overflow-hidden bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-8 sm:p-12 shadow-xl border border-slate-800/80 transition-all ${
-                      block.fullWidth ? '-mx-4 sm:-mx-6 rounded-none sm:rounded-none' : 'rounded-3xl'
+                      block.fullWidth || pageWidth === 'full' ? '-mx-4 sm:-mx-6 rounded-none sm:rounded-none' : 'rounded-3xl'
                     }`}
                   >
                     {/* Decorative abstract elements */}
@@ -204,7 +216,11 @@ export default function CustomPageRenderer() {
                 return (
                   <div 
                     key={blockIdx}
-                    className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-sm prose prose-slate max-w-none text-gray-700 leading-relaxed text-sm sm:text-base"
+                    className={`rounded-3xl p-6 sm:p-8 text-gray-700 leading-relaxed text-sm sm:text-base prose prose-slate max-w-none transition-all ${
+                      containerStyle === 'clean' 
+                        ? 'bg-transparent border-0 shadow-none px-0' 
+                        : 'bg-white border border-gray-100 shadow-sm'
+                    }`}
                     dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(block.content || '') }}
                   />
                 );
@@ -215,7 +231,11 @@ export default function CustomPageRenderer() {
                 return (
                   <div 
                     key={blockIdx}
-                    className="bg-[#F26522]/5 border border-[#F26522]/20 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+                    className={`rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-all ${
+                      containerStyle === 'clean'
+                        ? 'bg-gradient-to-r from-orange-50 to-amber-50/40 border border-orange-100'
+                        : 'bg-[#F26522]/5 border border-[#F26522]/20'
+                    }`}
                   >
                     <div className="space-y-1">
                       <h3 className="text-lg font-extrabold text-gray-900">

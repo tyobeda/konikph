@@ -113,6 +113,8 @@ export default function AdminPageWorkspace() {
   const [pageSlug, setPageSlug] = useState('');
   const [pagePublished, setPagePublished] = useState(true);
   const [pageUseRootPath, setPageUseRootPath] = useState(false);
+  const [pageWidth, setPageWidth] = useState<'70' | 'full'>('70');
+  const [containerStyle, setContainerStyle] = useState<'boxed' | 'clean'>('boxed');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
 
@@ -161,6 +163,8 @@ export default function AdminPageWorkspace() {
       setPageSlug('halaman-baru');
       setPagePublished(true);
       setPageUseRootPath(false);
+      setPageWidth('70');
+      setContainerStyle('boxed');
       setBlocks([
         {
           id: genBlockId(),
@@ -182,9 +186,17 @@ export default function AdminPageWorkspace() {
         setPagePublished(page.published);
         setPageUseRootPath(page.useRootPath || false);
         try {
-          const parsed = JSON.parse(page.content) as Block[];
-          // Ensure all loaded blocks have IDs
-          setBlocks(parsed.map(b => ({ ...b, id: b.id || genBlockId() })));
+          const parsed = JSON.parse(page.content);
+          if (Array.isArray(parsed)) {
+            setBlocks(parsed.map(b => ({ ...b, id: b.id || genBlockId() })));
+            setPageWidth('70');
+            setContainerStyle('boxed');
+          } else if (parsed && typeof parsed === 'object') {
+            const bList = parsed.blocks || [];
+            setBlocks(bList.map((b: any) => ({ ...b, id: b.id || genBlockId() })));
+            setPageWidth(parsed.pageWidth || '70');
+            setContainerStyle(parsed.containerStyle || 'boxed');
+          }
         } catch (e) {
           setBlocks([]);
         }
@@ -445,7 +457,11 @@ export default function AdminPageWorkspace() {
       slug: cleanSlug,
       published: pagePublished,
       useRootPath: pageUseRootPath,
-      content: JSON.stringify(blocks),
+      content: JSON.stringify({
+        blocks: blocks.map(b => ({ ...b, id: b.id || genBlockId() })),
+        pageWidth: pageWidth,
+        containerStyle: containerStyle,
+      }),
     };
 
     if (id === 'new') {
@@ -590,7 +606,69 @@ export default function AdminPageWorkspace() {
                 </label>
               </div>
 
-              <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/60 text-[11px] text-gray-500 space-y-1">
+              {/* Lebar Tampilan Halaman */}
+              <div className="pt-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Lebar Tampilan Halaman (Page Width)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPageWidth('70')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-medium transition-all ${
+                      pageWidth === '70'
+                        ? 'bg-orange-50 border-[#F26522] text-[#F26522] font-semibold shadow-xs'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Standar (70%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPageWidth('full')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-medium transition-all ${
+                      pageWidth === 'full'
+                        ? 'bg-orange-50 border-[#F26522] text-[#F26522] font-semibold shadow-xs'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Full Width (100%)
+                  </button>
+                </div>
+              </div>
+
+              {/* Gaya Kontainer Blok (Disable Background) */}
+              <div className="pt-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Gaya Kontainer Blok</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2.5 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input
+                      type="radio"
+                      name="containerStyle"
+                      checked={containerStyle === 'boxed'}
+                      onChange={() => setContainerStyle('boxed')}
+                      className="text-[#F26522] focus:ring-[#F26522] accent-[#F26522]"
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">Boxed Container</p>
+                      <p className="text-[10px] text-gray-500">Blok dalam kartu berbingkai rounded & shadow</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-2.5 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input
+                      type="radio"
+                      name="containerStyle"
+                      checked={containerStyle === 'clean'}
+                      onChange={() => setContainerStyle('clean')}
+                      className="text-[#F26522] focus:ring-[#F26522] accent-[#F26522]"
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">Transparan / Clean (Tanpa Kontainer)</p>
+                      <p className="text-[10px] text-gray-500">Nonaktifkan background kartu rounded pada semua blok</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/60 text-[11px] text-gray-500 space-y-1 mt-2">
                 <div className="flex items-center gap-1 text-gray-700 font-medium mb-1">
                   <Info size={12} className="text-[#F26522]" />
                   <span>Aturan Slug Halaman:</span>
