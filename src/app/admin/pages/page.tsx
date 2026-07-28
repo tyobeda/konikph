@@ -52,6 +52,7 @@ export default function AdminPagesPage() {
   const [pageTitle, setPageTitle] = useState('');
   const [pageSlug, setPageSlug] = useState('');
   const [pagePublished, setPagePublished] = useState(true);
+  const [pageUseRootPath, setPageUseRootPath] = useState(false);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
 
@@ -103,6 +104,7 @@ export default function AdminPagesPage() {
     setPageTitle('');
     setPageSlug('');
     setPagePublished(true);
+    setPageUseRootPath(false);
     setBlocks([
       {
         type: 'hero',
@@ -122,6 +124,7 @@ export default function AdminPagesPage() {
     setPageTitle(page.title);
     setPageSlug(page.slug);
     setPagePublished(page.published);
+    setPageUseRootPath(page.useRootPath || false);
     try {
       setBlocks(JSON.parse(page.content));
     } catch (e) {
@@ -147,6 +150,7 @@ export default function AdminPagesPage() {
       title: pageTitle,
       slug: cleanSlug,
       published: pagePublished,
+      useRootPath: pageUseRootPath,
       content: JSON.stringify(blocks),
     };
 
@@ -292,9 +296,9 @@ export default function AdminPagesPage() {
                     <td className="py-4 px-6 font-bold text-gray-800">{page.title}</td>
                     <td className="py-4 px-6 text-xs font-semibold text-gray-500">
                       <div className="flex items-center gap-1.5">
-                        <span>/p/{page.slug}</span>
+                        <span>{page.useRootPath ? '' : '/p'}/{page.slug}</span>
                         <Link 
-                          href={`/p/${page.slug}`} 
+                          href={page.useRootPath ? `/${page.slug}` : `/p/${page.slug}`} 
                           target="_blank" 
                           className="text-[#F26522] hover:underline inline-flex items-center gap-0.5"
                         >
@@ -343,7 +347,7 @@ export default function AdminPagesPage() {
         <div className="fixed inset-0 z-50 bg-[#F1F5F9] flex flex-col md:flex-row overflow-hidden font-sans">
           
           {/* ================= LEFT SIDEBAR (ELEMENTOR PANEL) ================= */}
-          <div className="w-full md:w-96 bg-white text-gray-800 flex flex-col border-r border-gray-250 shrink-0 h-1/2 md:h-full shadow-2xl z-30">
+          <div className="w-full md:w-96 bg-white text-slate-700 flex flex-col border-r border-gray-200/65 shrink-0 h-1/2 md:h-full shadow-2xl z-30">
             
             {/* Top Toolbar Info */}
             <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
@@ -353,17 +357,19 @@ export default function AdminPagesPage() {
                 </div>
                 <div>
                   <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Visual Page Builder</h4>
-                  <p className="text-xs text-gray-800 truncate max-w-[180px] font-bold">{pageTitle || 'Halaman Baru'}</p>
+                  <p className="text-xs text-slate-800 truncate max-w-[180px] font-bold">{pageTitle || 'Halaman Baru'}</p>
                 </div>
               </div>
 
-              {/* Top Navigation tabs */}
-              <div className="flex gap-1">
+              {/* Top Navigation tabs (Switch Style) */}
+              <div className="bg-gray-200/70 p-1 rounded-xl flex items-center gap-0.5 select-none">
                 <button
                   type="button"
                   onClick={() => setSidebarTab('content')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                    sidebarTab === 'content' ? 'bg-[#F26522] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    sidebarTab === 'content' 
+                      ? 'bg-white text-slate-850 shadow-sm' 
+                      : 'text-slate-500 hover:text-slate-850'
                   }`}
                 >
                   Layout
@@ -371,8 +377,10 @@ export default function AdminPagesPage() {
                 <button
                   type="button"
                   onClick={() => setSidebarTab('settings')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                    sidebarTab === 'settings' ? 'bg-[#F26522] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    sidebarTab === 'settings' 
+                      ? 'bg-white text-slate-850 shadow-sm' 
+                      : 'text-slate-500 hover:text-slate-850'
                   }`}
                 >
                   Setelan
@@ -423,6 +431,19 @@ export default function AdminPagesPage() {
                     />
                     <label htmlFor="sidebar-published" className="text-xs font-bold text-gray-700 cursor-pointer uppercase select-none">
                       Terbitkan Halaman (Public)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      id="sidebar-userootpath"
+                      checked={pageUseRootPath}
+                      onChange={(e) => setPageUseRootPath(e.target.checked)}
+                      className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                    />
+                    <label htmlFor="sidebar-userootpath" className="text-xs font-bold text-gray-700 cursor-pointer uppercase select-none">
+                      Gunakan Root Link (pks.art/slug)
                     </label>
                   </div>
 
@@ -728,7 +749,7 @@ export default function AdminPagesPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                 </div>
                 <div className="bg-white rounded-lg px-3 py-1 flex-1 text-[11px] font-semibold flex items-center justify-between border border-gray-200 shadow-inner">
-                  <span className="text-slate-500 truncate">localhost:3000/p/{pageSlug || 'your-slug'}</span>
+                  <span className="text-slate-500 truncate">localhost:3000{pageUseRootPath ? '' : '/p'}/{pageSlug || 'your-slug'}</span>
                   <Eye size={12} className="text-slate-400" />
                 </div>
                 <span className="text-[10px] font-extrabold uppercase text-[#F26522] bg-orange-50 border border-orange-100 px-2 py-0.5 rounded shadow-sm">

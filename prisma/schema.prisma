@@ -67,11 +67,12 @@ model Comment {
 }
 
 model CustomPage {
-  id        String   @id @default(uuid())
-  slug      String   @unique
-  title     String
-  content   String   // JSON string storing block structure
-  published Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  title       String
+  content     String   // JSON string storing block structure
+  published   Boolean  @default(true)
+  useRootPath Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

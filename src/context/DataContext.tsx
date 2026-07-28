@@ -186,6 +186,7 @@ const INITIAL_CUSTOM_PAGES: CustomPage[] = [
       }
     ]),
     published: true,
+    useRootPath: false,
     createdAt: '2026-07-20T12:00:00Z',
     updatedAt: '2026-07-20T12:00:00Z'
   }

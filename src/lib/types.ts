@@ -59,6 +59,7 @@ export interface CustomPage {
   title: string;
   content: string; // JSON string of blocks
   published: boolean;
+  useRootPath: boolean;
   createdAt: string;
   updatedAt: string;
 }
