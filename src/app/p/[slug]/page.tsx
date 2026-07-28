@@ -156,9 +156,8 @@ export default function CustomPageRenderer() {
         
         {/* Page title container */}
         <div className="border-b border-gray-150 pb-4 flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-2">
-            <span>{activePage.title}</span>
-            <Sparkles size={20} className="text-[#F26522]" />
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+            {activePage.title}
           </h1>
           <button
             onClick={() => router.back()}
