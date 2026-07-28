@@ -58,6 +58,9 @@ interface PageBlock {
   fullWidth?: boolean;
   imageUrl?: string;
   imageAlt?: string;
+  imageLink?: string;
+  imageSize?: 'small' | 'medium' | 'large' | 'full';
+  imageAlign?: 'left' | 'center' | 'right';
   quoteText?: string;
   quoteAuthor?: string;
 }
@@ -279,14 +282,44 @@ export default function CustomPageRenderer() {
               // 5. IMAGE BLOCK
               if (block.type === 'image') {
                 return (
-                  <div key={blockIdx} className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-                    {block.imageUrl && (
-                      <img
-                        src={block.imageUrl}
-                        alt={block.imageAlt || 'Gambar Halaman'}
-                        className="w-full h-auto object-cover rounded-3xl"
-                      />
-                    )}
+                  <div 
+                    key={blockIdx} 
+                    className={`py-1 flex ${
+                      block.imageAlign === 'left' ? 'justify-start' : block.imageAlign === 'right' ? 'justify-end' : 'justify-center'
+                    }`}
+                  >
+                    <div className={`overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all ${
+                      block.imageSize === 'small'
+                        ? 'w-1/4'
+                        : block.imageSize === 'medium'
+                        ? 'w-1/2'
+                        : block.imageSize === 'large'
+                        ? 'w-3/4'
+                        : 'w-full'
+                    }`}>
+                      {block.imageUrl && (
+                        block.imageLink ? (
+                          <a
+                            href={block.imageLink}
+                            target={block.imageLink.startsWith('http') ? '_blank' : '_self'}
+                            rel="noopener noreferrer"
+                            className="block hover:opacity-90 transition-opacity"
+                          >
+                            <img
+                              src={block.imageUrl}
+                              alt={block.imageAlt || 'Gambar Halaman'}
+                              className="w-full h-auto object-cover rounded-3xl"
+                            />
+                          </a>
+                        ) : (
+                          <img
+                            src={block.imageUrl}
+                            alt={block.imageAlt || 'Gambar Halaman'}
+                            className="w-full h-auto object-cover rounded-3xl"
+                          />
+                        )
+                      )}
+                    </div>
                   </div>
                 );
               }

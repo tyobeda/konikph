@@ -92,6 +92,9 @@ interface Block {
   fullWidth?: boolean;
   imageUrl?: string;
   imageAlt?: string;
+  imageLink?: string;
+  imageSize?: 'small' | 'medium' | 'large' | 'full';
+  imageAlign?: 'left' | 'center' | 'right';
   quoteText?: string;
   quoteAuthor?: string;
 }
@@ -1087,6 +1090,48 @@ export default function AdminPageWorkspace() {
                           )}
                         </div>
 
+                        {/* Ukuran Gambar & Alignment Dropdowns */}
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Ukuran Tampilan</label>
+                            <select
+                              value={blocks[selectedBlockIndex].imageSize || 'full'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'imageSize', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 cursor-pointer"
+                            >
+                              <option value="full">Penuh (100%)</option>
+                              <option value="large">Besar (75%)</option>
+                              <option value="medium">Sedang (50%)</option>
+                              <option value="small">Kecil (25%)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Posisi (Alignment)</label>
+                            <select
+                              value={blocks[selectedBlockIndex].imageAlign || 'center'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'imageAlign', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 cursor-pointer"
+                            >
+                              <option value="center">Rata Tengah</option>
+                              <option value="left">Rata Kiri</option>
+                              <option value="right">Rata Kanan</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Tautan Link Gambar (Opsional) */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Tautan Link Gambar (Opsional)</label>
+                          <input
+                            type="text"
+                            value={blocks[selectedBlockIndex].imageLink || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'imageLink', e.target.value)}
+                            placeholder="Contoh: https://pks.art atau /p/kontak"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Alt Teks / Deskripsi Gambar</label>
                           <input
@@ -1283,19 +1328,44 @@ export default function AdminPageWorkspace() {
 
                     {/* 5. IMAGE BLOCK */}
                     {block.type === 'image' && (
-                      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-center min-h-[160px]">
-                        {block.imageUrl ? (
-                          <img
-                            src={block.imageUrl}
-                            alt={block.imageAlt || 'Gambar'}
-                            className="w-full h-auto object-cover max-h-[450px] rounded-2xl"
-                          />
-                        ) : (
-                          <div className="p-8 text-center text-gray-400 text-xs">
-                            <ImageIcon size={32} className="mx-auto mb-2 opacity-50" />
-                            <span>Belum ada URL gambar yang dimasukkan.</span>
-                          </div>
-                        )}
+                      <div className={`py-1 flex ${
+                        block.imageAlign === 'left' ? 'justify-start' : block.imageAlign === 'right' ? 'justify-end' : 'justify-center'
+                      }`}>
+                        <div className={`overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-center transition-all ${
+                          block.imageSize === 'small'
+                            ? 'w-1/4 min-h-[100px]'
+                            : block.imageSize === 'medium'
+                            ? 'w-1/2 min-h-[140px]'
+                            : block.imageSize === 'large'
+                            ? 'w-3/4 min-h-[180px]'
+                            : 'w-full min-h-[160px]'
+                        }`}>
+                          {block.imageUrl ? (
+                            block.imageLink ? (
+                              <div className="w-full relative group/imglink">
+                                <img
+                                  src={block.imageUrl}
+                                  alt={block.imageAlt || 'Gambar'}
+                                  className="w-full h-auto object-cover max-h-[480px] rounded-2xl"
+                                />
+                                <div className="absolute bottom-2 right-2 bg-black/75 text-white text-[9px] px-2 py-0.5 rounded-md backdrop-blur-xs flex items-center gap-1 opacity-80 group-hover/imglink:opacity-100 transition-opacity">
+                                  <span>🔗 {block.imageLink}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <img
+                                src={block.imageUrl}
+                                alt={block.imageAlt || 'Gambar'}
+                                className="w-full h-auto object-cover max-h-[480px] rounded-2xl"
+                              />
+                            )
+                          ) : (
+                            <div className="p-8 text-center text-gray-400 text-xs">
+                              <ImageIcon size={32} className="mx-auto mb-2 opacity-50" />
+                              <span>Belum ada gambar yang dipilih.</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
