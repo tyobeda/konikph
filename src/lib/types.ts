@@ -52,3 +52,13 @@ export interface ResetRequest {
   status: 'Pending' | 'Completed';
   createdAt: string;
 }
+
+export interface CustomPage {
+  id: string;
+  slug: string;
+  title: string;
+  content: string; // JSON string of blocks
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

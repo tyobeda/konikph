@@ -65,3 +65,13 @@ model Comment {
   artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
+
+model CustomPage {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  title     String
+  content   String   // JSON string storing block structure
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

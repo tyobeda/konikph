@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Artwork, User, Comment, ResetRequest } from '@/lib/types';
+import { Artwork, User, Comment, ResetRequest, CustomPage } from '@/lib/types';
 import { INITIAL_ARTWORKS, USERS } from '@/lib/data';
 
 export interface TwibbonFrame {
@@ -61,6 +61,12 @@ export interface DataContextType {
   addTwibbon: (tw: Omit<TwibbonFrame, 'id' | 'usedCount' | 'createdAt'>) => void;
   updateTwibbon: (id: string, updated: Partial<TwibbonFrame>) => void;
   deleteTwibbon: (id: string) => void;
+
+  // Custom Pages
+  customPages: CustomPage[];
+  addCustomPage: (page: Omit<CustomPage, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateCustomPage: (id: string, updated: Partial<CustomPage>) => void;
+  deleteCustomPage: (id: string) => void;
 
   // DPW
   dpwList: DpwOffice[];
@@ -152,6 +158,37 @@ const INITIAL_TWIBBONS_LIST: TwibbonFrame[] = [
     isFeatured: false,
     createdAt: '2026-07-15',
   },
+];
+
+const INITIAL_CUSTOM_PAGES: CustomPage[] = [
+  {
+    id: 'page-1',
+    slug: 'tentang-kami',
+    title: 'Tentang Kami',
+    content: JSON.stringify([
+      {
+        type: 'hero',
+        title: 'Selamat Datang di PKSart',
+        subtitle: 'Platform Resmi Berbagi Karya Desain dan Bingkai Twibbon PKS se-Indonesia.',
+        ctaText: 'Pelajari Selengkapnya',
+        ctaLink: '#misi'
+      },
+      {
+        type: 'text',
+        content: '<h2 id="misi" class="text-xl font-bold text-gray-900 mb-2">Misi PKSart</h2><p class="text-gray-600 leading-relaxed mb-4">PKSart didirikan untuk memberikan kemudahan bagi seluruh pengurus, kader, dan simpatisan dalam mengakses materi publikasi visual yang kreatif, dinamis, dan premium. Kami percaya bahwa dakwah visual di era digital memerlukan materi berkualitas tinggi dan mudah disebarluaskan.</p>'
+      },
+      {
+        type: 'cta',
+        title: 'Mulailah Berkontribusi Bersama Kami',
+        description: 'Jadilah bagian dari jaringan kreator nasional dan bagikan karya poster, banner, atau twibbon terbaik Anda sekarang.',
+        ctaText: 'Daftar Sebagai Kreator',
+        ctaLink: '/register'
+      }
+    ]),
+    published: true,
+    createdAt: '2026-07-20T12:00:00Z',
+    updatedAt: '2026-07-20T12:00:00Z'
+  }
 ];
 
 const INITIAL_DPW_DEFAULT: DpwOffice[] = [
@@ -285,6 +322,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return INITIAL_DPW_DEFAULT;
   });
 
+  // 6. Custom Pages State
+  const [customPages, setCustomPages] = useState<CustomPage[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('pksart_custom_pages');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+    }
+    return INITIAL_CUSTOM_PAGES;
+  });
+
   // 5. Site Settings State
   const [siteSettings, setSiteSettings] = useState({
     siteName: 'PKSart - Galeri Desain & Foto PKS Official',
@@ -391,6 +439,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setResetRequests(JSON.parse(storedResets));
         } catch (e) {}
       }
+
+      const storedCustomPages = localStorage.getItem('pksart_custom_pages');
+      if (storedCustomPages) {
+        try {
+          const parsed = JSON.parse(storedCustomPages);
+          if (parsed && parsed.length > 0) {
+            setCustomPages(parsed);
+          }
+        } catch (e) {}
+      }
       setIsSettingsLoaded(true);
     }
   }, []);
@@ -462,6 +520,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isMounted || !isSettingsLoaded) return;
     localStorage.setItem('pksart_reset_requests', JSON.stringify(resetRequests));
   }, [resetRequests, isMounted, isSettingsLoaded]);
+
+  useEffect(() => {
+    if (!isMounted || !isSettingsLoaded) return;
+    localStorage.setItem('pksart_custom_pages', JSON.stringify(customPages));
+  }, [customPages, isMounted, isSettingsLoaded]);
 
   const addResetRequest = (name: string, email: string, phone: string) => {
     const newReq: ResetRequest = {
@@ -742,6 +805,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSiteSettings((prev) => ({ ...prev, ...settings }));
   };
 
+  const addCustomPage = (page: Omit<CustomPage, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newPage: CustomPage = {
+      ...page,
+      id: 'page-' + Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setCustomPages((prev) => [newPage, ...prev]);
+  };
+
+  const updateCustomPage = (id: string, updated: Partial<CustomPage>) => {
+    setCustomPages((prev) =>
+      prev.map((page) =>
+        page.id === id
+          ? { ...page, ...updated, updatedAt: new Date().toISOString() }
+          : page
+      )
+    );
+  };
+
+  const deleteCustomPage = (id: string) => {
+    setCustomPages((prev) => prev.filter((page) => page.id !== id));
+  };
+
   const massDeletePosts = () => {
     setArtworks([]);
   };
@@ -755,6 +842,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsers([]);
     setTwibbons([]);
     setDpwList([]);
+    setCustomPages([]);
   };
 
   return (
@@ -790,6 +878,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addDpw,
         updateDpw,
         deleteDpw,
+
+        customPages,
+        addCustomPage,
+        updateCustomPage,
+        deleteCustomPage,
 
         siteSettings,
         updateSiteSettings,

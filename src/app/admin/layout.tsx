@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   Menu,
   X,
+  FileText,
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -37,6 +38,7 @@ export default function AdminLayout({
     { label: 'Kelola Kreator', href: '/admin/creators', icon: Users },
     { label: 'Kelola DPW', href: '/admin/dpw', icon: Building },
     { label: 'Kelola Twibbon', href: '/admin/twibbon', icon: Sparkles },
+    { label: 'Kelola Halaman', href: '/admin/pages', icon: FileText },
     { label: 'Pengaturan Situs', href: '/admin/settings', icon: Settings },
   ];
 
