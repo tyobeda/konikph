@@ -31,7 +31,11 @@ import {
   Type,
   Image as ImageIcon,
   Quote,
-  Minus
+  Minus,
+  Upload,
+  Folder,
+  Check,
+  Trash2
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
@@ -99,7 +103,7 @@ export default function AdminPageWorkspace() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { customPages, addCustomPage, updateCustomPage } = useData();
+  const { customPages, addCustomPage, updateCustomPage, artworks } = useData();
 
   // Editor states
   const [pageTitle, setPageTitle] = useState('');
@@ -108,6 +112,18 @@ export default function AdminPageWorkspace() {
   const [pageUseRootPath, setPageUseRootPath] = useState(false);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
+
+  // Media Explorer Modal State
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [mediaTab, setMediaTab] = useState<'library' | 'upload'>('library');
+  const [searchMedia, setSearchMedia] = useState('');
+  const [customMediaList, setCustomMediaList] = useState<string[]>([
+    'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1550684848-bac1c5b4e853?w=800&auto=format&fit=crop&q=80',
+  ]);
 
   // Drag states
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -1016,15 +1032,61 @@ export default function AdminPageWorkspace() {
                     {blocks[selectedBlockIndex].type === 'image' && (
                       <div className="space-y-3.5">
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">URL Gambar</label>
-                          <input
-                            type="text"
-                            value={blocks[selectedBlockIndex].imageUrl || ''}
-                            onChange={(e) => updateBlockField(selectedBlockIndex, 'imageUrl', e.target.value)}
-                            placeholder="https://images.unsplash.com/..."
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
-                          />
+                          <label className="block text-xs font-medium text-gray-600 mb-1.5">Pilih / Upload Media Gambar</label>
+                          
+                          {blocks[selectedBlockIndex].imageUrl ? (
+                            <div className="space-y-2">
+                              <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 aspect-video group shadow-sm">
+                                <img
+                                  src={blocks[selectedBlockIndex].imageUrl}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowMediaModal(true)}
+                                    className="px-3 py-1.5 bg-white text-gray-900 text-xs font-semibold rounded-lg shadow hover:bg-gray-100 transition-colors flex items-center gap-1"
+                                  >
+                                    <Folder size={14} />
+                                    <span>Ganti</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateBlockField(selectedBlockIndex, 'imageUrl', '')}
+                                    className="p-1.5 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors"
+                                    title="Hapus Gambar"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setShowMediaModal(true)}
+                                className="w-full py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                              >
+                                <Folder size={14} className="text-[#F26522]" />
+                                <span>Buka Media Explorer / Upload File</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setShowMediaModal(true)}
+                              className="w-full py-8 bg-gray-50 hover:bg-orange-50/20 border-2 border-dashed border-gray-300 hover:border-[#F26522] rounded-2xl text-center transition-all group flex flex-col items-center justify-center gap-2"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-orange-100 text-[#F26522] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <ImageIcon size={20} />
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-700">Pilih dari Media atau Upload File</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">Klik untuk membuka Media Explorer & Upload</p>
+                              </div>
+                            </button>
+                          )}
                         </div>
+
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Alt Teks / Deskripsi Gambar</label>
                           <input
@@ -1354,6 +1416,179 @@ export default function AdminPageWorkspace() {
           </div>
         )}
       </div>
+
+      {/* 🖼️ MEDIA EXPLORER & FILE UPLOADER MODAL */}
+      {showMediaModal && (
+        <div className="fixed inset-0 z-55 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-fadeIn border border-gray-100">
+            
+            {/* Modal Header */}
+            <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#F26522]/10 text-[#F26522] flex items-center justify-center">
+                  <Folder size={18} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Media Explorer & Upload</h4>
+                  <p className="text-[10px] text-gray-500">Pilih dari pustaka media atau upload file gambar dari komputer Anda</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMediaModal(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Tab Buttons */}
+            <div className="px-5 pt-3 bg-gray-50/50 border-b border-gray-200 flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setMediaTab('library')}
+                className={`pb-2 text-xs font-semibold transition-all border-b-2 ${
+                  mediaTab === 'library'
+                    ? 'border-[#F26522] text-[#F26522]'
+                    : 'border-transparent text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Pustaka Media (Library)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMediaTab('upload')}
+                className={`pb-2 text-xs font-semibold transition-all border-b-2 ${
+                  mediaTab === 'upload'
+                    ? 'border-[#F26522] text-[#F26522]'
+                    : 'border-transparent text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Upload File Baru
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 flex-1 overflow-y-auto">
+              {mediaTab === 'library' ? (
+                <div className="space-y-4">
+                  {/* Search Box */}
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3.5 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchMedia}
+                      onChange={(e) => setSearchMedia(e.target.value)}
+                      placeholder="Cari gambar di media library..."
+                      className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                    />
+                  </div>
+
+                  {/* Combined Media List */}
+                  {(() => {
+                    const allMedia = [
+                      ...customMediaList,
+                      ...artworks.map((a) => a.imageUrl),
+                    ].filter((url, index, self) => self.indexOf(url) === index); // unique
+
+                    const filtered = searchMedia
+                      ? allMedia.filter((url) => url.toLowerCase().includes(searchMedia.toLowerCase()))
+                      : allMedia;
+
+                    return filtered.length === 0 ? (
+                      <div className="text-center py-12 text-gray-400 text-xs">
+                        Tidak ada gambar ditemukan di Pustaka Media.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
+                        {filtered.map((url, idx) => {
+                          const isSelected = selectedBlockIndex !== null && blocks[selectedBlockIndex]?.imageUrl === url;
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => {
+                                if (selectedBlockIndex !== null) {
+                                  updateBlockField(selectedBlockIndex, 'imageUrl', url);
+                                }
+                                setShowMediaModal(false);
+                              }}
+                              className={`group relative rounded-2xl overflow-hidden border-2 cursor-pointer aspect-square bg-gray-50 transition-all ${
+                                isSelected
+                                  ? 'border-[#F26522] ring-2 ring-[#F26522]/30 shadow-md'
+                                  : 'border-gray-200 hover:border-[#F26522]'
+                              }`}
+                            >
+                              <img
+                                src={url}
+                                alt={`Media ${idx}`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                              {isSelected && (
+                                <div className="absolute top-2 right-2 bg-[#F26522] text-white p-1 rounded-full shadow">
+                                  <Check size={12} />
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-semibold">
+                                Pilih Gambar
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                /* Upload Tab */
+                <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-3xl bg-gray-50 text-center relative hover:border-[#F26522] transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const dataUrl = event.target?.result as string;
+                          if (dataUrl) {
+                            setCustomMediaList((prev) => [dataUrl, ...prev]);
+                            if (selectedBlockIndex !== null) {
+                              updateBlockField(selectedBlockIndex, 'imageUrl', dataUrl);
+                            }
+                            setShowMediaModal(false);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                  />
+                  <div className="w-14 h-14 rounded-full bg-orange-100 text-[#F26522] flex items-center justify-center mb-3">
+                    <Upload size={24} />
+                  </div>
+                  <h5 className="text-sm font-semibold text-gray-800">Klik atau Tarik File Gambar Ke Sini</h5>
+                  <p className="text-xs text-gray-400 mt-1">Mendukung format PNG, JPG, JPEG, WEBP, SVG</p>
+                  <span className="mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-semibold rounded-xl shadow">
+                    Pilih File Dari Komputer
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowMediaModal(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-xl transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
