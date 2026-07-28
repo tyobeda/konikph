@@ -6,6 +6,7 @@ import {
   FileText,
   Search,
   ChevronLeft,
+  ChevronRight,
   X,
   Sparkles,
   Layout,
@@ -27,7 +28,10 @@ import {
   Strikethrough,
   AlignCenter,
   AlignRight,
-  Type
+  Type,
+  Image as ImageIcon,
+  Quote,
+  Minus
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
@@ -73,7 +77,7 @@ const parseMarkdownToHtml = (text: string) => {
 
 interface Block {
   id: string;
-  type: 'hero' | 'text' | 'cta' | 'faq';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator';
   title?: string;
   subtitle?: string;
   ctaText?: string;
@@ -81,6 +85,11 @@ interface Block {
   content?: string;
   description?: string;
   faqs?: { question: string; answer: string }[];
+  fullWidth?: boolean;
+  imageUrl?: string;
+  imageAlt?: string;
+  quoteText?: string;
+  quoteAuthor?: string;
 }
 
 let blockIdCounter = 0;
@@ -327,15 +336,26 @@ export default function AdminPageWorkspace() {
     }
   };
 
-  const addBlock = (type: 'hero' | 'text' | 'cta' | 'faq') => {
+  const [isNavMinimized, setIsNavMinimized] = useState(false);
+
+  const addBlock = (type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator') => {
     const id = genBlockId();
-    const newBlock: Block = type === 'hero' 
-      ? { id, type, title: 'Judul Hero Baru', subtitle: 'Deskripsi singkat hero block.', ctaText: 'Klik Di Sini', ctaLink: '#' }
-      : type === 'text' 
-      ? { id, type, content: '<h3 class="text-lg font-bold mb-2">Subjudul Teks</h3><p>Tulis konten teks kustom Anda di sini menggunakan format HTML standar...</p>' }
-      : type === 'cta'
-      ? { id, type, title: 'Banner Aksi Kustom', description: 'Deskripsi singkat untuk mengajak pembaca melakukan aksi tertentu.', ctaText: 'Klik Aksi', ctaLink: '#' }
-      : { id, type, faqs: [{ question: 'Pertanyaan FAQ Baru?', answer: 'Tulis jawaban detail di sini.' }] };
+    let newBlock: Block;
+    if (type === 'hero') {
+      newBlock = { id, type, title: 'Judul Hero Baru', subtitle: 'Deskripsi singkat hero block.', ctaText: 'Klik Di Sini', ctaLink: '#', fullWidth: false };
+    } else if (type === 'text') {
+      newBlock = { id, type, content: '<h3 class="text-lg font-bold mb-2">Subjudul Teks</h3><p>Tulis konten teks kustom Anda di sini menggunakan format HTML standar...</p>' };
+    } else if (type === 'cta') {
+      newBlock = { id, type, title: 'Banner Aksi Kustom', description: 'Deskripsi singkat untuk mengajak pembaca melakukan aksi tertentu.', ctaText: 'Klik Aksi', ctaLink: '#' };
+    } else if (type === 'faq') {
+      newBlock = { id, type, faqs: [{ question: 'Pertanyaan FAQ Baru?', answer: 'Tulis jawaban detail di sini.' }] };
+    } else if (type === 'image') {
+      newBlock = { id, type, imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80', imageAlt: 'Deskripsi Gambar' };
+    } else if (type === 'quote') {
+      newBlock = { id, type, quoteText: 'Kreativitas adalah kecerdasan yang bersenang-senang.', quoteAuthor: 'Albert Einstein' };
+    } else {
+      newBlock = { id, type };
+    }
     
     setBlocks([...blocks, newBlock]);
     setSelectedBlockIndex(blocks.length);
@@ -578,41 +598,71 @@ export default function AdminPageWorkspace() {
                     <button
                       type="button"
                       onClick={() => addBlock('hero')}
-                      className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                     >
-                      <Sparkles className="text-purple-500 group-hover:scale-110 transition-transform mb-2" size={24} />
-                      <span className="text-xs font-extrabold block text-gray-700">Hero Header</span>
-                      <span className="text-[9px] text-gray-450 mt-0.5">Headline & CTA</span>
+                      <Sparkles className="text-purple-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">Hero Header</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Headline & CTA</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => addBlock('text')}
-                      className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                     >
-                      <AlignLeft className="text-sky-500 group-hover:scale-110 transition-transform mb-2" size={24} />
-                      <span className="text-xs font-extrabold block text-gray-700">Teks HTML</span>
-                      <span className="text-[9px] text-gray-450 mt-0.5">Konten paragraf</span>
+                      <AlignLeft className="text-sky-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">Teks HTML</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Konten paragraf</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => addBlock('cta')}
-                      className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                     >
-                      <Megaphone className="text-amber-500 group-hover:scale-110 transition-transform mb-2" size={24} />
-                      <span className="text-xs font-extrabold block text-gray-700">CTA Banner</span>
-                      <span className="text-[9px] text-gray-450 mt-0.5">Tombol aksi</span>
+                      <Megaphone className="text-amber-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">CTA Banner</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Tombol aksi</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => addBlock('faq')}
-                      className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
                     >
-                      <HelpCircle className="text-emerald-500 group-hover:scale-110 transition-transform mb-2" size={24} />
-                      <span className="text-xs font-extrabold block text-gray-700">FAQ List</span>
-                      <span className="text-[9px] text-gray-450 mt-0.5">Tanya-Jawab</span>
+                      <HelpCircle className="text-emerald-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">FAQ List</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Tanya-Jawab</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => addBlock('image')}
+                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                    >
+                      <ImageIcon className="text-emerald-600 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">Gambar</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Media foto</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => addBlock('quote')}
+                      className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                    >
+                      <Quote className="text-indigo-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">Kutipan</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Quote & Sumber</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => addBlock('separator')}
+                      className="col-span-2 flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-orange-50/20 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all group text-center"
+                    >
+                      <Minus className="text-gray-500 group-hover:scale-110 transition-transform mb-1.5" size={22} />
+                      <span className="text-xs font-semibold block text-gray-700">Pemisah (Separator)</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Garis pembatas antar-blok</span>
                     </button>
                   </div>
                 </div>
@@ -630,7 +680,7 @@ export default function AdminPageWorkspace() {
 
                   <div className="border-t border-gray-100 pt-3">
                     <h5 className="text-xs font-semibold text-gray-600 mb-3 flex items-center justify-between">
-                      <span>Konfigurasi: {blocks[selectedBlockIndex].type === 'cta' ? 'CTA' : blocks[selectedBlockIndex].type.charAt(0).toUpperCase() + blocks[selectedBlockIndex].type.slice(1)}</span>
+                      <span>Konfigurasi: {blocks[selectedBlockIndex].type === 'cta' ? 'CTA' : blocks[selectedBlockIndex].type === 'faq' ? 'FAQ' : blocks[selectedBlockIndex].type.charAt(0).toUpperCase() + blocks[selectedBlockIndex].type.slice(1)}</span>
                       <span className="text-[10px] bg-[#F26522] text-white px-2 py-0.5 rounded font-medium">
                         Blok {selectedBlockIndex + 1}
                       </span>
@@ -674,6 +724,17 @@ export default function AdminPageWorkspace() {
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)}
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
+                        </div>
+                        <div className="pt-1">
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={blocks[selectedBlockIndex].fullWidth || false}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'fullWidth', e.target.checked)}
+                              className="w-4 h-4 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded accent-[#F26522]"
+                            />
+                            <span className="text-xs font-medium text-gray-700">Tampilan Full Width (Lebar Penuh Canvas)</span>
+                          </label>
                         </div>
                       </div>
                     )}
@@ -952,6 +1013,62 @@ export default function AdminPageWorkspace() {
                       </div>
                     )}
 
+                    {blocks[selectedBlockIndex].type === 'image' && (
+                      <div className="space-y-3.5">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">URL Gambar</label>
+                          <input
+                            type="text"
+                            value={blocks[selectedBlockIndex].imageUrl || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'imageUrl', e.target.value)}
+                            placeholder="https://images.unsplash.com/..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Alt Teks / Deskripsi Gambar</label>
+                          <input
+                            type="text"
+                            value={blocks[selectedBlockIndex].imageAlt || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'imageAlt', e.target.value)}
+                            placeholder="Deskripsi singkat gambar..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {blocks[selectedBlockIndex].type === 'quote' && (
+                      <div className="space-y-3.5">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Teks Kutipan (Quote)</label>
+                          <textarea
+                            value={blocks[selectedBlockIndex].quoteText || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'quoteText', e.target.value)}
+                            rows={3}
+                            placeholder="Tulis perkataan atau kutipan..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Penulis / Sumber Kutipan</label>
+                          <input
+                            type="text"
+                            value={blocks[selectedBlockIndex].quoteAuthor || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'quoteAuthor', e.target.value)}
+                            placeholder="Contoh: Albert Einstein"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {blocks[selectedBlockIndex].type === 'separator' && (
+                      <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs text-gray-500 leading-relaxed text-center">
+                        Pemisah horizontal bersih untuk memberi pembatas antar-blok di halaman.
+                      </div>
+                    )}
+
                     {/* Selected Block Action Controls */}
                     <div className="border-t border-gray-100 mt-4 pt-4 flex gap-2">
                       <button
@@ -1047,7 +1164,7 @@ export default function AdminPageWorkspace() {
                     
                     {/* 1. HERO BLOCK */}
                     {block.type === 'hero' && (
-                      <div className="bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-6 sm:p-10 rounded-2xl shadow-md relative overflow-hidden">
+                      <div className={`bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-6 sm:p-10 shadow-md relative overflow-hidden transition-all ${block.fullWidth ? '-mx-6 -mt-6 -mb-2 rounded-none' : 'rounded-2xl'}`}>
                         <div className="absolute right-0 top-0 w-32 h-32 bg-[#F26522]/10 rounded-full blur-2xl" />
                         <div className="relative z-10 space-y-2">
                           <h3 className="text-xl sm:text-2xl font-black leading-tight">{block.title || 'Judul Hero'}</h3>
@@ -1102,6 +1219,48 @@ export default function AdminPageWorkspace() {
                       </div>
                     )}
 
+                    {/* 5. IMAGE BLOCK */}
+                    {block.type === 'image' && (
+                      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-center min-h-[160px]">
+                        {block.imageUrl ? (
+                          <img
+                            src={block.imageUrl}
+                            alt={block.imageAlt || 'Gambar'}
+                            className="w-full h-auto object-cover max-h-[450px] rounded-2xl"
+                          />
+                        ) : (
+                          <div className="p-8 text-center text-gray-400 text-xs">
+                            <ImageIcon size={32} className="mx-auto mb-2 opacity-50" />
+                            <span>Belum ada URL gambar yang dimasukkan.</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 6. QUOTE BLOCK */}
+                    {block.type === 'quote' && (
+                      <div className="bg-gradient-to-r from-orange-50/60 to-amber-50/30 border-l-4 border-[#F26522] rounded-r-2xl p-6 shadow-sm relative overflow-hidden">
+                        <Quote size={40} className="absolute right-4 top-4 text-[#F26522]/10" />
+                        <blockquote className="relative z-10 text-slate-800 text-xs sm:text-sm font-medium italic leading-relaxed">
+                          "{block.quoteText || 'Tulis kalimat kutipan di sini...'}"
+                        </blockquote>
+                        {block.quoteAuthor && (
+                          <p className="relative z-10 text-[11px] font-semibold text-[#F26522] mt-3 flex items-center gap-1.5">
+                            <span>— {block.quoteAuthor}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 7. SEPARATOR BLOCK */}
+                    {block.type === 'separator' && (
+                      <div className="py-4 flex items-center justify-center">
+                        <div className="w-full border-t border-gray-200/80 relative flex justify-center items-center">
+                          <div className="w-2 h-2 rounded-full bg-[#F26522] absolute" />
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 );
               })
@@ -1113,51 +1272,87 @@ export default function AdminPageWorkspace() {
       </div>
 
       {/* ================= RIGHT SIDEBAR (ELEMENTOR NAVIGATOR) ================= */}
-      <div className="w-72 bg-white border-l border-gray-200 shrink-0 flex flex-col h-1/2 md:h-full shadow-2xl z-30 select-none">
+      <div className={`bg-white border-l border-gray-200 shrink-0 flex flex-col h-1/2 md:h-full shadow-2xl z-30 select-none transition-all duration-300 ${isNavMinimized ? 'w-14' : 'w-72'}`}>
         {/* Navigator Header */}
-        <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Layout size={16} className="text-gray-400" />
-            <h5 className="text-xs font-semibold text-gray-600">Navigator Struktur</h5>
-          </div>
+        <div className="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          {!isNavMinimized && (
+            <div className="flex items-center gap-1.5 pl-1">
+              <Layout size={16} className="text-gray-400" />
+              <h5 className="text-xs font-semibold text-gray-600">Navigator Struktur</h5>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsNavMinimized(!isNavMinimized)}
+            className="p-1.5 hover:bg-gray-200/80 rounded-lg text-gray-500 hover:text-gray-900 transition-colors mx-auto"
+            title={isNavMinimized ? 'Perluas Navigator' : 'Kecilkan Navigator'}
+          >
+            {isNavMinimized ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
         </div>
 
         {/* Draggable Navigator List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {blocks.length === 0 ? (
-            <p className="text-xs text-gray-500 italic text-center py-10">Struktur halaman kosong.</p>
-          ) : (
-            <div className="space-y-2">
-              {blocks.map((b, idx) => {
-                const isSelected = selectedBlockIndex === idx;
-                return (
-                  <div
-                    key={b.id}
-                    ref={(el) => { navBlockRefs.current[idx] = el; }}
-                    onClick={() => setSelectedBlockIndex(idx)}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={(e) => handleDragOver(e, idx)}
-                    onDragEnd={handleDragEnd}
-                    className={`p-3 rounded-xl border cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-medium select-none ${
-                      isSelected
-                        ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm font-semibold'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
-                    } ${draggedIndex === idx ? 'opacity-40 scale-[0.97]' : ''}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold text-gray-400">#{idx + 1}</span>
-                      <span className="capitalize">{b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : 'FAQ Accordion'}</span>
+        {!isNavMinimized ? (
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {blocks.length === 0 ? (
+              <p className="text-xs text-gray-500 italic text-center py-10">Struktur halaman kosong.</p>
+            ) : (
+              <div className="space-y-2">
+                {blocks.map((b, idx) => {
+                  const isSelected = selectedBlockIndex === idx;
+                  return (
+                    <div
+                      key={b.id}
+                      ref={(el) => { navBlockRefs.current[idx] = el; }}
+                      onClick={() => setSelectedBlockIndex(idx)}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, idx)}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDragEnd={handleDragEnd}
+                      className={`p-3 rounded-xl border cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-medium select-none ${
+                        isSelected
+                          ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm font-semibold'
+                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                      } ${draggedIndex === idx ? 'opacity-40 scale-[0.97]' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold text-gray-400">#{idx + 1}</span>
+                        <span className="capitalize">
+                          {b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : b.type === 'faq' ? 'FAQ Accordion' : b.type === 'image' ? 'Gambar' : b.type === 'quote' ? 'Kutipan' : 'Pemisah'}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 bg-gray-200/50 px-1.5 py-0.5 rounded capitalize">
+                        {b.type}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-medium text-gray-500 bg-gray-200/50 px-1.5 py-0.5 rounded capitalize">
-                      {b.type}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Minimized Compact Strip */
+          <div className="flex-1 overflow-y-auto p-2 space-y-2 flex flex-col items-center">
+            {blocks.map((b, idx) => {
+              const isSelected = selectedBlockIndex === idx;
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setSelectedBlockIndex(idx)}
+                  className={`w-9 h-9 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                    isSelected 
+                      ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm' 
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                  title={`Blok #${idx + 1}: ${b.type}`}
+                >
+                  <span className="text-[10px] font-bold">#{idx + 1}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
     </div>

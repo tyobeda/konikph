@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Sparkles, AlertCircle, ChevronDown, HelpCircle, Layers } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle, ChevronDown, HelpCircle, Quote } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
@@ -47,7 +47,7 @@ const parseMarkdownToHtml = (text: string) => {
 };
 
 interface PageBlock {
-  type: 'hero' | 'text' | 'cta' | 'faq';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator';
   title?: string;
   subtitle?: string;
   ctaText?: string;
@@ -55,6 +55,11 @@ interface PageBlock {
   content?: string;
   description?: string;
   faqs?: { question: string; answer: string }[];
+  fullWidth?: boolean;
+  imageUrl?: string;
+  imageAlt?: string;
+  quoteText?: string;
+  quoteAuthor?: string;
 }
 
 export default function CustomPageRenderer() {
@@ -163,7 +168,9 @@ export default function CustomPageRenderer() {
                 return (
                   <div 
                     key={blockIdx}
-                    className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-8 sm:p-12 shadow-xl border border-slate-800/80"
+                    className={`relative overflow-hidden bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-8 sm:p-12 shadow-xl border border-slate-800/80 transition-all ${
+                      block.fullWidth ? '-mx-4 sm:-mx-6 rounded-none sm:rounded-none' : 'rounded-3xl'
+                    }`}
                   >
                     {/* Decorative abstract elements */}
                     <div className="absolute right-0 top-0 w-64 h-64 bg-[#F26522]/10 rounded-full blur-3xl" />
@@ -264,6 +271,49 @@ export default function CustomPageRenderer() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                );
+              }
+
+              // 5. IMAGE BLOCK
+              if (block.type === 'image') {
+                return (
+                  <div key={blockIdx} className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+                    {block.imageUrl && (
+                      <img
+                        src={block.imageUrl}
+                        alt={block.imageAlt || 'Gambar Halaman'}
+                        className="w-full h-auto object-cover rounded-3xl"
+                      />
+                    )}
+                  </div>
+                );
+              }
+
+              // 6. QUOTE BLOCK
+              if (block.type === 'quote') {
+                return (
+                  <div key={blockIdx} className="bg-gradient-to-r from-orange-50/70 to-amber-50/30 border-l-4 border-[#F26522] rounded-r-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+                    <Quote size={48} className="absolute right-6 top-6 text-[#F26522]/10" />
+                    <blockquote className="relative z-10 text-slate-800 text-base sm:text-lg font-medium italic leading-relaxed">
+                      "{block.quoteText}"
+                    </blockquote>
+                    {block.quoteAuthor && (
+                      <p className="relative z-10 text-xs sm:text-sm font-bold text-[#F26522] mt-4">
+                        — {block.quoteAuthor}
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+
+              // 7. SEPARATOR BLOCK
+              if (block.type === 'separator') {
+                return (
+                  <div key={blockIdx} className="py-6 flex items-center justify-center">
+                    <div className="w-full border-t border-gray-200 relative flex justify-center items-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#F26522] absolute" />
                     </div>
                   </div>
                 );
