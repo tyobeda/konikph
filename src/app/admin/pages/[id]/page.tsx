@@ -98,6 +98,7 @@ export default function AdminPageWorkspace() {
 
   // Drag states
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Success Toast state
   const [showToast, setShowToast] = useState(false);
@@ -152,6 +153,7 @@ export default function AdminPageWorkspace() {
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
+    setDragOverIndex(index);
     e.dataTransfer.effectAllowed = 'move';
     if (window.getSelection) {
       window.getSelection()?.removeAllRanges();
@@ -160,20 +162,21 @@ export default function AdminPageWorkspace() {
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-    
-    const newBlocks = [...blocks];
-    const draggedBlock = newBlocks[draggedIndex];
-    newBlocks.splice(draggedIndex, 1);
-    newBlocks.splice(index, 0, draggedBlock);
-    
-    setBlocks(newBlocks);
-    setDraggedIndex(index);
-    setSelectedBlockIndex(index);
+    if (draggedIndex === null || dragOverIndex === index) return;
+    setDragOverIndex(index);
   };
 
   const handleDragEnd = () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      const newBlocks = [...blocks];
+      const draggedBlock = newBlocks[draggedIndex];
+      newBlocks.splice(draggedIndex, 1);
+      newBlocks.splice(dragOverIndex, 0, draggedBlock);
+      setBlocks(newBlocks);
+      setSelectedBlockIndex(dragOverIndex);
+    }
     setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const insertFormatting = (prefix: string, suffix: string) => {
@@ -922,6 +925,21 @@ export default function AdminPageWorkspace() {
               blocks.map((block, idx) => {
                 const isSelected = selectedBlockIndex === idx;
 
+                let dragOffsetClass = "";
+                if (draggedIndex !== null && dragOverIndex !== null) {
+                  if (idx === draggedIndex) {
+                    dragOffsetClass = "opacity-20 scale-[0.97]";
+                  } else if (draggedIndex < dragOverIndex) {
+                    if (idx > draggedIndex && idx <= dragOverIndex) {
+                      dragOffsetClass = "-translate-y-[120px] shadow-lg border-blue-200";
+                    }
+                  } else if (draggedIndex > dragOverIndex) {
+                    if (idx >= dragOverIndex && idx < draggedIndex) {
+                      dragOffsetClass = "translate-y-[120px] shadow-lg border-blue-200";
+                    }
+                  }
+                }
+
                 return (
                   <div
                     key={idx}
@@ -930,11 +948,11 @@ export default function AdminPageWorkspace() {
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`group relative rounded-2xl transition-all duration-350 cursor-grab active:cursor-grabbing select-none ${
+                    className={`group relative rounded-2xl transition-all duration-350 cursor-grab active:cursor-grabbing select-none transform ${dragOffsetClass} ${
                       isSelected 
                         ? 'ring-2 ring-blue-500 ring-offset-4 shadow-md' 
                         : 'hover:ring-2 hover:ring-blue-400 hover:ring-offset-4'
-                    } ${draggedIndex === idx ? 'opacity-40 scale-[0.98]' : ''}`}
+                    }`}
                   >
                     {/* Hover/Selection Floating Label */}
                     <div className="absolute -top-3 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded shadow flex items-center gap-1.5">
@@ -1028,6 +1046,22 @@ export default function AdminPageWorkspace() {
             <div className="space-y-2">
               {blocks.map((b, idx) => {
                 const isSelected = selectedBlockIndex === idx;
+
+                let navDragOffsetClass = "";
+                if (draggedIndex !== null && dragOverIndex !== null) {
+                  if (idx === draggedIndex) {
+                    navDragOffsetClass = "opacity-20 scale-[0.97]";
+                  } else if (draggedIndex < dragOverIndex) {
+                    if (idx > draggedIndex && idx <= dragOverIndex) {
+                      navDragOffsetClass = "-translate-y-[48px] border-blue-200 bg-blue-50/10";
+                    }
+                  } else if (draggedIndex > dragOverIndex) {
+                    if (idx >= dragOverIndex && idx < draggedIndex) {
+                      navDragOffsetClass = "translate-y-[48px] border-blue-200 bg-blue-50/10";
+                    }
+                  }
+                }
+
                 return (
                   <div
                     key={idx}
@@ -1036,11 +1070,11 @@ export default function AdminPageWorkspace() {
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-semibold select-none ${
+                    className={`p-3 rounded-xl border transition-all duration-300 transform cursor-grab active:cursor-grabbing flex items-center justify-between text-xs font-semibold select-none ${navDragOffsetClass} ${
                       isSelected
                         ? 'bg-blue-50/50 border-blue-300 text-blue-700 shadow-sm'
                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
-                    } ${draggedIndex === idx ? 'opacity-40 scale-[0.98]' : ''}`}
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-gray-400">#{idx + 1}</span>
