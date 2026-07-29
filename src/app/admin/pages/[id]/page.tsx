@@ -36,6 +36,8 @@ import {
   Image as ImageIcon,
   Quote,
   Minus,
+  List,
+  ListOrdered,
   Upload,
   Folder,
   Check,
@@ -393,6 +395,8 @@ export default function AdminPageWorkspace() {
         italic: ['*', '*'],
         underline: ['[u]', '[/u]'],
         strikeThrough: ['[s]', '[/s]'],
+        insertUnorderedList: ['- ', ''],
+        insertOrderedList: ['1. ', ''],
         justifyLeft: ['[align=left]', '[/align]'],
         justifyCenter: ['[align=center]', '[/align]'],
         justifyRight: ['[align=right]', '[/align]'],
@@ -813,7 +817,7 @@ export default function AdminPageWorkspace() {
                         { type: 'hero', title: 'Hero Header', desc: 'Headline & CTA', icon: Sparkles, color: 'text-purple-500' },
                         { type: 'text', title: 'Teks HTML', desc: 'Konten paragraf', icon: AlignLeft, color: 'text-sky-500' },
                         { type: 'cta', title: 'CTA Banner', desc: 'Tombol aksi', icon: Megaphone, color: 'text-amber-500' },
-                        { type: 'faq', title: 'FAQ List', desc: 'Tanya-Jawab', icon: HelpCircle, color: 'text-emerald-500' },
+                        { type: 'faq', title: 'Accordion (FAQ)', desc: 'Tanya-Jawab', icon: HelpCircle, color: 'text-emerald-500' },
                         { type: 'image', title: 'Gambar', desc: 'Media foto', icon: ImageIcon, color: 'text-emerald-600' },
                         { type: 'quote', title: 'Kutipan', desc: 'Quote & Sumber', icon: Quote, color: 'text-indigo-500' },
                         { type: 'separator', title: 'Pemisah', desc: 'Garis pembatas', icon: Minus, color: 'text-gray-500', full: true },
@@ -1052,6 +1056,25 @@ export default function AdminPageWorkspace() {
                             title="Coret (Strikethrough)"
                           >
                             <Strikethrough size={14} />
+                          </button>
+
+                          <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                          <button
+                            type="button"
+                            onClick={() => handleFormat('insertUnorderedList')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Bullet List"
+                          >
+                            <List size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleFormat('insertOrderedList')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                            title="Numbered List"
+                          >
+                            <ListOrdered size={14} />
                           </button>
 
                           <div className="w-px h-4 bg-gray-300 mx-1" />
@@ -1850,7 +1873,7 @@ export default function AdminPageWorkspace() {
                       { type: 'hero', title: 'Hero', icon: Sparkles, color: 'text-purple-500' },
                       { type: 'text', title: 'Teks', icon: AlignLeft, color: 'text-sky-500' },
                       { type: 'cta', title: 'CTA', icon: Megaphone, color: 'text-amber-500' },
-                      { type: 'faq', title: 'FAQ', icon: HelpCircle, color: 'text-emerald-500' },
+                      { type: 'faq', title: 'Accordion', icon: HelpCircle, color: 'text-emerald-500' },
                       { type: 'image', title: 'Gambar', icon: ImageIcon, color: 'text-emerald-600' },
                       { type: 'quote', title: 'Kutipan', icon: Quote, color: 'text-indigo-500' },
                       { type: 'separator', title: 'Pemisah', icon: Minus, color: 'text-gray-500' },
@@ -2161,6 +2184,25 @@ export default function AdminPageWorkspace() {
                           title="Coret (Strikethrough)"
                         >
                           <Strikethrough size={14} />
+                        </button>
+
+                        <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('insertUnorderedList')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Bullet List"
+                        >
+                          <List size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('insertOrderedList')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Numbered List"
+                        >
+                          <ListOrdered size={14} />
                         </button>
 
                         <div className="w-px h-4 bg-gray-300 mx-1" />
