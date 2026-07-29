@@ -41,7 +41,9 @@ import {
   Upload,
   Folder,
   Check,
-  Trash2
+  Trash2,
+  Link as LinkIcon,
+  Unlink
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
@@ -406,10 +408,26 @@ export default function AdminPageWorkspace() {
         fontSizeXL: ['[size=xl]', '[/size]'],
         fontSize2XL: ['[size=2xl]', '[/size]'],
       };
+      if (command === 'createLink') {
+        const url = prompt('Masukkan URL Link (contoh: https://google.com):', 'https://');
+        if (url) insertFormatting(`<a href="${url}" class="text-[#F26522] underline hover:text-orange-700">`, '</a>');
+        return;
+      }
+      if (command === 'unlink') return; // unlink in code mode is done manually
+      
       const format = formats[command] || ['', ''];
       insertFormatting(format[0], format[1]);
     } else {
-      document.execCommand(command, false, value);
+      if (command === 'createLink') {
+        const url = prompt('Masukkan URL Link (contoh: https://google.com):', 'https://');
+        if (!url) return;
+        document.execCommand(command, false, url);
+      } else if (command === 'unlink') {
+        document.execCommand(command, false, '');
+      } else {
+        document.execCommand(command, false, value);
+      }
+      
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       const visualEditor = document.getElementById(isMobile ? 'visual-editor-mobile' : 'visual-editor');
       if (visualEditor) {
@@ -1111,6 +1129,27 @@ export default function AdminPageWorkspace() {
                             title="Rata Kanan"
                           >
                             <AlignRight size={14} />
+                          </button>
+
+                          <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleFormat('createLink')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-blue-600 transition-colors"
+                            title="Tambah Link"
+                          >
+                            <LinkIcon size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleFormat('unlink')}
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-red-500 transition-colors"
+                            title="Hapus Link"
+                          >
+                            <Unlink size={14} />
                           </button>
 
                           <div className="w-px h-4 bg-gray-300 mx-1" />
@@ -2253,6 +2292,27 @@ export default function AdminPageWorkspace() {
                           title="Rata Kanan"
                         >
                           <AlignRight size={14} />
+                        </button>
+
+                        <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('createLink')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-blue-600 transition-colors"
+                          title="Tambah Link"
+                        >
+                          <LinkIcon size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('unlink')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-red-500 transition-colors"
+                          title="Hapus Link"
+                        >
+                          <Unlink size={14} />
                         </button>
 
                         <div className="w-px h-4 bg-gray-300 mx-1" />
