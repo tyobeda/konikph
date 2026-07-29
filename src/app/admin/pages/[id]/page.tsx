@@ -110,7 +110,7 @@ const ContentEditableEditor = ({ id, value, onChange, className }: { id: string,
   const initialValueRef = useRef(value);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
+    if (editorRef.current && document.activeElement !== editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value;
     }
   }, [value]);
@@ -393,7 +393,8 @@ export default function AdminPageWorkspace() {
       insertFormatting(format[0], format[1]);
     } else {
       document.execCommand(command, false, value);
-      const visualEditor = document.getElementById('visual-editor');
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const visualEditor = document.getElementById(isMobile ? 'visual-editor-mobile' : 'visual-editor');
       if (visualEditor) {
         updateBlockField(selectedBlockIndex, 'content', visualEditor.innerHTML);
       }
