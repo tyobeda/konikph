@@ -105,6 +105,30 @@ interface Block {
   quoteAuthor?: string;
 }
 
+const ContentEditableEditor = ({ id, value, onChange, className }: { id: string, value: string, onChange: (val: string) => void, className: string }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const initialValueRef = useRef(value);
+
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
+  return (
+    <div
+      id={id}
+      ref={editorRef}
+      contentEditable
+      suppressContentEditableWarning
+      onInput={(e) => onChange(e.currentTarget.innerHTML)}
+      onBlur={(e) => onChange(e.currentTarget.innerHTML)}
+      className={className}
+      dangerouslySetInnerHTML={{ __html: initialValueRef.current }}
+    />
+  );
+};
+
 let blockIdCounter = 0;
 const genBlockId = () => `blk_${Date.now()}_${++blockIdCounter}`;
 
@@ -1098,17 +1122,10 @@ export default function AdminPageWorkspace() {
                         {textEditorTab === 'visual' ? (
                           /* 🖥️ VISUAL / EDITABLE WYSIWYG LIVE PREVIEW MODE */
                           <div className="space-y-2">
-                            <div
+                            <ContentEditableEditor
                               id="visual-editor"
-                              contentEditable
-                              suppressContentEditableWarning
-                              onInput={(e) => {
-                                updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
-                              }}
-                              onBlur={(e) => {
-                                updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
-                              }}
-                              dangerouslySetInnerHTML={{ __html: blocks[selectedBlockIndex].content || '' }}
+                              value={blocks[selectedBlockIndex].content || ''}
+                              onChange={(val) => updateBlockField(selectedBlockIndex, 'content', val)}
                               className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 min-h-[300px] max-h-[360px] overflow-y-auto shadow-inner prose prose-slate max-w-none text-xs text-slate-800 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                             />
                             <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-[10px] text-slate-550 flex items-start gap-1.5 leading-relaxed">
@@ -2214,17 +2231,10 @@ export default function AdminPageWorkspace() {
                       {textEditorTab === 'visual' ? (
                         /* 🖥️ VISUAL / EDITABLE WYSIWYG LIVE PREVIEW MODE */
                         <div className="space-y-2">
-                          <div
+                          <ContentEditableEditor
                             id="visual-editor-mobile"
-                            contentEditable
-                            suppressContentEditableWarning
-                            onInput={(e) => {
-                              updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
-                            }}
-                            onBlur={(e) => {
-                              updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
-                            }}
-                            dangerouslySetInnerHTML={{ __html: blocks[selectedBlockIndex].content || '' }}
+                            value={blocks[selectedBlockIndex].content || ''}
+                            onChange={(val) => updateBlockField(selectedBlockIndex, 'content', val)}
                             className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 min-h-[150px] max-h-[300px] overflow-y-auto shadow-inner prose prose-slate max-w-none text-xs text-slate-800 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
