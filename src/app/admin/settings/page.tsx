@@ -33,6 +33,7 @@ import { compressImageFile } from '@/lib/imageCompressor';
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
+  const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'resource' | 'backup' | 'danger'>('identity');
 
   const [siteName, setSiteName] = useState(siteSettings.siteName);
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription);
@@ -355,8 +356,20 @@ export default function AdminSettingsPage() {
           </p>
         </div>
 
+        {/* Tab Menu */}
+        <div className="flex border-b border-gray-200 mb-8 overflow-x-auto no-scrollbar gap-6 text-sm font-bold">
+          <button onClick={() => setActiveTab('identity')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'identity' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Identitas Web</button>
+          <button onClick={() => setActiveTab('cta')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'cta' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Banner CTA</button>
+          <button onClick={() => setActiveTab('popup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'popup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Pop-up Pengumuman</button>
+          <button onClick={() => setActiveTab('resource')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'resource' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Storage & Server</button>
+          <button onClick={() => setActiveTab('backup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'backup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Backup Data</button>
+          <button onClick={() => setActiveTab('danger')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'danger' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-red-600'}`}><ShieldAlert size={14} /> Danger Zone</button>
+        </div>
+
         <div className="space-y-8 max-w-5xl">
           
+          {activeTab === 'identity' && (
+            <>
           {/* Section 1: Identitas Situs & Logo/Favicon */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-6">
@@ -489,6 +502,11 @@ export default function AdminSettingsPage() {
             </form>
           </div>
 
+          </>
+          )}
+
+          {activeTab === 'cta' && (
+            <>
           {/* Section 2: Pengaturan Banner CTA Beranda */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 mb-6 gap-3">
@@ -716,6 +734,11 @@ export default function AdminSettingsPage() {
             </form>
           </div>
 
+          </>
+          )}
+
+          {activeTab === 'popup' && (
+            <>
           {/* Section 3: Welcome Pop-up Settings */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 mb-6 gap-3">
@@ -1018,6 +1041,11 @@ export default function AdminSettingsPage() {
             </form>
           </div>
 
+          </>
+          )}
+
+          {activeTab === 'resource' && (
+            <>
           {/* Section 3: Storage Usage & Server Resource Usage */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-6">
@@ -1077,6 +1105,11 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
+          </>
+          )}
+
+          {activeTab === 'backup' && (
+            <>
           {/* Section 4: Backup & Restore Data */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-6">
@@ -1133,6 +1166,11 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
+          </>
+          )}
+
+          {activeTab === 'danger' && (
+            <>
           {/* Section 4: Danger Zone / Mass Delete Operations */}
           <div className="bg-red-50/40 rounded-2xl p-6 border border-red-200 shadow-sm">
             <div className="flex items-center gap-2 border-b border-red-200 pb-3 mb-6">
@@ -1207,6 +1245,9 @@ export default function AdminSettingsPage() {
 
             </div>
           </div>
+
+            </>
+          )}
 
         </div>
 
