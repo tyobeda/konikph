@@ -12,18 +12,51 @@ import {
   ExternalLink,
   Layout,
   PlusCircle,
+  Copy,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 
 export default function AdminPagesPage() {
   const router = useRouter();
-  const { customPages, deleteCustomPage } = useData();
+  const { customPages, deleteCustomPage, addCustomPage } = useData();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleDelete = (id: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus halaman kustom ini?')) {
       deleteCustomPage(id);
     }
+  };
+
+  const handleClone = (page: any) => {
+    const baseSlug = page.slug.replace(/-\d+$/, '');
+    const baseTitle = page.title.replace(/\s-\d+$/, '');
+
+    let maxSuffix = 0;
+    customPages.forEach((p) => {
+      // Check if it matches exactly or has a dash number suffix
+      if (p.slug === baseSlug && maxSuffix === 0) {
+        maxSuffix = 0; // Not strictly needed, just means 0 exists
+      }
+      if (p.slug.startsWith(baseSlug + '-')) {
+        const match = p.slug.match(new RegExp(`^${baseSlug}-(\\d+)$`));
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxSuffix) maxSuffix = num;
+        }
+      }
+    });
+
+    const nextSuffix = maxSuffix + 1;
+    const newSlug = `${baseSlug}-${nextSuffix}`;
+    const newTitle = `${baseTitle} -${nextSuffix}`;
+
+    addCustomPage({
+      title: newTitle,
+      slug: newSlug,
+      content: page.content,
+      published: false,
+      useRootPath: page.useRootPath,
+    });
   };
 
   const filteredPages = customPages.filter(
@@ -119,6 +152,13 @@ export default function AdminPagesPage() {
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleClone(page)}
+                          className="p-2 bg-gray-50 hover:bg-blue-50 border border-gray-150 hover:border-blue-100 text-gray-600 hover:text-blue-500 rounded-xl shadow-sm transition-all"
+                          title="Duplikat Halaman"
+                        >
+                          <Copy size={14} />
+                        </button>
                         <button
                           onClick={() => router.push(`/admin/pages/${page.id}`)}
                           className="p-2 bg-gray-50 hover:bg-orange-50 border border-gray-150 hover:border-orange-100 text-gray-600 hover:text-[#F26522] rounded-xl shadow-sm transition-all"
