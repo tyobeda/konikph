@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { PksLogo } from './PksLogo';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Bell } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 
 interface HeaderProps {
@@ -242,6 +242,13 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             </Link>
 
             {/* User Profile Dropdown or Auth Links */}
+            {currentUser && (
+              <button onClick={() => alert('Belum ada notifikasi baru.')} className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
+                <Bell size={20} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+              </button>
+            )}
+            
             {currentUser ? (
               <div suppressHydrationWarning className="relative">
                 <button

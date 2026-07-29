@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   FileText,
+  Bell,
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -77,13 +78,19 @@ export default function AdminLayout({
         </span>
 
         {/* Burger Toggle Button */}
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700"
-          aria-label="Toggle Navigation Menu"
-        >
-          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => alert('Belum ada notifikasi sistem baru.')} className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
+            <Bell size={18} />
+            <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+          </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700"
+            aria-label="Toggle Navigation Menu"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </header>
 
       {/* 📱 MOBILE DRAWER BACKDROP OVERLAY */}
@@ -186,6 +193,11 @@ export default function AdminLayout({
                 </>
               )}
             </Link>
+            
+            <button onClick={() => alert('Belum ada notifikasi sistem baru.')} className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
+              <Bell size={18} />
+              <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+            </button>
           </div>
 
           {/* Admin Navigation */}
