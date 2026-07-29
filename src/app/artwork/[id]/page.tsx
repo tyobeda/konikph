@@ -24,6 +24,7 @@ import { Footer } from '@/components/Footer';
 import { USERS } from '@/lib/data';
 import { ArtworkCard } from '@/components/ArtworkCard';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
+import { ShareModal } from '@/components/ShareModal';
 import { useData } from '@/context/DataContext';
 
 export default function ArtworkDetailPage() {
@@ -71,7 +72,10 @@ export default function ArtworkDetailPage() {
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
   const [showOptions, setShowOptions] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
+
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -175,16 +179,7 @@ export default function ArtworkDetailPage() {
   };
 
   const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: artwork.title,
-        text: `Lihat desain ${artwork.title} di PKSart`,
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      triggerToast('Tautan berhasil disalin ke clipboard!');
-    }
+    setIsShareModalOpen(true);
   };
 
   const handleDownloadTemplate = () => {
@@ -506,6 +501,13 @@ export default function ArtworkDetailPage() {
         confirmLabel="Ya, Hapus"
         onConfirm={confirmDeleteComment}
         onCancel={() => setDeletingCommentId(null)}
+      />
+      {/* Share Modal */}
+      <ShareModal 
+        isOpen={isShareModalOpen} 
+        onClose={() => setIsShareModalOpen(false)} 
+        url={shareUrl} 
+        title={artwork.title} 
       />
     </div>
   );

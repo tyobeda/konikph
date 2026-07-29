@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag } from 'lucide-react';
 import { Artwork } from '@/lib/types';
+import { ShareModal } from './ShareModal';
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -15,7 +16,10 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/artwork/${artwork.id}` : '';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -133,7 +137,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           {showDropdown && (
             <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-bottom-right">
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); alert('Membagikan postingan ke media sosial...'); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); setIsShareModalOpen(true); }}
                 className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
               >
                 <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
@@ -148,6 +152,14 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           )}
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal 
+        isOpen={isShareModalOpen} 
+        onClose={() => setIsShareModalOpen(false)} 
+        url={shareUrl} 
+        title={artwork.title} 
+      />
     </div>
   );
 };
