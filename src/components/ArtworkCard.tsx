@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MessageSquare, Download } from 'lucide-react';
+import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag } from 'lucide-react';
 import { Artwork } from '@/lib/types';
 
 interface ArtworkCardProps {
@@ -14,6 +14,18 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [likes, setLikes] = useState(artwork.likesCount);
   const [isLiked, setIsLiked] = useState(false);
   const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fallbackImage = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="%23F26522"/><circle cx="300" cy="350" r="120" fill="white" opacity="0.2"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="36" font-weight="bold">PKSart Official</text><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20" opacity="0.9">${encodeURIComponent(artwork.title)}</text></svg>`;
 
@@ -36,9 +48,9 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   };
 
   return (
-    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
+    <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
-      <Link href={`/artwork/${artwork.id}`} className="relative block w-full overflow-hidden bg-gray-50">
+      <Link href={`/artwork/${artwork.id}`} className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
         <div className="relative w-full overflow-hidden">
           <img
             src={imgSrc}
@@ -100,14 +112,41 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           </div>
         </div>
 
-        {/* Download Icon Button */}
-        <button
-          onClick={handleDownload}
-          className="p-2 text-gray-600 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors shrink-0"
-          title="Unduh Design Template"
-        >
-          <Download size={18} />
-        </button>
+        {/* Download & More Icon Button */}
+        <div className="flex items-center gap-1 relative" ref={dropdownRef}>
+          <button
+            onClick={handleDownload}
+            className="p-2 text-gray-600 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors shrink-0"
+            title="Unduh Design Template"
+          >
+            <Download size={18} />
+          </button>
+          
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(!showDropdown); }}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors shrink-0"
+            title="Opsi Lainnya"
+          >
+            <MoreVertical size={18} />
+          </button>
+
+          {showDropdown && (
+            <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-bottom-right">
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); alert('Membagikan postingan ke media sosial...'); }}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
+              >
+                <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
+              </button>
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); alert('Postingan telah dilaporkan.'); }}
+                className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+              >
+                <Flag size={15} /> <span className="text-xs">Laporkan Postingan</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -14,8 +14,9 @@ import {
   Send,
   Edit2,
   Trash2,
-  Check,
   X,
+  MoreVertical,
+  Flag,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -68,6 +69,18 @@ export default function ArtworkDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [showOptions, setShowOptions] = useState(false);
+  const optionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
+        setShowOptions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const currentComments = artwork.comments || [];
 
@@ -254,6 +267,33 @@ export default function ArtworkDetailPage() {
                       {artwork.author.region} • Format {artwork.format || 'PSD/AI'}
                     </p>
                   </div>
+                </div>
+
+                {/* More Options Dropdown */}
+                <div className="relative" ref={optionsRef}>
+                  <button
+                    onClick={() => setShowOptions(!showOptions)}
+                    className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+
+                  {showOptions && (
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-top-right">
+                      <button
+                        onClick={() => { setShowOptions(false); handleShare(); }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
+                      >
+                        <Share2 size={16} /> <span className="text-xs">Bagikan ke Sosial Media</span>
+                      </button>
+                      <button
+                        onClick={() => { setShowOptions(false); triggerToast('Postingan telah dilaporkan.'); }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+                      >
+                        <Flag size={16} /> <span className="text-xs">Laporkan Postingan</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
