@@ -241,12 +241,12 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               <span>Unggah Karya</span>
             </Link>
 
-            {/* User Profile Dropdown or Auth Links */}
+            {/* Notification Icon */}
             {currentUser && (
-              <button onClick={() => alert('Belum ada notifikasi baru.')} className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
+              <Link href="/notifikasi" className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-              </button>
+              </Link>
             )}
             
             {currentUser ? (

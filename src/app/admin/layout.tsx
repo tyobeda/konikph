@@ -79,10 +79,10 @@ export default function AdminLayout({
 
         {/* Burger Toggle Button */}
         <div className="flex items-center gap-2">
-          <button onClick={() => alert('Belum ada notifikasi sistem baru.')} className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
+          <Link href="/notifikasi" className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
             <Bell size={18} />
             <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
+          </Link>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700"
@@ -194,10 +194,10 @@ export default function AdminLayout({
               )}
             </Link>
             
-            <button onClick={() => alert('Belum ada notifikasi sistem baru.')} className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
+            <Link href="/notifikasi" className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
               <Bell size={18} />
               <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            </Link>
           </div>
 
           {/* Admin Navigation */}
