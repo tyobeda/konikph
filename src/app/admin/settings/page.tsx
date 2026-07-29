@@ -641,7 +641,7 @@ export default function AdminSettingsPage() {
                   Daftar Tautan Spanduk (CTA Inline Links List)
                 </label>
                 <datalist id="pages-list">
-                  {customPages.filter(p => p.status === 'Published').map((page) => (
+                  {customPages.filter(p => p.published).map((page) => (
                     <option key={page.id} value={`/p/${page.slug}`}>
                       {page.title}
                     </option>
