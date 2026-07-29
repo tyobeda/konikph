@@ -10,18 +10,20 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  name      String
-  email     String    @unique
-  phone     String    // Nomor WhatsApp (Wajib)
-  address   String    // Alamat Lengkap (Wajib)
-  avatar    String?
-  region    String    // e.g. "Jawa Barat", "DIY", "Sumut"
-  role      String?   @default("Kreator") // e.g. "DPW PKS", "Kreator"
-  artworks  Artwork[]
-  likes     Like[]
-  comments  Comment[]
-  createdAt DateTime  @default(now())
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  phone         String // Nomor WhatsApp (Wajib)
+  address       String // Alamat Lengkap (Wajib)
+  avatar        String?
+  region        String // e.g. "Jawa Barat", "DIY", "Sumut"
+  role          String?        @default("Kreator") // e.g. "DPW PKS", "Kreator"
+  artworks      Artwork[]
+  likes         Like[]
+  comments      Comment[]
+  createdAt     DateTime       @default(now())
+  notifications Notification[]
+  twibbonFrames TwibbonFrame[]
 }
 
 model Artwork {
@@ -30,8 +32,8 @@ model Artwork {
   description    String?
   imageUrl       String
   downloadUrl    String?
-  category       String    // e.g. "Poster", "Spanduk", "Social Media", "Infografis", "Templat"
-  region         String    // e.g. "DPW Jabar", "DKI", "DIY", "Sumut", "Nasional"
+  category       String // e.g. "Poster", "Spanduk", "Social Media", "Infografis", "Templat"
+  region         String // e.g. "DPW Jabar", "DKI", "DIY", "Sumut", "Nasional"
   format         String?   @default("PSD/AI/CDR")
   likesCount     Int       @default(0)
   commentsCount  Int       @default(0)
@@ -70,9 +72,50 @@ model CustomPage {
   id          String   @id @default(uuid())
   slug        String   @unique
   title       String
-  content     String   // JSON string storing block structure
+  content     String // JSON string storing block structure
   published   Boolean  @default(true)
   useRootPath Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  type        String
+  title       String
+  description String
+  isRead      Boolean  @default(false)
+  iconColor   String?
+  bgColor     String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model TwibbonFrame {
+  id         String   @id @default(uuid())
+  title      String
+  imageUrl   String
+  category   String
+  region     String
+  usedCount  Int      @default(0)
+  status     String   @default("Pending")
+  isFeatured Boolean  @default(false)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model DpwOffice {
+  id             String   @id @default(uuid())
+  name           String
+  code           String   @unique
+  coordinator    String
+  phone          String
+  email          String
+  address        String
+  activeCreators Int      @default(0)
+  totalArtworks  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

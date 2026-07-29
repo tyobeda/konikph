@@ -4,11 +4,37 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Bell, Heart, MessageCircle, AlertTriangle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
+import { getNotifications, markAllAsRead } from '@/actions/notification';
+import { useEffect, useState } from 'react';
 
 export default function NotificationPage() {
   const { currentUser } = useData();
+  const [dbNotifications, setDbNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const notifications = [
+  useEffect(() => {
+    if (currentUser?.id) {
+      getNotifications(currentUser.id).then(res => {
+        if (res.success && res.data) {
+          setDbNotifications(res.data);
+        }
+        setIsLoading(false);
+      });
+    } else {
+      setIsLoading(false);
+    }
+  }, [currentUser]);
+
+  const handleMarkAllAsRead = async () => {
+    if (currentUser?.id) {
+      const res = await markAllAsRead(currentUser.id);
+      if (res.success) {
+        setDbNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      }
+    }
+  };
+
+  const dummyNotifications = [
     {
       id: 1,
       type: 'like',
@@ -88,7 +114,7 @@ export default function NotificationPage() {
             </div>
           </div>
           
-          <button className="text-sm font-bold text-[#F26522] hover:text-[#d85517] bg-orange-50 px-4 py-2 rounded-xl transition-colors">
+          <button onClick={handleMarkAllAsRead} className="text-sm font-bold text-[#F26522] hover:text-[#d85517] bg-orange-50 px-4 py-2 rounded-xl transition-colors">
             Tandai semua dibaca
           </button>
         </div>
@@ -113,8 +139,14 @@ export default function NotificationPage() {
         ) : (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="divide-y divide-gray-100">
-              {notifications.map((notif) => {
-                const Icon = notif.icon;
+              {(dbNotifications.length > 0 ? dbNotifications : dummyNotifications).map((notif) => {
+                let Icon = Bell;
+                if (notif.type === 'like') Icon = Heart;
+                else if (notif.type === 'comment') Icon = MessageCircle;
+                else if (notif.type === 'system') Icon = CheckCircle2;
+                else if (notif.type === 'warning') Icon = AlertTriangle;
+                else if (notif.type === 'admin') Icon = ShieldCheck;
+                
                 return (
                   <div 
                     key={notif.id} 
@@ -129,7 +161,7 @@ export default function NotificationPage() {
                           {notif.title}
                         </h3>
                         <span className="text-[11px] font-semibold text-gray-400 whitespace-nowrap shrink-0 mt-0.5">
-                          {notif.time}
+                          {notif.time || new Date(notif.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                       <p className={`text-sm leading-relaxed ${!notif.isRead ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>
