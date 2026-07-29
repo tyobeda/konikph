@@ -326,7 +326,8 @@ export default function AdminPageWorkspace() {
 
   const insertFormatting = (prefix: string, suffix: string) => {
     if (selectedBlockIndex === null) return;
-    const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const textarea = document.getElementById(isMobile ? 'markdown-editor-mobile' : 'markdown-editor') as HTMLTextAreaElement;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -2066,13 +2067,180 @@ export default function AdminPageWorkspace() {
 
                   {blocks[selectedBlockIndex].type === 'text' && (
                     <div className="space-y-3">
-                      <label className="block text-xs font-medium text-gray-600">Konten Teks (HTML)</label>
-                      <textarea
-                        value={blocks[selectedBlockIndex].content || ''}
-                        onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
-                        rows={8}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-gray-900 focus:outline-none focus:border-[#F26522] resize-y"
-                      />
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-medium text-gray-600">Konten Teks</label>
+                        
+                        {/* Visual vs Code Tab Selector */}
+                        <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 select-none">
+                          <button
+                            type="button"
+                            onClick={() => setTextEditorTab('visual')}
+                            className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all ${
+                              textEditorTab === 'visual'
+                                ? 'bg-white text-slate-800 shadow-sm font-semibold'
+                                : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                          >
+                            Visual
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTextEditorTab('code')}
+                            className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all ${
+                              textEditorTab === 'code'
+                                ? 'bg-white text-slate-800 shadow-sm font-semibold'
+                                : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                          >
+                            HTML / Code
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Shared Editor Formatting Toolbar */}
+                      <div className="bg-gray-100 border border-gray-200 p-1.5 rounded-t-2xl flex flex-wrap gap-1 items-center select-none">
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('bold')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Tebal (Bold)"
+                        >
+                          <Bold size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('italic')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Miring (Italic)"
+                        >
+                          <Italic size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('underline')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Garis Bawah (Underline)"
+                        >
+                          <Underline size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('strikeThrough')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Coret (Strikethrough)"
+                        >
+                          <Strikethrough size={14} />
+                        </button>
+
+                        <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('justifyLeft')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Rata Kiri"
+                        >
+                          <AlignLeft size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('justifyCenter')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Rata Tengah"
+                        >
+                          <AlignCenter size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleFormat('justifyRight')}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
+                          title="Rata Kanan"
+                        >
+                          <AlignRight size={14} />
+                        </button>
+
+                        <div className="w-px h-4 bg-gray-300 mx-1" />
+
+                        {/* Font Size Select Dropdown */}
+                        <div className="relative group/size">
+                          <button
+                            type="button"
+                            className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors flex items-center gap-1 text-[10px] font-medium"
+                            title="Ukuran Font"
+                          >
+                            <Type size={14} />
+                            <span>Ukuran</span>
+                          </button>
+                          <div className="absolute left-0 top-full hidden group-hover/size:block bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-40 w-28 space-y-0.5 animate-fadeIn">
+                            <button
+                              type="button"
+                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXS' : 'fontSize', '1')}
+                              className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[10px] rounded text-gray-700 font-semibold"
+                            >
+                              Sangat Kecil
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeSM' : 'fontSize', '2')}
+                              className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[11px] rounded text-gray-700 font-semibold"
+                            >
+                              Kecil
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeLG' : 'fontSize', '4')}
+                              className="w-full text-left px-2 py-1 hover:bg-gray-50 text-sm rounded text-gray-700 font-semibold"
+                            >
+                              Besar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXL' : 'fontSize', '5')}
+                              className="w-full text-left px-2 py-1 hover:bg-gray-50 text-base rounded text-gray-700 font-bold"
+                            >
+                              Ekstra Besar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSize2XL' : 'fontSize', '6')}
+                              className="w-full text-left px-2 py-1 hover:bg-gray-50 text-lg rounded text-gray-700 font-extrabold"
+                            >
+                              Super Besar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {textEditorTab === 'visual' ? (
+                        /* 🖥️ VISUAL / EDITABLE WYSIWYG LIVE PREVIEW MODE */
+                        <div className="space-y-2">
+                          <div
+                            id="visual-editor-mobile"
+                            contentEditable
+                            suppressContentEditableWarning
+                            onInput={(e) => {
+                              updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
+                            }}
+                            onBlur={(e) => {
+                              updateBlockField(selectedBlockIndex, 'content', e.currentTarget.innerHTML);
+                            }}
+                            dangerouslySetInnerHTML={{ __html: blocks[selectedBlockIndex].content || '' }}
+                            className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 min-h-[150px] max-h-[300px] overflow-y-auto shadow-inner prose prose-slate max-w-none text-xs text-slate-800 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+                      ) : (
+                        /* 📝 HTML & CODE EDITOR WORKSPACE MODE */
+                        <div className="space-y-2">
+                          <textarea
+                            id="markdown-editor-mobile"
+                            value={blocks[selectedBlockIndex].content || ''}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
+                            rows={8}
+                            placeholder="# Judul Utama&#10;## Subjudul Halaman&#10;&#10;Tulis paragraf teks di sini. Pisahkan paragraf dengan menekan tombol Enter dua kali.&#10;&#10;Gunakan toolbar di atas atau **tebal** untuk teks tebal, [u]garis bawah[/u], [s]coret[/s], [align=center]tengah[/align], atau [size=lg]ukuran besar[/size]."
+                            className="w-full bg-gray-50 border border-gray-200 border-t-0 rounded-b-2xl p-3 text-xs text-gray-800 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
