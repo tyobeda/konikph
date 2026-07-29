@@ -16,6 +16,7 @@ import {
   Plus,
   Heading,
   HelpCircle,
+  Images,
   Megaphone,
   AlignLeft,
   Settings,
@@ -89,7 +90,7 @@ const parseMarkdownToHtml = (text: string) => {
 
 interface Block {
   id: string;
-  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery';
   title?: string;
   subtitle?: string;
   titleSize?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -107,6 +108,8 @@ interface Block {
   imageAlign?: 'left' | 'center' | 'right';
   quoteText?: string;
   quoteAuthor?: string;
+  galleryImages?: string[];
+  galleryCols?: number;
 }
 
 const ContentEditableEditor = React.memo(({ id, value, onChange, className }: { id: string, value: string, onChange: (val: string) => void, className: string }) => {
@@ -172,6 +175,7 @@ export default function AdminPageWorkspace() {
 
   // Media Explorer Modal State
   const [showMediaModal, setShowMediaModal] = useState(false);
+  const [mediaTarget, setMediaTarget] = useState<'mainImage' | 'gallery'>('mainImage');
   const [mediaTab, setMediaTab] = useState<'library' | 'upload'>('library');
   const [searchMedia, setSearchMedia] = useState('');
   const [customMediaList, setCustomMediaList] = useState<string[]>([
@@ -482,7 +486,7 @@ export default function AdminPageWorkspace() {
   const [mobileSheet, setMobileSheet] = useState<'closed' | 'widgets' | 'settings' | 'blockEdit'>('closed');
 
   const addBlock = (
-    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading',
+    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery',
     atIndex?: number
   ) => {
     const id = genBlockId();
@@ -504,6 +508,8 @@ export default function AdminPageWorkspace() {
       newBlock = { id, type, title: 'Banner Aksi Kustom', description: 'Deskripsi singkat untuk mengajak pembaca melakukan aksi tertentu.', ctaText: 'Klik Aksi', ctaLink: '#' };
     } else if (type === 'faq') {
       newBlock = { id, type, faqs: [{ question: 'Pertanyaan FAQ Baru?', answer: 'Tulis jawaban detail di sini.' }] };
+    } else if (type === 'gallery') {
+      newBlock = { id, type, galleryImages: [], galleryCols: 3 };
     } else if (type === 'image') {
       newBlock = { 
         id, 
@@ -876,6 +882,7 @@ export default function AdminPageWorkspace() {
                         { type: 'text', title: 'Teks HTML', desc: 'Konten paragraf', icon: AlignLeft, color: 'text-sky-500' },
                         { type: 'cta', title: 'CTA Banner', desc: 'Tombol aksi', icon: Megaphone, color: 'text-amber-500' },
                         { type: 'faq', title: 'Accordion (FAQ)', desc: 'Tanya-Jawab', icon: HelpCircle, color: 'text-emerald-500' },
+                        { type: 'gallery', title: 'Galeri', desc: 'Grid Gambar', icon: Images, color: 'text-fuchsia-500' },
                         { type: 'image', title: 'Gambar', desc: 'Media foto', icon: ImageIcon, color: 'text-emerald-600' },
                         { type: 'quote', title: 'Kutipan', desc: 'Quote & Sumber', icon: Quote, color: 'text-indigo-500' },
                         { type: 'separator', title: 'Pemisah', desc: 'Garis pembatas', icon: Minus, color: 'text-gray-500', full: true },
@@ -1786,6 +1793,40 @@ export default function AdminPageWorkspace() {
                       </div>
                     )}
 
+                    {/* 5.5 GALLERY BLOCK */}
+                    {block.type === 'gallery' && (
+                      <div className="w-full">
+                        {(() => {
+                          const cols = block.galleryCols || 3;
+                          const gridClass = cols === 1 ? 'grid-cols-1' : cols === 2 ? 'grid-cols-2' : cols === 3 ? 'grid-cols-3' : 'grid-cols-4';
+                          const images = block.galleryImages || [];
+                          
+                          if (images.length === 0) {
+                            return (
+                              <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-center text-gray-400 text-xs">
+                                <Images size={24} className="mx-auto mb-2 opacity-50" />
+                                <span>Galeri kosong. Tambahkan gambar lewat panel pengaturan.</span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className={`grid ${gridClass} gap-2 sm:gap-3`}>
+                              {images.map((imgUrl, imgIdx) => (
+                                <div key={imgIdx} className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                                  <img
+                                    src={imgUrl}
+                                    alt={`Gallery Preview ${imgIdx + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+
                     {/* 6. QUOTE BLOCK */}
                     {block.type === 'quote' && (
                       <div className="bg-gradient-to-r from-orange-50/60 to-amber-50/30 border-l-4 border-[#F26522] rounded-r-2xl p-6 shadow-sm relative overflow-hidden">
@@ -1866,7 +1907,7 @@ export default function AdminPageWorkspace() {
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-semibold text-gray-400">#{idx + 1}</span>
                         <span className="capitalize">
-                          {b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : b.type === 'faq' ? 'FAQ Accordion' : b.type === 'image' ? 'Gambar' : b.type === 'quote' ? 'Kutipan' : 'Pemisah'}
+                          {b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : b.type === 'faq' ? 'FAQ Accordion' : b.type === 'image' ? 'Gambar' : b.type === 'gallery' ? 'Galeri' : b.type === 'quote' ? 'Kutipan' : 'Pemisah'}
                         </span>
                       </div>
                       <span className="text-[10px] font-medium text-gray-500 bg-gray-200/50 px-1.5 py-0.5 rounded capitalize">
@@ -1967,6 +2008,7 @@ export default function AdminPageWorkspace() {
                       { type: 'text', title: 'Teks', icon: AlignLeft, color: 'text-sky-500' },
                       { type: 'cta', title: 'CTA', icon: Megaphone, color: 'text-amber-500' },
                       { type: 'faq', title: 'Accordion', icon: HelpCircle, color: 'text-emerald-500' },
+                      { type: 'gallery', title: 'Galeri', icon: Images, color: 'text-fuchsia-500' },
                       { type: 'image', title: 'Gambar', icon: ImageIcon, color: 'text-emerald-600' },
                       { type: 'quote', title: 'Kutipan', icon: Quote, color: 'text-indigo-500' },
                       { type: 'separator', title: 'Pemisah', icon: Minus, color: 'text-gray-500' },
@@ -2465,7 +2507,10 @@ export default function AdminPageWorkspace() {
                         <label className="block text-xs font-medium text-gray-600 mb-1">Gambar</label>
                         <button
                           type="button"
-                          onClick={() => setShowMediaModal(true)}
+                          onClick={() => {
+                            setMediaTarget('mainImage');
+                            setShowMediaModal(true);
+                          }}
                           className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 border border-gray-200"
                         >
                           <Folder size={14} /> Pilih dari Media Explorer
@@ -2527,6 +2572,62 @@ export default function AdminPageWorkspace() {
                       <button type="button" onClick={() => { const faqs = [...(blocks[selectedBlockIndex].faqs || []), { question: '', answer: '' }]; updateBlockField(selectedBlockIndex, 'faqs', faqs); }} className="w-full py-2 bg-orange-50 hover:bg-orange-100 text-[#F26522] text-xs font-semibold rounded-xl border border-orange-200 transition-all flex items-center justify-center gap-1">
                         <Plus size={14} /> Tambah FAQ
                       </button>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'gallery' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
+                        <select
+                          value={blocks[selectedBlockIndex].galleryCols || 3}
+                          onChange={(e) => updateBlockField(selectedBlockIndex, 'galleryCols', parseInt(e.target.value))}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        >
+                          <option value={1}>1 Kolom</option>
+                          <option value={2}>2 Kolom</option>
+                          <option value={3}>3 Kolom</option>
+                          <option value={4}>4 Kolom</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Gambar Galeri</label>
+                        <div className="space-y-2">
+                          {(blocks[selectedBlockIndex].galleryImages || []).map((imgUrl, imgIdx) => (
+                            <div key={imgIdx} className="flex items-center gap-2 bg-gray-50 border border-gray-200 p-2 rounded-xl">
+                              <img src={imgUrl} alt={`Gallery ${imgIdx}`} className="w-10 h-10 object-cover rounded-lg flex-shrink-0" />
+                              <input 
+                                type="text" 
+                                value={imgUrl} 
+                                readOnly 
+                                className="w-full bg-transparent text-[10px] text-gray-500 outline-none" 
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const imgs = [...(blocks[selectedBlockIndex].galleryImages || [])];
+                                  imgs.splice(imgIdx, 1);
+                                  updateBlockField(selectedBlockIndex, 'galleryImages', imgs);
+                                }}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMediaTarget('gallery');
+                              setShowMediaModal(true);
+                            }}
+                            className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 transition-all flex items-center justify-center gap-1"
+                          >
+                            <Plus size={14} /> Tambah via Media Explorer
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -2684,7 +2785,12 @@ export default function AdminPageWorkspace() {
                               key={idx}
                               onClick={() => {
                                 if (selectedBlockIndex !== null) {
-                                  updateBlockField(selectedBlockIndex, 'imageUrl', url);
+                                  if (mediaTarget === 'mainImage') {
+                                    updateBlockField(selectedBlockIndex, 'imageUrl', url);
+                                  } else if (mediaTarget === 'gallery') {
+                                    const currentImgs = blocks[selectedBlockIndex].galleryImages || [];
+                                    updateBlockField(selectedBlockIndex, 'galleryImages', [...currentImgs, url]);
+                                  }
                                 }
                                 setShowMediaModal(false);
                               }}
