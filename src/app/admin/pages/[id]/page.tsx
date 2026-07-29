@@ -165,6 +165,11 @@ export default function AdminPageWorkspace() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
 
+  // Link Modal State
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [savedRange, setSavedRange] = useState<Range | null>(null);
+
   // Media Explorer Modal State
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [mediaTab, setMediaTab] = useState<'library' | 'upload'>('library');
@@ -409,8 +414,11 @@ export default function AdminPageWorkspace() {
         fontSize2XL: ['[size=2xl]', '[/size]'],
       };
       if (command === 'createLink') {
-        const url = prompt('Masukkan URL Link (contoh: https://google.com):', 'https://');
-        if (url) insertFormatting(`<a href="${url}" class="text-[#F26522] underline hover:text-orange-700">`, '</a>');
+        const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
+        if (!textarea) return;
+        setSavedRange(null);
+        setLinkUrl('https://');
+        setShowLinkModal(true);
         return;
       }
       if (command === 'unlink') return; // unlink in code mode is done manually
@@ -419,9 +427,13 @@ export default function AdminPageWorkspace() {
       insertFormatting(format[0], format[1]);
     } else {
       if (command === 'createLink') {
-        const url = prompt('Masukkan URL Link (contoh: https://google.com):', 'https://');
-        if (!url) return;
-        document.execCommand(command, false, url);
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          setSavedRange(selection.getRangeAt(0));
+        }
+        setLinkUrl('https://');
+        setShowLinkModal(true);
+        return;
       } else if (command === 'unlink') {
         document.execCommand(command, false, '');
       } else {
@@ -434,6 +446,34 @@ export default function AdminPageWorkspace() {
         updateBlockField(selectedBlockIndex, 'content', visualEditor.innerHTML);
       }
     }
+  };
+
+  const confirmLink = () => {
+    if (!linkUrl) {
+      setShowLinkModal(false);
+      return;
+    }
+    
+    if (textEditorTab === 'code') {
+      insertFormatting(`<a href="${linkUrl}" class="text-[#F26522] underline hover:text-orange-700">`, '</a>');
+    } else {
+      const selection = window.getSelection();
+      if (selection && savedRange) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+      }
+      document.execCommand('createLink', false, linkUrl);
+      
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const visualEditor = document.getElementById(isMobile ? 'visual-editor-mobile' : 'visual-editor');
+      if (visualEditor && selectedBlockIndex !== null) {
+        updateBlockField(selectedBlockIndex, 'content', visualEditor.innerHTML);
+      }
+    }
+    
+    setShowLinkModal(false);
+    setLinkUrl('');
+    setSavedRange(null);
   };
 
   const [isNavMinimized, setIsNavMinimized] = useState(false);
@@ -2496,6 +2536,58 @@ export default function AdminPageWorkspace() {
                 </div>
               )}
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔗 LINK MODAL */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-55 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col border border-gray-100 animate-slideUp">
+            <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <LinkIcon size={16} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Tambah Tautan (Link)</h4>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLinkModal(false);
+                  setLinkUrl('');
+                  setSavedRange(null);
+                }}
+                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">URL Tautan</label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmLink();
+                  }}
+                  placeholder="https://contoh.com"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={confirmLink}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md active:scale-95"
+              >
+                Terapkan Link
+              </button>
             </div>
           </div>
         </div>
