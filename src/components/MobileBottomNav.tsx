@@ -15,6 +15,9 @@ export const MobileBottomNav: React.FC = () => {
 
   if (!mounted) return null;
 
+  // Hide on full-screen page builder editor
+  if (pathname?.startsWith('/admin/pages/')) return null;
+
   const navItems = [
     { label: 'Beranda', href: '/', icon: Home },
     { label: 'Eksplorasi', href: '/explore', icon: Compass },
