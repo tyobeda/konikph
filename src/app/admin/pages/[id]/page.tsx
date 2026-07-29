@@ -1490,6 +1490,65 @@ export default function AdminPageWorkspace() {
                       </div>
                     )}
 
+                    {blocks[selectedBlockIndex].type === 'gallery' && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom Tampilan</label>
+                          <select
+                            value={blocks[selectedBlockIndex].galleryCols || 3}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'galleryCols', parseInt(e.target.value))}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 cursor-pointer"
+                          >
+                            <option value={1}>1 Kolom</option>
+                            <option value={2}>2 Kolom</option>
+                            <option value={3}>3 Kolom</option>
+                            <option value={4}>4 Kolom</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1.5">Gambar Galeri</label>
+                          <div className="space-y-2">
+                            {(blocks[selectedBlockIndex].galleryImages || []).map((imgUrl, imgIdx) => (
+                              <div key={imgIdx} className="flex items-center gap-2 bg-gray-50 border border-gray-150 p-2 rounded-xl shadow-sm">
+                                <img src={imgUrl} alt={`Gallery ${imgIdx}`} className="w-12 h-12 object-cover rounded-lg flex-shrink-0 border border-gray-200" />
+                                <input 
+                                  type="text" 
+                                  value={imgUrl} 
+                                  readOnly 
+                                  className="w-full bg-transparent text-[10px] text-gray-500 outline-none truncate" 
+                                />
+                                <button 
+                                  type="button" 
+                                  onClick={() => {
+                                    const imgs = [...(blocks[selectedBlockIndex].galleryImages || [])];
+                                    imgs.splice(imgIdx, 1);
+                                    updateBlockField(selectedBlockIndex, 'galleryImages', imgs);
+                                  }}
+                                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0 transition-colors"
+                                  title="Hapus Gambar"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ))}
+                            
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMediaTarget('gallery');
+                                setShowMediaModal(true);
+                              }}
+                              className="w-full py-2.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-[#F26522]/30 text-gray-700 hover:text-[#F26522] text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                            >
+                              <Plus size={14} /> 
+                              <span>Tambah dari Media Explorer</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {blocks[selectedBlockIndex].type === 'quote' && (
                       <div className="space-y-3.5">
                         <div>

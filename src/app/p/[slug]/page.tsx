@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Sparkles, AlertCircle, ChevronDown, HelpCircle, Quote } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle, ChevronDown, HelpCircle, Quote, X } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
@@ -47,7 +47,7 @@ const parseMarkdownToHtml = (text: string) => {
 };
 
 interface PageBlock {
-  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery';
   title?: string;
   subtitle?: string;
   titleSize?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -65,6 +65,8 @@ interface PageBlock {
   imageAlign?: 'left' | 'center' | 'right';
   quoteText?: string;
   quoteAuthor?: string;
+  galleryImages?: string[];
+  galleryCols?: number;
 }
 
 export default function CustomPageRenderer() {
@@ -76,6 +78,9 @@ export default function CustomPageRenderer() {
   
   // Accordion active state trackers
   const [activeFaq, setActiveFaq] = useState<{ [key: string]: boolean }>({});
+  
+  // Lightbox state
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -404,6 +409,33 @@ export default function CustomPageRenderer() {
                 );
               }
 
+              // 8. GALLERY BLOCK
+              if (block.type === 'gallery') {
+                const cols = block.galleryCols || 3;
+                const gridClass = cols === 1 ? 'grid-cols-1' : cols === 2 ? 'grid-cols-2' : cols === 3 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2 sm:grid-cols-4';
+                
+                return (
+                  <div key={blockIdx} className="w-full">
+                    <div className={`grid ${gridClass} gap-4 sm:gap-6`}>
+                      {(block.galleryImages || []).map((imgUrl, imgIdx) => (
+                        <div 
+                          key={imgIdx}
+                          onClick={() => setPreviewImage(imgUrl)}
+                          className="aspect-square rounded-2xl overflow-hidden cursor-pointer group bg-gray-100 border border-gray-200 shadow-sm"
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`Gallery Image ${imgIdx + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
               return null;
             })}
           </div>
@@ -412,6 +444,28 @@ export default function CustomPageRenderer() {
       </main>
 
       <Footer />
+
+      {/* Lightbox / Preview Modal */}
+      {previewImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setPreviewImage(null)}
+        >
+          <button
+            onClick={() => setPreviewImage(null)}
+            className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-md"
+          >
+            <X size={24} />
+          </button>
+          
+          <img
+            src={previewImage}
+            alt="Preview"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-slideUp"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
