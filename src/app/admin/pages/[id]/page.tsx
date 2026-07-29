@@ -7,6 +7,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Menu,
   X,
   Sparkles,
   Layout,
@@ -375,6 +377,9 @@ export default function AdminPageWorkspace() {
 
   const [isNavMinimized, setIsNavMinimized] = useState(false);
 
+  // Mobile bottom sheet state
+  const [mobileSheet, setMobileSheet] = useState<'closed' | 'widgets' | 'settings' | 'blockEdit'>('closed');
+
   const addBlock = (
     type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading',
     atIndex?: number
@@ -538,8 +543,43 @@ export default function AdminPageWorkspace() {
         </div>
       )}
 
-      {/* ================= LEFT SIDEBAR (ELEMENTOR PANEL) ================= */}
-      <div className="w-full md:w-96 bg-white text-slate-700 flex flex-col border-r border-gray-200/65 shrink-0 h-1/2 md:h-full shadow-2xl z-30">
+      {/* ================= MOBILE STICKY TOP BAR (md:hidden) ================= */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-3 py-2.5 flex items-center justify-between shadow-sm">
+        <button
+          type="button"
+          onClick={() => router.push('/admin/pages')}
+          className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <h4 className="text-xs font-bold text-gray-800 truncate max-w-[45%]">
+          {pageTitle || 'Halaman Baru'}
+        </h4>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setMobileSheet(mobileSheet === 'settings' ? 'closed' : 'settings')}
+            className={`p-2 rounded-lg transition-colors ${
+              mobileSheet === 'settings'
+                ? 'bg-[#F26522]/10 text-[#F26522]'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            }`}
+          >
+            <Settings size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={handleSavePage}
+            className="px-3 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-[11px] font-bold rounded-lg shadow-sm transition-all flex items-center gap-1"
+          >
+            <Save size={13} />
+            <span>Simpan</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ================= LEFT SIDEBAR (ELEMENTOR PANEL) — Desktop Only ================= */}
+      <div className="hidden md:flex w-96 bg-white text-slate-700 flex-col border-r border-gray-200/65 shrink-0 h-full shadow-2xl z-30">
         
         {/* Top Toolbar Info */}
         <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
@@ -1344,7 +1384,7 @@ export default function AdminPageWorkspace() {
 
         </div>
 
-        {/* Sidebar Bottom Action Buttons */}
+        {/* Sidebar Bottom Action Buttons — Desktop Only */}
         <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-2">
           <button
             type="button"
@@ -1364,8 +1404,8 @@ export default function AdminPageWorkspace() {
         </div>
       </div>
 
-      {/* ================= RIGHT CANVAS PREVIEW (LIVE PREVIEW AREA) ================= */}
-      <div className="flex-1 bg-gray-100 overflow-y-auto p-4 sm:p-8 flex justify-center items-start h-1/2 md:h-full">
+      {/* ================= CANVAS PREVIEW (LIVE PREVIEW AREA) ================= */}
+      <div className="flex-1 bg-gray-100 overflow-y-auto p-4 sm:p-8 pt-16 md:pt-4 flex justify-center items-start h-full">
         <div className="w-full max-w-3xl bg-white min-h-full rounded-2xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-600/40">
           
           {/* Simulated Browser Address Bar */}
@@ -1435,7 +1475,12 @@ export default function AdminPageWorkspace() {
 
                     <div
                       ref={(el) => { canvasBlockRefs.current[idx] = el; }}
-                      onClick={() => setSelectedBlockIndex(idx)}
+                      onClick={() => {
+                        setSelectedBlockIndex(idx);
+                        if (window.innerWidth < 768) {
+                          setMobileSheet('blockEdit');
+                        }
+                      }}
                       draggable
                       onDragStart={(e) => handleDragStart(e, idx)}
                       onDragOver={(e) => {
@@ -1626,8 +1671,8 @@ export default function AdminPageWorkspace() {
         </div>
       </div>
 
-      {/* ================= RIGHT SIDEBAR (ELEMENTOR NAVIGATOR) ================= */}
-      <div className={`bg-white border-l border-gray-200 shrink-0 flex flex-col h-1/2 md:h-full shadow-2xl z-30 select-none transition-all duration-300 ${isNavMinimized ? 'w-14' : 'w-72'}`}>
+      {/* ================= RIGHT SIDEBAR (ELEMENTOR NAVIGATOR) — Desktop Only ================= */}
+      <div className={`hidden md:flex bg-white border-l border-gray-200 shrink-0 flex-col h-full shadow-2xl z-30 select-none transition-all duration-300 ${isNavMinimized ? 'w-14' : 'w-72'}`}>
         {/* Navigator Header */}
         <div className="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
           {!isNavMinimized && (
@@ -1709,6 +1754,430 @@ export default function AdminPageWorkspace() {
           </div>
         )}
       </div>
+
+      {/* ================= MOBILE FAB (+) BUTTON (md:hidden) ================= */}
+      <button
+        type="button"
+        onClick={() => setMobileSheet(mobileSheet === 'widgets' ? 'closed' : 'widgets')}
+        className={`md:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all active:scale-90 ${
+          mobileSheet === 'widgets'
+            ? 'bg-gray-800 text-white rotate-45'
+            : 'bg-[#F26522] text-white hover:bg-[#d85417]'
+        }`}
+      >
+        <Plus size={28} strokeWidth={2.5} />
+      </button>
+
+      {/* ================= MOBILE BOTTOM SHEET (md:hidden) ================= */}
+      {mobileSheet !== 'closed' && (
+        <div className="md:hidden fixed inset-0 z-45 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            onClick={() => setMobileSheet('closed')}
+          />
+          
+          {/* Sheet Container */}
+          <div className="relative bg-white rounded-t-3xl shadow-2xl max-h-[70vh] flex flex-col animate-slideUp overflow-hidden border-t border-gray-200">
+            
+            {/* Drag Handle + Header */}
+            <div className="pt-3 pb-2 px-4 border-b border-gray-100 shrink-0">
+              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+              <div className="flex items-center justify-between">
+                <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  {mobileSheet === 'widgets' && (
+                    <><PlusCircle size={16} className="text-[#F26522]" /> Tambah Widget</>
+                  )}
+                  {mobileSheet === 'settings' && (
+                    <><Settings size={16} className="text-[#F26522]" /> Pengaturan Halaman</>
+                  )}
+                  {mobileSheet === 'blockEdit' && selectedBlockIndex !== null && (
+                    <><Layout size={16} className="text-[#F26522]" /> Edit: {blocks[selectedBlockIndex]?.type}</>
+                  )}
+                </h5>
+                <button
+                  type="button"
+                  onClick={() => setMobileSheet('closed')}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Sheet Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              
+              {/* ---- WIDGETS GRID ---- */}
+              {mobileSheet === 'widgets' && (
+                <div className="space-y-3">
+                  <p className="text-[11px] text-gray-500">Ketuk widget untuk menambahkannya ke canvas:</p>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {[
+                      { type: 'heading', title: 'Judul', icon: Heading, color: 'text-orange-500' },
+                      { type: 'hero', title: 'Hero', icon: Sparkles, color: 'text-purple-500' },
+                      { type: 'text', title: 'Teks', icon: AlignLeft, color: 'text-sky-500' },
+                      { type: 'cta', title: 'CTA', icon: Megaphone, color: 'text-amber-500' },
+                      { type: 'faq', title: 'FAQ', icon: HelpCircle, color: 'text-emerald-500' },
+                      { type: 'image', title: 'Gambar', icon: ImageIcon, color: 'text-emerald-600' },
+                      { type: 'quote', title: 'Kutipan', icon: Quote, color: 'text-indigo-500' },
+                      { type: 'separator', title: 'Pemisah', icon: Minus, color: 'text-gray-500' },
+                    ].map((w) => {
+                      const Icon = w.icon;
+                      return (
+                        <button
+                          key={w.type}
+                          type="button"
+                          onClick={() => {
+                            addBlock(w.type as any);
+                            setMobileSheet('closed');
+                          }}
+                          className="flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-orange-50/50 border border-gray-200 hover:border-[#F26522] rounded-2xl transition-all text-center gap-1.5 active:scale-95"
+                        >
+                          <Icon size={20} className={w.color} />
+                          <span className="text-[10px] font-semibold text-gray-700">{w.title}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ---- SETTINGS FORM ---- */}
+              {mobileSheet === 'settings' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Judul Halaman</label>
+                    <input
+                      type="text"
+                      value={pageTitle}
+                      onChange={(e) => setPageTitle(e.target.value)}
+                      placeholder="Contoh: Panduan Kreator"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Slug URL ({pageUseRootPath ? `pks.art/${pageSlug || 'your-slug'}` : `pks.art/p/${pageSlug || 'your-slug'}`})
+                    </label>
+                    <input
+                      type="text"
+                      value={pageSlug}
+                      onChange={(e) => setPageSlug(e.target.value)}
+                      placeholder="contoh: panduan-kreator"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      id="mobile-published"
+                      checked={pagePublished}
+                      onChange={(e) => setPagePublished(e.target.checked)}
+                      className="w-5 h-5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                    />
+                    <label htmlFor="mobile-published" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
+                      Terbitkan Halaman (Public)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      id="mobile-rootpath"
+                      checked={pageUseRootPath}
+                      onChange={(e) => setPageUseRootPath(e.target.checked)}
+                      className="w-5 h-5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                    />
+                    <label htmlFor="mobile-rootpath" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
+                      Gunakan Root Link (pks.art/slug)
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Lebar Tampilan Halaman</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPageWidth('70')}
+                        className={`py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
+                          pageWidth === '70'
+                            ? 'bg-orange-50 border-[#F26522] text-[#F26522] font-semibold shadow-xs'
+                            : 'bg-gray-50 border-gray-200 text-gray-700'
+                        }`}
+                      >
+                        Standar (70%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPageWidth('full')}
+                        className={`py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
+                          pageWidth === 'full'
+                            ? 'bg-orange-50 border-[#F26522] text-[#F26522] font-semibold shadow-xs'
+                            : 'bg-gray-50 border-gray-200 text-gray-700'
+                        }`}
+                      >
+                        Full Width (100%)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Gaya Kontainer Blok</label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2.5 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                        <input
+                          type="radio"
+                          name="mobileContainerStyle"
+                          checked={containerStyle === 'boxed'}
+                          onChange={() => setContainerStyle('boxed')}
+                          className="text-[#F26522] focus:ring-[#F26522] accent-[#F26522]"
+                        />
+                        <div>
+                          <p className="text-xs font-semibold text-gray-800">Boxed Container</p>
+                          <p className="text-[10px] text-gray-500">Blok dalam kartu berbingkai rounded</p>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2.5 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                        <input
+                          type="radio"
+                          name="mobileContainerStyle"
+                          checked={containerStyle === 'clean'}
+                          onChange={() => setContainerStyle('clean')}
+                          className="text-[#F26522] focus:ring-[#F26522] accent-[#F26522]"
+                        />
+                        <div>
+                          <p className="text-xs font-semibold text-gray-800">Transparan / Clean</p>
+                          <p className="text-[10px] text-gray-500">Nonaktifkan background kartu pada semua blok</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ---- BLOCK EDIT FORM ---- */}
+              {mobileSheet === 'blockEdit' && selectedBlockIndex !== null && blocks[selectedBlockIndex] && (
+                <div className="space-y-4">
+                  {/* Reorder + Delete Toolbar */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={selectedBlockIndex === 0}
+                      onClick={() => {
+                        const newBlocks = [...blocks];
+                        const temp = newBlocks[selectedBlockIndex];
+                        newBlocks[selectedBlockIndex] = newBlocks[selectedBlockIndex - 1];
+                        newBlocks[selectedBlockIndex - 1] = temp;
+                        setBlocks(newBlocks);
+                        setSelectedBlockIndex(selectedBlockIndex - 1);
+                      }}
+                      className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 disabled:opacity-40"
+                    >
+                      <ArrowUp size={14} /> Naik
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedBlockIndex === blocks.length - 1}
+                      onClick={() => {
+                        const newBlocks = [...blocks];
+                        const temp = newBlocks[selectedBlockIndex];
+                        newBlocks[selectedBlockIndex] = newBlocks[selectedBlockIndex + 1];
+                        newBlocks[selectedBlockIndex + 1] = temp;
+                        setBlocks(newBlocks);
+                        setSelectedBlockIndex(selectedBlockIndex + 1);
+                      }}
+                      className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 disabled:opacity-40"
+                    >
+                      <ArrowDown size={14} /> Turun
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBlocks(blocks.filter((_, i) => i !== selectedBlockIndex));
+                        setSelectedBlockIndex(null);
+                        setMobileSheet('closed');
+                      }}
+                      className="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-xl transition-all flex items-center gap-1"
+                    >
+                      <Trash2 size={14} /> Hapus
+                    </button>
+                  </div>
+
+                  {/* Block Type-Specific Forms */}
+                  {blocks[selectedBlockIndex].type === 'heading' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Teks Judul</label>
+                        <input type="text" value={blocks[selectedBlockIndex].title || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Sub-judul</label>
+                        <input type="text" value={blocks[selectedBlockIndex].subtitle || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'subtitle', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Ukuran</label>
+                          <select value={blocks[selectedBlockIndex].titleSize || 'h2'} onChange={(e) => updateBlockField(selectedBlockIndex, 'titleSize', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer">
+                            <option value="h1">H1 (36px)</option>
+                            <option value="h2">H2 (28px)</option>
+                            <option value="h3">H3 (22px)</option>
+                            <option value="h4">H4 (18px)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Posisi</label>
+                          <select value={blocks[selectedBlockIndex].titleAlign || 'left'} onChange={(e) => updateBlockField(selectedBlockIndex, 'titleAlign', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer">
+                            <option value="left">Kiri</option>
+                            <option value="center">Tengah</option>
+                            <option value="right">Kanan</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'hero' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Judul Hero</label>
+                        <input type="text" value={blocks[selectedBlockIndex].title || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Sub-headline</label>
+                        <input type="text" value={blocks[selectedBlockIndex].subtitle || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'subtitle', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Teks Tombol CTA</label>
+                        <input type="text" value={blocks[selectedBlockIndex].ctaText || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Link CTA</label>
+                        <input type="text" value={blocks[selectedBlockIndex].ctaLink || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={blocks[selectedBlockIndex].fullWidth || false} onChange={(e) => updateBlockField(selectedBlockIndex, 'fullWidth', e.target.checked)} className="w-5 h-5 accent-[#F26522]" />
+                        <span className="text-xs font-medium text-gray-700">Full Width</span>
+                      </label>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'text' && (
+                    <div className="space-y-3">
+                      <label className="block text-xs font-medium text-gray-600">Konten Teks (HTML)</label>
+                      <textarea
+                        value={blocks[selectedBlockIndex].content || ''}
+                        onChange={(e) => updateBlockField(selectedBlockIndex, 'content', e.target.value)}
+                        rows={8}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-gray-900 focus:outline-none focus:border-[#F26522] resize-y"
+                      />
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'cta' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Judul CTA</label>
+                        <input type="text" value={blocks[selectedBlockIndex].title || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'title', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                        <input type="text" value={blocks[selectedBlockIndex].description || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'description', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Teks Tombol</label>
+                        <input type="text" value={blocks[selectedBlockIndex].ctaText || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaText', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Link Tombol</label>
+                        <input type="text" value={blocks[selectedBlockIndex].ctaLink || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'ctaLink', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'image' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Gambar</label>
+                        <button
+                          type="button"
+                          onClick={() => setShowMediaModal(true)}
+                          className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 border border-gray-200"
+                        >
+                          <Folder size={14} /> Pilih dari Media Explorer
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Alt Text</label>
+                        <input type="text" value={blocks[selectedBlockIndex].imageAlt || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'imageAlt', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Link Gambar</label>
+                        <input type="text" value={blocks[selectedBlockIndex].imageLink || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'imageLink', e.target.value)} placeholder="https://..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Ukuran</label>
+                          <select value={blocks[selectedBlockIndex].imageSize || 'full'} onChange={(e) => updateBlockField(selectedBlockIndex, 'imageSize', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer">
+                            <option value="small">Kecil</option>
+                            <option value="medium">Sedang</option>
+                            <option value="large">Besar</option>
+                            <option value="full">Penuh</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Posisi</label>
+                          <select value={blocks[selectedBlockIndex].imageAlign || 'center'} onChange={(e) => updateBlockField(selectedBlockIndex, 'imageAlign', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer">
+                            <option value="left">Kiri</option>
+                            <option value="center">Tengah</option>
+                            <option value="right">Kanan</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'quote' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Kutipan</label>
+                        <textarea value={blocks[selectedBlockIndex].quoteText || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'quoteText', e.target.value)} rows={3} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522] resize-y" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Penulis</label>
+                        <input type="text" value={blocks[selectedBlockIndex].quoteAuthor || ''} onChange={(e) => updateBlockField(selectedBlockIndex, 'quoteAuthor', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                      </div>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'faq' && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-medium text-gray-600">Daftar FAQ:</p>
+                      {(blocks[selectedBlockIndex].faqs || []).map((faq, fIdx) => (
+                        <div key={fIdx} className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
+                          <input type="text" value={faq.question} onChange={(e) => { const faqs = [...(blocks[selectedBlockIndex].faqs || [])]; faqs[fIdx] = { ...faqs[fIdx], question: e.target.value }; updateBlockField(selectedBlockIndex, 'faqs', faqs); }} placeholder="Pertanyaan..." className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]" />
+                          <textarea value={faq.answer} onChange={(e) => { const faqs = [...(blocks[selectedBlockIndex].faqs || [])]; faqs[fIdx] = { ...faqs[fIdx], answer: e.target.value }; updateBlockField(selectedBlockIndex, 'faqs', faqs); }} rows={2} placeholder="Jawaban..." className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] resize-y" />
+                          <button type="button" onClick={() => { const faqs = (blocks[selectedBlockIndex].faqs || []).filter((_, i) => i !== fIdx); updateBlockField(selectedBlockIndex, 'faqs', faqs); }} className="text-[10px] text-red-500 font-semibold">Hapus FAQ ini</button>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => { const faqs = [...(blocks[selectedBlockIndex].faqs || []), { question: '', answer: '' }]; updateBlockField(selectedBlockIndex, 'faqs', faqs); }} className="w-full py-2 bg-orange-50 hover:bg-orange-100 text-[#F26522] text-xs font-semibold rounded-xl border border-orange-200 transition-all flex items-center justify-center gap-1">
+                        <Plus size={14} /> Tambah FAQ
+                      </button>
+                    </div>
+                  )}
+
+                  {blocks[selectedBlockIndex].type === 'separator' && (
+                    <p className="text-xs text-gray-500 text-center py-4">Widget pemisah tidak memiliki pengaturan tambahan.</p>
+                  )}
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🖼️ MEDIA EXPLORER & FILE UPLOADER MODAL */}
       {showMediaModal && (
