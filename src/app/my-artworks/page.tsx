@@ -30,7 +30,7 @@ export default function MyArtworksPage() {
     (art) => currentUser && (art.author.email === currentUser.email || art.author.name === currentUser.name)
   );
 
-  const [filterTab, setFilterTab] = useState<'all' | 'Disetujui' | 'Pending' | 'Ditolak'>('all');
+  const [filterTab, setFilterTab] = useState<'all' | 'Disetujui' | 'Pending' | 'Ditolak' | 'Dihapus'>('all');
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('');
@@ -121,7 +121,7 @@ export default function MyArtworksPage() {
 
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3 overflow-x-auto">
-          {(['all', 'Disetujui', 'Pending', 'Ditolak'] as const).map((tab) => (
+          {(['all', 'Disetujui', 'Pending', 'Ditolak', 'Dihapus'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilterTab(tab)}
@@ -220,16 +220,23 @@ export default function MyArtworksPage() {
           ) : (
             <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
               <FolderPlus size={48} className="mx-auto text-gray-300 mb-3 stroke-1" />
-              <h3 className="text-base font-bold text-gray-800">Belum Ada Karya dalam Kategori Ini</h3>
+              <h3 className="text-base font-bold text-gray-800">
+                {filterTab === 'Pending' ? 'Tidak ada karya yang pending' :
+                 filterTab === 'Ditolak' ? 'Tidak ada karya yang ditolak' :
+                 filterTab === 'Dihapus' ? 'Tidak ada karya yang dihapus' :
+                 'Belum Ada Karya'}
+              </h3>
               <p className="text-xs text-gray-500 mt-1">
-                Unggah karya karya desain baru Anda untuk mulai membagikannya kepada kader PKS.
+                {filterTab === 'all' || filterTab === 'Disetujui' ? 'Unggah karya desain baru Anda untuk mulai membagikannya kepada kader PKS.' : 'Tidak ada data untuk kategori ini saat ini.'}
               </p>
-              <Link
-                href="/upload"
-                className="inline-block mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-bold rounded-xl"
-              >
-                Unggah Karya Sekarang
-              </Link>
+              {(filterTab === 'all' || filterTab === 'Disetujui') && (
+                <Link
+                  href="/upload"
+                  className="inline-block mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-bold rounded-xl"
+                >
+                  Unggah Karya Sekarang
+                </Link>
+              )}
             </div>
           )}
         </div>
