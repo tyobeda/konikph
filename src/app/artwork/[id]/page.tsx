@@ -31,7 +31,7 @@ export default function ArtworkDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { artworks, currentUser, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork } = useData();
+  const { currentUser, artworks, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport } = useData();
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -283,7 +283,19 @@ export default function ArtworkDetailPage() {
                         <Share2 size={16} /> <span className="text-xs">Bagikan ke Sosial Media</span>
                       </button>
                       <button
-                        onClick={() => { setShowOptions(false); triggerToast('Postingan telah dilaporkan.'); }}
+                        onClick={() => { 
+                          setShowOptions(false); 
+                          const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
+                          if (reason) {
+                            addArtworkReport({
+                              artworkId: artwork.id,
+                              artworkTitle: artwork.title,
+                              artworkImageUrl: artwork.imageUrl,
+                              reason
+                            });
+                            triggerToast('Laporan berhasil dikirim ke Admin'); 
+                          }
+                        }}
                         className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
                       >
                         <Flag size={16} /> <span className="text-xs">Laporkan Postingan</span>

@@ -63,3 +63,14 @@ export interface CustomPage {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ArtworkReport {
+  id: string;
+  artworkId: string;
+  artworkTitle: string;
+  artworkImageUrl: string;
+  reason: string;
+  status: 'Pending' | 'Resolved' | 'Rejected';
+  createdAt: string;
+}
+

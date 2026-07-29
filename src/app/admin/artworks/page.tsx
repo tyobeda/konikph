@@ -19,13 +19,16 @@ import {
   Download,
   ArrowUpRight,
   Filter,
+  Flag,
+  AlertTriangle,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 
 export default function AdminArtworksPage() {
-  const { artworks, updateArtwork, deleteArtwork } = useData();
+  const { artworks, updateArtwork, deleteArtwork, artworkReports, resolveArtworkReport } = useData();
+  const [activeTab, setActiveTab] = useState<'artworks' | 'reports'>('artworks');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -78,15 +81,27 @@ export default function AdminArtworksPage() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const filteredReports = artworkReports.filter(
+    (r) =>
+      r.artworkTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.reason.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(filteredArtworks.length / ITEMS_PER_PAGE);
+  const totalItems = activeTab === 'reports' ? filteredReports.length : filteredArtworks.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterStatus, filterCategory]);
+  }, [searchQuery, filterStatus, filterCategory, activeTab]);
 
   const paginatedArtworks = filteredArtworks.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const paginatedReports = filteredReports.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -114,16 +129,45 @@ export default function AdminArtworksPage() {
           </Link>
         </div>
 
+        {/* Tab Switcher */}
+        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold">
+          <button
+            onClick={() => setActiveTab('artworks')}
+            className={`pb-3 relative transition-all ${
+              activeTab === 'artworks'
+                ? 'text-[#F26522] border-b-2 border-[#F26522]'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <span>Karya Terpublikasi ({filteredArtworks.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`pb-3 relative transition-all flex items-center gap-1.5 ${
+              activeTab === 'reports'
+                ? 'text-[#F26522] border-b-2 border-[#F26522]'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <span>Laporan Masuk ({artworkReports.filter((r) => r.status === 'Pending').length})</span>
+            {artworkReports.filter((r) => r.status === 'Pending').length > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                {artworkReports.filter((r) => r.status === 'Pending').length}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Table Filter Container */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           
           <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <h2 className="text-base font-extrabold text-gray-900">
-                Daftar Postingan Karya
+                {activeTab === 'reports' ? 'Daftar Laporan Karya' : 'Daftar Postingan Karya'}
               </h2>
               <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
-                {filteredArtworks.length} Hasil
+                {totalItems} Hasil
               </span>
             </div>
 
@@ -135,12 +179,14 @@ export default function AdminArtworksPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari judul karya atau uploader..."
+                  placeholder={activeTab === 'reports' ? "Cari judul karya atau alasan..." : "Cari judul karya atau uploader..."}
                   className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
                 />
               </div>
 
-              {/* Category Filter */}
+              {activeTab === 'artworks' && (
+                <>
+                  {/* Category Filter */}
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
@@ -165,6 +211,8 @@ export default function AdminArtworksPage() {
                 <option value="Pending">Pending</option>
                 <option value="Ditolak">Ditolak</option>
               </select>
+                </>
+              )}
             </div>
           </div>
 
@@ -172,19 +220,102 @@ export default function AdminArtworksPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-gray-600">
               <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
-                <tr>
-                  <th className="py-3.5 px-4">Artwork & Title</th>
-                  <th className="py-3.5 px-4">Kategori & DPW</th>
-                  <th className="py-3.5 px-4">Uploader / Kreator</th>
-                  <th className="py-3.5 px-4">Format File</th>
-                  <th className="py-3.5 px-4">Unduhan</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Tindakan Admin</th>
-                </tr>
+                {activeTab === 'reports' ? (
+                  <tr>
+                    <th className="py-3.5 px-4">Karya Dilaporkan</th>
+                    <th className="py-3.5 px-4">Alasan Pelaporan</th>
+                    <th className="py-3.5 px-4">Tanggal Masuk</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Tindakan Admin</th>
+                  </tr>
+                ) : (
+                  <tr>
+                    <th className="py-3.5 px-4">Artwork & Title</th>
+                    <th className="py-3.5 px-4">Kategori & DPW</th>
+                    <th className="py-3.5 px-4">Uploader / Kreator</th>
+                    <th className="py-3.5 px-4">Format File</th>
+                    <th className="py-3.5 px-4">Unduhan</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Tindakan Admin</th>
+                  </tr>
+                )}
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginatedArtworks.map((art) => (
-                  <tr key={art.id} className="hover:bg-gray-50/60 transition-colors">
+                {activeTab === 'reports' ? (
+                  paginatedReports.map((report) => (
+                    <tr key={report.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={report.artworkImageUrl}
+                            alt={report.artworkTitle}
+                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                          />
+                          <div>
+                            <p className="font-bold text-gray-900 max-w-xs truncate">
+                              {report.artworkTitle}
+                            </p>
+                            <Link href={`/artwork/${report.artworkId}`} target="_blank" className="text-xs text-[#F26522] font-semibold hover:underline flex items-center gap-0.5 mt-0.5">
+                              Lihat Karya <ArrowUpRight size={12} />
+                            </Link>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <p className="text-sm font-medium text-gray-800 bg-red-50 p-2 rounded-lg border border-red-100 max-w-sm flex items-start gap-2">
+                          <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                          <span>{report.reason}</span>
+                        </p>
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-gray-600 text-xs">
+                        {report.createdAt}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+                          report.status === 'Pending' ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                          : report.status === 'Resolved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                          : 'bg-gray-100 text-gray-600 border border-gray-200'
+                        }`}>
+                          {report.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {report.status === 'Pending' && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  if (confirm('Abaikan laporan ini dan biarkan karya tetap tayang?')) {
+                                    resolveArtworkReport(report.id, 'reject_report');
+                                  }
+                                }}
+                                className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-bold text-xs px-3"
+                                title="Abaikan Laporan"
+                              >
+                                Abaikan
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const msg = prompt('Masukkan alasan penghapusan karya yang akan dikirim ke uploader (opsional):');
+                                  if (msg !== null) {
+                                    resolveArtworkReport(report.id, 'delete_artwork');
+                                    alert('Karya telah dihapus dan laporan ditutup.');
+                                  }
+                                }}
+                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-bold text-xs flex items-center gap-1 shadow-sm"
+                                title="Hapus Karya"
+                              >
+                                <Trash2 size={14} /> Hapus Karya
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  paginatedArtworks.map((art) => (
+                    <tr key={art.id} className="hover:bg-gray-50/60 transition-colors">
                     
                     {/* Artwork & Title */}
                     <td className="py-3.5 px-4">
@@ -323,7 +454,8 @@ export default function AdminArtworksPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -350,7 +482,7 @@ export default function AdminArtworksPage() {
               <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-gray-700">
-                    Menampilkan <span className="font-bold text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> hingga <span className="font-bold text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, filteredArtworks.length)}</span> dari <span className="font-bold text-gray-900">{filteredArtworks.length}</span> karya
+                    Menampilkan <span className="font-bold text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> hingga <span className="font-bold text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-900">{totalItems}</span> {activeTab === 'reports' ? 'laporan' : 'karya'}
                   </p>
                 </div>
                 <div>

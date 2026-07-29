@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag } from 'lucide-react';
+import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { ShareModal } from './ShareModal';
 
@@ -12,6 +13,7 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
+  const { addArtworkReport } = useData();
   const [likes, setLikes] = useState(artwork.likesCount);
   const [isLiked, setIsLiked] = useState(false);
   const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
@@ -143,7 +145,21 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
               </button>
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); alert('Postingan telah dilaporkan.'); }}
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  setShowDropdown(false); 
+                  const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
+                  if (reason) {
+                    addArtworkReport({
+                      artworkId: artwork.id,
+                      artworkTitle: artwork.title,
+                      artworkImageUrl: artwork.imageUrl,
+                      reason
+                    });
+                    alert('Terima kasih. Laporan Anda berhasil dikirim dan akan segera ditinjau oleh Admin.');
+                  }
+                }}
                 className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
               >
                 <Flag size={15} /> <span className="text-xs">Laporkan Postingan</span>

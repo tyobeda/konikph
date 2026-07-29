@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Artwork, User, Comment, ResetRequest, CustomPage } from '@/lib/types';
+import { Artwork, User, Comment, ResetRequest, CustomPage, ArtworkReport } from '@/lib/types';
 import { INITIAL_ARTWORKS, USERS } from '@/lib/data';
 
 export interface TwibbonFrame {
@@ -43,6 +43,11 @@ export interface DataContextType {
   addCommentToArtwork: (id: string, content: string) => void;
   editCommentInArtwork: (artworkId: string, commentId: string, newContent: string) => void;
   deleteCommentFromArtwork: (artworkId: string, commentId: string) => void;
+
+  // Reports
+  artworkReports: ArtworkReport[];
+  addArtworkReport: (report: Omit<ArtworkReport, 'id' | 'createdAt' | 'status'>) => void;
+  resolveArtworkReport: (id: string, action: 'delete_artwork' | 'reject_report') => void;
 
   // Users / Creators
   users: User[];
@@ -301,6 +306,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return SUPER_ADMIN_USER;
   });
 
+  // Reports State
+  const [artworkReports, setArtworkReports] = useState<ArtworkReport[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('pksart_reports');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+    }
+    return [];
+  });
+
   // 3. Twibbons State
   const [twibbons, setTwibbons] = useState<TwibbonFrame[]>(() => {
     if (typeof window !== 'undefined') {
@@ -401,6 +417,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (parsed && parsed.length > 0) {
             setArtworks(parsed);
           }
+        } catch (e) {}
+      }
+
+      const storedReports = localStorage.getItem('pksart_reports');
+      if (storedReports) {
+        try {
+          setArtworkReports(JSON.parse(storedReports));
         } catch (e) {}
       }
 
@@ -508,6 +531,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser, isMounted]);
 
   useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('pksart_reports', JSON.stringify(artworkReports));
+  }, [artworkReports, isMounted]);
+
+  useEffect(() => {
     if (!isMounted || !isSettingsLoaded) return;
     localStorage.setItem('pksart_twibbons', JSON.stringify(twibbons));
   }, [twibbons, isMounted, isSettingsLoaded]);
@@ -549,6 +577,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setResetRequests((prev) => prev.filter((req) => req.id !== id));
   };
 
+  // Report Functions
+  const addArtworkReport = (report: Omit<ArtworkReport, 'id' | 'createdAt' | 'status'>) => {
+    const newReport: ArtworkReport = {
+      ...report,
+      id: `report-${Date.now()}`,
+      status: 'Pending',
+      createdAt: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    };
+    setArtworkReports(prev => [newReport, ...prev]);
+  };
+
+  const resolveArtworkReport = (id: string, action: 'delete_artwork' | 'reject_report') => {
+    setArtworkReports(prev => 
+      prev.map(r => {
+        if (r.id === id) {
+          if (action === 'delete_artwork') {
+            deleteArtwork(r.artworkId);
+            return { ...r, status: 'Resolved' };
+          } else {
+            return { ...r, status: 'Rejected' };
+          }
+        }
+        return r;
+      })
+    );
+  };
+
   // Actions
   const addArtwork = (art: Omit<Artwork, 'id' | 'createdAt' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'>) => {
     const newArt: Artwork = {
@@ -570,6 +625,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteArtwork = (id: string) => {
     setArtworks((prev) => prev.filter((a) => a.id !== id));
+    setArtworkReports(prev => prev.filter(r => r.artworkId !== id));
   };
 
   const toggleLikeArtwork = (id: string) => {
@@ -858,6 +914,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addCommentToArtwork,
         editCommentInArtwork,
         deleteCommentFromArtwork,
+
+        artworkReports,
+        addArtworkReport,
+        resolveArtworkReport,
 
         users,
         currentUser,
