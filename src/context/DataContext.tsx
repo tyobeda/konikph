@@ -451,7 +451,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const storedReports = localStorage.getItem('pksart_reports');
       if (storedReports) {
         try {
-          setArtworkReports(JSON.parse(storedReports));
+          const parsed = JSON.parse(storedReports);
+          if (parsed && parsed.length > 0) {
+            setArtworkReports(prev => {
+              const newReports = parsed.filter((p: any) => !prev.some(r => r.id === p.id));
+              return [...newReports, ...prev];
+            });
+          }
         } catch (e) {}
       }
 
