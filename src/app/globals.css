@@ -43,3 +43,39 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Custom Link Tooltip */
+.prose a {
+  position: relative;
+  text-decoration: underline;
+  text-decoration-color: #F26522;
+  text-underline-offset: 2px;
+  color: #ea580c;
+  transition: all 0.2s;
+}
+
+.prose a:hover {
+  color: #c2410c;
+}
+
+.prose a:hover::after {
+  content: attr(href);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  background-color: #1f2937;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: sans-serif;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  pointer-events: none;
+}
