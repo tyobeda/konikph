@@ -105,15 +105,18 @@ interface Block {
   quoteAuthor?: string;
 }
 
-const ContentEditableEditor = ({ id, value, onChange, className }: { id: string, value: string, onChange: (val: string) => void, className: string }) => {
+const ContentEditableEditor = React.memo(({ id, value, onChange, className }: { id: string, value: string, onChange: (val: string) => void, className: string }) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const initialValueRef = useRef(value);
 
+  // We must track the latest onChange callback without causing re-renders
+  const onChangeRef = useRef(onChange);
   useEffect(() => {
-    if (editorRef.current && document.activeElement !== editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
-    }
-  }, [value]);
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    onChangeRef.current(e.currentTarget.innerHTML);
+  };
 
   return (
     <div
@@ -121,13 +124,23 @@ const ContentEditableEditor = ({ id, value, onChange, className }: { id: string,
       ref={editorRef}
       contentEditable
       suppressContentEditableWarning
-      onInput={(e) => onChange(e.currentTarget.innerHTML)}
-      onBlur={(e) => onChange(e.currentTarget.innerHTML)}
+      onInput={handleInput}
+      onBlur={handleInput}
       className={className}
-      dangerouslySetInnerHTML={{ __html: initialValueRef.current }}
+      dangerouslySetInnerHTML={{ __html: value }}
     />
   );
-};
+}, (prevProps, nextProps) => {
+  // shouldComponentUpdate equivalent
+  const el = document.getElementById(nextProps.id);
+  // If the DOM exists and the new value is the same as what's currently in the DOM,
+  // we do NOT need to re-render. This prevents the cursor from jumping!
+  if (el && nextProps.value === el.innerHTML) {
+    return true; // Skip re-render
+  }
+  // Otherwise, if value changed externally or DOM doesn't match, we MUST re-render
+  return prevProps.value === nextProps.value && prevProps.className === nextProps.className;
+});
 
 let blockIdCounter = 0;
 const genBlockId = () => `blk_${Date.now()}_${++blockIdCounter}`;
@@ -184,7 +197,7 @@ export default function AdminPageWorkspace() {
 
   // active editor tab inside sidebar
   const [sidebarTab, setSidebarTab] = useState<'content' | 'settings'>('content');
-  const [textEditorTab, setTextEditorTab] = useState<'visual' | 'code'>('code');
+  const [textEditorTab, setTextEditorTab] = useState<'visual' | 'code'>('visual');
 
   // Load target page data or new template
   useEffect(() => {
