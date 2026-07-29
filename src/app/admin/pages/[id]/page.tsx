@@ -1027,7 +1027,8 @@ export default function AdminPageWorkspace() {
                         <div className="bg-gray-100 border border-gray-200 p-1.5 rounded-t-2xl flex flex-wrap gap-1 items-center select-none">
                           <button
                             type="button"
-                            onClick={() => handleFormat('bold')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('bold')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Tebal (Bold)"
                           >
@@ -1035,7 +1036,8 @@ export default function AdminPageWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleFormat('italic')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('italic')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Miring (Italic)"
                           >
@@ -1043,7 +1045,8 @@ export default function AdminPageWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleFormat('underline')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('underline')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Garis Bawah (Underline)"
                           >
@@ -1051,7 +1054,8 @@ export default function AdminPageWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleFormat('strikeThrough')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('strikeThrough')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Coret (Strikethrough)"
                           >
@@ -1062,7 +1066,8 @@ export default function AdminPageWorkspace() {
 
                           <button
                             type="button"
-                            onClick={() => handleFormat('insertUnorderedList')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('insertUnorderedList')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Bullet List"
                           >
@@ -1070,7 +1075,8 @@ export default function AdminPageWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleFormat('insertOrderedList')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('insertOrderedList')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Numbered List"
                           >
@@ -1081,7 +1087,8 @@ export default function AdminPageWorkspace() {
 
                           <button
                             type="button"
-                            onClick={() => handleFormat('justifyLeft')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('justifyLeft')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Rata Kiri"
                           >
@@ -1089,7 +1096,8 @@ export default function AdminPageWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleFormat('justifyCenter')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('justifyCenter')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Rata Tengah"
                           >
@@ -1097,7 +1105,8 @@ export default function AdminPageWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleFormat('justifyRight')}
+                            onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat('justifyRight')}
                             className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                             title="Rata Kanan"
                           >
@@ -1119,35 +1128,40 @@ export default function AdminPageWorkspace() {
                             <div className="absolute left-0 top-full hidden group-hover/size:block bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-40 w-28 space-y-0.5 animate-fadeIn">
                               <button
                                 type="button"
-                                onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXS' : 'fontSize', '1')}
+                                onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXS' : 'fontSize', '1')}
                                 className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[10px] rounded text-gray-700 font-semibold"
                               >
                                 Sangat Kecil
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeSM' : 'fontSize', '2')}
+                                onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeSM' : 'fontSize', '2')}
                                 className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[11px] rounded text-gray-700 font-semibold"
                               >
                                 Kecil
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeLG' : 'fontSize', '4')}
+                                onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeLG' : 'fontSize', '4')}
                                 className="w-full text-left px-2 py-1 hover:bg-gray-50 text-sm rounded text-gray-700 font-semibold"
                               >
                                 Besar
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXL' : 'fontSize', '5')}
+                                onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXL' : 'fontSize', '5')}
                                 className="w-full text-left px-2 py-1 hover:bg-gray-50 text-base rounded text-gray-700 font-bold"
                               >
                                 Ekstra Besar
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSize2XL' : 'fontSize', '6')}
+                                onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSize2XL' : 'fontSize', '6')}
                                 className="w-full text-left px-2 py-1 hover:bg-gray-50 text-lg rounded text-gray-700 font-extrabold"
                               >
                                 Super Besar
@@ -2155,6 +2169,7 @@ export default function AdminPageWorkspace() {
                       <div className="bg-gray-100 border border-gray-200 p-1.5 rounded-t-2xl flex flex-wrap gap-1 items-center select-none">
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('bold')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Tebal (Bold)"
@@ -2163,6 +2178,7 @@ export default function AdminPageWorkspace() {
                         </button>
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('italic')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Miring (Italic)"
@@ -2171,6 +2187,7 @@ export default function AdminPageWorkspace() {
                         </button>
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('underline')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Garis Bawah (Underline)"
@@ -2179,6 +2196,7 @@ export default function AdminPageWorkspace() {
                         </button>
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('strikeThrough')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Coret (Strikethrough)"
@@ -2190,6 +2208,7 @@ export default function AdminPageWorkspace() {
 
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('insertUnorderedList')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Bullet List"
@@ -2198,6 +2217,7 @@ export default function AdminPageWorkspace() {
                         </button>
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('insertOrderedList')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Numbered List"
@@ -2209,6 +2229,7 @@ export default function AdminPageWorkspace() {
 
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('justifyLeft')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Rata Kiri"
@@ -2217,6 +2238,7 @@ export default function AdminPageWorkspace() {
                         </button>
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('justifyCenter')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Rata Tengah"
@@ -2225,6 +2247,7 @@ export default function AdminPageWorkspace() {
                         </button>
                         <button
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleFormat('justifyRight')}
                           className="p-1.5 hover:bg-gray-200 rounded text-gray-700 hover:text-black transition-colors"
                           title="Rata Kanan"
@@ -2247,35 +2270,40 @@ export default function AdminPageWorkspace() {
                           <div className="absolute left-0 top-full hidden group-hover/size:block bg-white border border-gray-200 rounded-xl shadow-lg p-1 z-40 w-28 space-y-0.5 animate-fadeIn">
                             <button
                               type="button"
-                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXS' : 'fontSize', '1')}
+                              onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXS' : 'fontSize', '1')}
                               className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[10px] rounded text-gray-700 font-semibold"
                             >
                               Sangat Kecil
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeSM' : 'fontSize', '2')}
+                              onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeSM' : 'fontSize', '2')}
                               className="w-full text-left px-2 py-1 hover:bg-gray-50 text-[11px] rounded text-gray-700 font-semibold"
                             >
                               Kecil
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeLG' : 'fontSize', '4')}
+                              onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeLG' : 'fontSize', '4')}
                               className="w-full text-left px-2 py-1 hover:bg-gray-50 text-sm rounded text-gray-700 font-semibold"
                             >
                               Besar
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXL' : 'fontSize', '5')}
+                              onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSizeXL' : 'fontSize', '5')}
                               className="w-full text-left px-2 py-1 hover:bg-gray-50 text-base rounded text-gray-700 font-bold"
                             >
                               Ekstra Besar
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSize2XL' : 'fontSize', '6')}
+                              onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleFormat(textEditorTab === 'code' ? 'fontSize2XL' : 'fontSize', '6')}
                               className="w-full text-left px-2 py-1 hover:bg-gray-50 text-lg rounded text-gray-700 font-extrabold"
                             >
                               Super Besar
