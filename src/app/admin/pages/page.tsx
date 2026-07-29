@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -20,6 +20,13 @@ export default function AdminPagesPage() {
   const router = useRouter();
   const { customPages, deleteCustomPage, addCustomPage } = useData();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   const handleDelete = (id: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus halaman kustom ini?')) {

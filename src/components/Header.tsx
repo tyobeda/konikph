@@ -164,7 +164,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           
@@ -359,17 +360,19 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
         </div>
       </div>
 
+      </header>
+
       {/* 📱 MOBILE RESPONSIVE DRAWER BACKDROP */}
       {isMobileMenuOpen && (
         <div
           onClick={() => setIsMobileMenuOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-200 cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-200 cursor-pointer"
         />
       )}
 
       {/* 📱 MOBILE SLIDE-OVER NAVIGATION DRAWER */}
       <div
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white text-gray-900 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed top-0 bottom-0 left-0 z-[60] w-72 bg-white text-gray-900 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -468,6 +471,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
           </div>
         </div>
       </div>
-    </header>
+    </>
   );
 };
