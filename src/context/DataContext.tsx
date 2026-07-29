@@ -308,13 +308,41 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Reports State
   const [artworkReports, setArtworkReports] = useState<ArtworkReport[]>(() => {
+    const initialReports: ArtworkReport[] = [
+      {
+        id: 'report-1',
+        artworkId: 'art-1',
+        artworkTitle: 'Poster Pelantikan Pengurus Jabar',
+        artworkImageUrl: 'https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&q=80&w=600',
+        reason: 'Desain menggunakan logo partai yang lama dan ada watermark situs lain.',
+        status: 'Pending',
+        createdAt: '28 Juli 2026',
+      },
+      {
+        id: 'report-2',
+        artworkId: 'art-3',
+        artworkTitle: 'Spanduk Kemerdekaan RI Ke-81',
+        artworkImageUrl: 'https://images.unsplash.com/photo-1601445638532-3c6f6c3aa1d6?auto=format&fit=crop&q=80&w=600',
+        reason: 'Terdapat typo pada nama pejabat daerah dan kurang relevan.',
+        status: 'Pending',
+        createdAt: '29 Juli 2026',
+      }
+    ];
+
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('pksart_reports');
       if (stored) {
-        try { return JSON.parse(stored); } catch (e) {}
+        try { 
+          const parsed = JSON.parse(stored); 
+          if (parsed && parsed.length > 0) {
+            const hasInitial = parsed.some((p: any) => p.id === 'report-1');
+            if (!hasInitial) return [...parsed, ...initialReports];
+            return parsed;
+          }
+        } catch (e) {}
       }
     }
-    return [];
+    return initialReports;
   });
 
   // 3. Twibbons State
