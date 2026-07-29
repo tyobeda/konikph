@@ -32,7 +32,7 @@ import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
 
 export default function AdminSettingsPage() {
-  const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll } = useData();
+  const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
 
   const [siteName, setSiteName] = useState(siteSettings.siteName);
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription);
@@ -640,6 +640,13 @@ export default function AdminSettingsPage() {
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-3">
                   Daftar Tautan Spanduk (CTA Inline Links List)
                 </label>
+                <datalist id="pages-list">
+                  {customPages.filter(p => p.status === 'Published').map((page) => (
+                    <option key={page.id} value={`/p/${page.slug}`}>
+                      {page.title}
+                    </option>
+                  ))}
+                </datalist>
                 <div className="space-y-2 max-w-4xl">
                   {ctaLinks.map((link, idx) => (
                     <div key={idx} className="flex items-center gap-2 py-1">
@@ -658,6 +665,7 @@ export default function AdminSettingsPage() {
                       />
                       <input
                         type="text"
+                        list="pages-list"
                         value={link.url}
                         onChange={(e) => {
                           const updated = [...ctaLinks];
