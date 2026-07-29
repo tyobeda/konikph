@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@tailwindcss/typography": "^0.5.20",
     "lucide-react": "^1.26.0",
     "next": "16.2.11",
     "prisma": "^6.19.3",
