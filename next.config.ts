@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  allowedDevOrigins: ['192.168.18.14', '192.168.18.14:3000'],
+  devIndicators: false,
   experimental: {
     serverActions: {
       bodySizeLimit: '50mb',

@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432" # Hanya terbuka ke localhost host VPS
+      - "127.0.0.1:5433:5432" # Port 5433 agar tidak bentrok dengan optikal-db (5432)
     networks:
       - pksart_network
     healthcheck:
