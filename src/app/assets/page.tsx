@@ -137,30 +137,26 @@ export default function AssetsPage() {
               </div>
             ) : (
               brandKits.map((item, idx) => {
-              const Icon = item.iconType === 'image' ? ImageIcon : item.iconType === 'file-text' ? FileText : item.iconType === 'palette' ? Palette : Presentation;
-              const hasImage = item.fileUrl && (/\.(jpg|jpeg|png|webp|svg|gif)$/i.test(item.fileUrl) || item.fileUrl.startsWith('/uploads/') || item.iconType === 'image');
-              return (
-                <div
-                  key={idx}
-                  className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    {hasImage ? (
-                      <div className="w-full h-32 rounded-xl overflow-hidden border border-gray-200 mb-3 bg-gray-50 flex items-center justify-center p-1 shadow-inner group">
-                        <img
-                          src={item.fileUrl}
-                          alt={item.title}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border ${item.color}`}>
-                        <Icon size={20} />
-                      </div>
-                    )}
+                const Icon = item.iconType === 'image' ? ImageIcon : item.iconType === 'file-text' ? FileText : item.iconType === 'palette' ? Palette : Presentation;
+                const displayImage = item.previewUrl || (item.fileUrl && /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(item.fileUrl) ? item.fileUrl : null);
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      {displayImage ? (
+                        <div className="w-full h-36 mb-3 flex items-center justify-center group overflow-hidden rounded-xl">
+                          <img
+                            src={displayImage}
+                            alt={item.title}
+                            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
                     <span className="text-[10px] font-extrabold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                       {item.category}
                     </span>
