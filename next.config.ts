@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '50mb',
+      allowedOrigins: ['localhost:3000', '192.168.18.14:3000', '192.168.18.14', '127.0.0.1:3000', '*'],
     },
   },
   async headers() {
