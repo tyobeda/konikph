@@ -156,6 +156,23 @@ export async function toggleTwibbonFavorite(twibbonId: string, userId: string) {
   }
 }
 
+export async function incrementTwibbonUsedDB(id: string) {
+  try {
+    const updated = await prisma.twibbonFrame.update({
+      where: { id },
+      data: {
+        usedCount: { increment: 1 }
+      }
+    });
+    revalidatePath('/twibbon');
+    revalidatePath(`/twibbon/${id}`);
+    return { success: true, usedCount: updated.usedCount };
+  } catch (error) {
+    console.error('Error incrementing twibbon used count:', error);
+    return { success: false, error: 'Failed to increment count' };
+  }
+}
+
 export async function getUserTwibbonFavorites(userId: string) {
   try {
     const favorites = await prisma.twibbonFavorite.findMany({

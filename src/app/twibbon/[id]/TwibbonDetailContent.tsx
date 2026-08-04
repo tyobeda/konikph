@@ -6,13 +6,13 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
-import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
+import { getUserTwibbonFavorites, toggleTwibbonFavorite, incrementTwibbonUsedDB } from '@/actions/twibbon';
 
 export default function TwibbonDetailContent() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { twibbons, updateTwibbon, users, currentUser } = useData();
+  const { twibbons, updateTwibbon, currentUser } = useData();
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -28,16 +28,16 @@ export default function TwibbonDetailContent() {
   const [showShareToast, setShowShareToast] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
 
+  const userId = currentUser?.id || 'superadmin_1';
+
   useEffect(() => {
     setIsMounted(true);
-    if (currentUser?.id) {
-      getUserTwibbonFavorites(currentUser.id).then(res => {
+    if (userId) {
+      getUserTwibbonFavorites(userId).then(res => {
         if (res.success && res.data) setFavorites(res.data);
       });
-    } else {
-      setFavorites([]);
     }
-  }, [currentUser?.id]);
+  }, [userId]);
 
   const activeTwibbon = twibbons.find((t) => t.id === id);
 
@@ -46,22 +46,24 @@ export default function TwibbonDetailContent() {
   const toggleFavorite = async () => {
     if (!activeTwibbon) return;
 
-    if (!currentUser) {
-      alert('Silakan login untuk menyimpan Twibbon favorit Anda!');
-      return;
-    }
-
     if (isTogglingFavorite) return;
     setIsTogglingFavorite(activeTwibbon.id);
 
     try {
-      const res: any = await toggleTwibbonFavorite(currentUser.id, activeTwibbon.id);
+      const res: any = await toggleTwibbonFavorite(activeTwibbon.id, userId);
       if (res && res.success) {
-        if (res.favorited || res.action === 'added') {
+        if (res.favorited) {
           setFavorites(prev => [...prev, activeTwibbon.id]);
         } else {
           setFavorites(prev => prev.filter(favId => favId !== activeTwibbon.id));
         }
+      } else {
+        // Fallback local toggle
+        setFavorites(prev => 
+          prev.includes(activeTwibbon.id)
+            ? prev.filter(favId => favId !== activeTwibbon.id)
+            : [...prev, activeTwibbon.id]
+        );
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
@@ -130,7 +132,7 @@ export default function TwibbonDetailContent() {
       });
 
       ctx.save();
-      ctx.translate(540 + offsetX * (1080 / 320), 540 + offsetY * (1080 / 320));
+      ctx.translate(540 + offsetX * (1080 / 340), 540 + offsetY * (1080 / 340));
       ctx.rotate((rotation * Math.PI) / 180);
       ctx.scale(scale, scale);
 
@@ -154,8 +156,12 @@ export default function TwibbonDetailContent() {
       link.href = canvas.toDataURL('image/png');
       link.click();
 
+      // Persist usage count in PostgreSQL database
+      const res = await incrementTwibbonUsedDB(activeTwibbon.id);
+      const newCount = (res && res.success && typeof res.usedCount === 'number') ? res.usedCount : (activeTwibbon.usedCount || 0) + 1;
+
       updateTwibbon(activeTwibbon.id, {
-        usedCount: (activeTwibbon.usedCount || 0) + 1,
+        usedCount: newCount,
       });
 
     } catch (err) {
@@ -174,7 +180,14 @@ export default function TwibbonDetailContent() {
     }
   };
 
-  if (!isMounted) return null;
+  if (!isMounted || twibbons.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500 font-sans">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F26522] mb-4"></div>
+        <p className="text-sm font-semibold">Memuat bingkai twibbon...</p>
+      </div>
+    );
+  }
 
   if (!activeTwibbon) {
     return (
@@ -206,6 +219,7 @@ export default function TwibbonDetailContent() {
         </div>
 
         <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+          {/* Canvas Box */}
           <div className="lg:col-span-6 bg-gray-900 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] relative select-none overflow-hidden">
             <div
               className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gray-800 cursor-move flex items-center justify-center"
@@ -215,19 +229,18 @@ export default function TwibbonDetailContent() {
               onMouseLeave={handleMouseUp}
             >
               {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt="Foto Pengguna"
-                  className="absolute pointer-events-none"
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   style={{
                     transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale}) rotate(${rotation}deg)`,
-                    maxWidth: 'none',
-                    maxHeight: 'none',
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
                   }}
-                />
+                >
+                  <img
+                    src={photoUrl}
+                    alt="Foto Pengguna"
+                    className="min-w-full min-h-full max-w-none max-h-none object-cover"
+                  />
+                </div>
               ) : (
                 <div className="text-center p-6 text-gray-400 flex flex-col items-center justify-center">
                   <Upload size={40} className="mb-2 text-gray-500 animate-bounce" />
