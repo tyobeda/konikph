@@ -24,6 +24,29 @@ export async function getArtworks() {
 
 export async function addArtwork(data: any) {
   try {
+    let authorId = data.authorId || 'superadmin_1';
+
+    // Ensure author exists in User table to satisfy FK constraint
+    let userExists = await prisma.user.findUnique({ where: { id: authorId } });
+    if (!userExists) {
+      // Create user record for Super Admin or new author
+      const newUser = await prisma.user.upsert({
+        where: { id: authorId },
+        update: {},
+        create: {
+          id: authorId,
+          name: data.author?.name || 'Super Admin PKSart',
+          email: data.author?.email || 'admin@pks.art',
+          phone: data.author?.phone || '081199887766',
+          address: data.author?.address || 'DPP PKS Official, Jakarta Selatan',
+          region: data.author?.region || data.region || 'DPP PKS Official',
+          avatar: data.author?.avatar || '/img/877859417715829.jpg',
+          role: data.author?.role || 'Super Admin',
+        }
+      });
+      authorId = newUser.id;
+    }
+
     const artwork = await prisma.artwork.create({
       data: {
         title: data.title,
@@ -33,8 +56,9 @@ export async function addArtwork(data: any) {
         category: data.category,
         region: data.region,
         format: data.format,
-        authorId: data.authorId,
-      }
+        authorId: authorId,
+      },
+      include: { author: true }
     });
     revalidatePath('/explore');
     revalidatePath('/');

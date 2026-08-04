@@ -29,11 +29,28 @@ export async function getTwibbons() {
 
 export async function addTwibbon(data: any) {
   try {
-    const { authorId, ...rest } = data;
+    const { authorId: rawAuthorId, ...rest } = data;
+    let authorId = rawAuthorId || 'superadmin_1';
+
+    let userExists = await prisma.user.findUnique({ where: { id: authorId } });
+    if (!userExists) {
+      const newUser = await prisma.user.upsert({
+        where: { id: authorId },
+        update: {},
+        create: {
+          id: authorId,
+          name: rest.author?.name || 'Super Admin PKSart',
+          email: 'admin@pks.art',
+          phone: '081199887766',
+          address: 'DPP PKS Official, Jakarta Selatan',
+          region: rest.region || 'DPP PKS Official',
+          avatar: '/img/877859417715829.jpg',
+          role: 'Super Admin',
+        }
+      });
+      authorId = newUser.id;
+    }
     
-    // We expect authorId in the payload. If not provided, fallback or fail.
-    // The frontend currently doesn't pass authorId directly to addTwibbon if it assumes currentUser is doing it.
-    // We will expect it to pass authorId.
     const twibbon = await prisma.twibbonFrame.create({
       data: {
         title: rest.title,
