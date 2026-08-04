@@ -16,40 +16,55 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site'),
-  title: {
-    default: "PKSart - Galeri Desain & Foto PKS Official",
-    template: "%s | PKSart",
-  },
-  description: "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.",
-  keywords: ["PKS", "Desain PKS", "Poster PKS", "Twibbon PKS", "Brand Kit PKS", "Aset Desain", "Kreator PKS"],
-  icons: {
-    icon: '/favicon.ico',
-  },
-  openGraph: {
-    title: "PKSart - Galeri Desain & Foto PKS Official",
-    description: "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.",
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site',
-    siteName: 'PKSart',
-    images: [
-      {
-        url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop',
-        width: 1200,
-        height: 630,
-        alt: 'PKSart - Galeri Desain & Foto PKS Official',
-      },
-    ],
-    locale: 'id_ID',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: "PKSart - Galeri Desain & Foto PKS Official",
-    description: "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.",
-    images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop'],
-  },
-};
+import { getDBSiteSettings } from "@/actions/settings";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settingsRes = await getDBSiteSettings();
+  const settings = settingsRes?.data;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site';
+  
+  const siteTitle = settings?.siteName || "PKSart - Galeri Desain & Foto PKS Official";
+  const siteDesc = settings?.siteDescription || "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.";
+  
+  // Custom uploaded OG Image -> fallback to default
+  const rawOgUrl = settings?.ogImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop';
+  const ogImageUrl = rawOgUrl.startsWith('/') ? `${baseUrl}${rawOgUrl}` : rawOgUrl;
+
+  return {
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: siteTitle,
+      template: "%s | PKSart",
+    },
+    description: siteDesc,
+    keywords: ["PKS", "Desain PKS", "Poster PKS", "Twibbon PKS", "Brand Kit PKS", "Aset Desain", "Kreator PKS"],
+    icons: {
+      icon: settings?.faviconUrl || '/favicon.ico',
+    },
+    openGraph: {
+      title: siteTitle,
+      description: siteDesc,
+      url: baseUrl,
+      siteName: 'PKSart',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: siteTitle,
+        },
+      ],
+      locale: 'id_ID',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: siteTitle,
+      description: siteDesc,
+      images: [ogImageUrl],
+    },
+  };
+}
 
 export default function RootLayout({
   children,

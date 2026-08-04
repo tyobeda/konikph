@@ -42,6 +42,7 @@ export default function AdminSettingsPage() {
   const [logoAdminPreview, setLogoAdminPreview] = useState(siteSettings.logoAdminUrl || '');
   const [logoFooterPreview, setLogoFooterPreview] = useState(siteSettings.logoFooterUrl || '');
   const [faviconPreview, setFaviconPreview] = useState(siteSettings.faviconUrl || '/favicon.ico');
+  const [ogImagePreview, setOgImagePreview] = useState(siteSettings.ogImageUrl || '');
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
 
   // CTA States
@@ -64,6 +65,7 @@ export default function AdminSettingsPage() {
       setLogoAdminPreview(siteSettings.logoAdminUrl || '');
       setLogoFooterPreview(siteSettings.logoFooterUrl || '');
       setFaviconPreview(siteSettings.faviconUrl || '/favicon.ico');
+      setOgImagePreview(siteSettings.ogImageUrl || '');
       setCtaTitle(siteSettings.ctaTitle || '');
       setCtaDescription(siteSettings.ctaDescription || '');
       setCtaButtonText(siteSettings.ctaButtonText || '');
@@ -187,6 +189,19 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleOgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const url = await uploadFile(file);
+        setOgImagePreview(url);
+        triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan" untuk menerapkan.');
+      } catch (err: any) {
+        alert(err.message || 'Gagal upload thumbnail.');
+      }
+    }
+  };
+
   const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingGeneral(true);
@@ -198,6 +213,7 @@ export default function AdminSettingsPage() {
         logoAdminUrl: logoAdminPreview,
         logoFooterUrl: logoFooterPreview,
         faviconUrl: faviconPreview,
+        ogImageUrl: ogImagePreview,
       });
       setIsSaved(true);
       triggerToast('Pengaturan identitas situs berhasil disimpan permanen!');
@@ -573,6 +589,40 @@ export default function AdminSettingsPage() {
                     <span>Ganti Favicon</span>
                     <input type="file" accept="image/*" onChange={handleFaviconUpload} className="hidden" />
                   </label>
+                </div>
+
+                {/* Thumbnail Social Share (WhatsApp / FB) */}
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col justify-between gap-3.5 sm:col-span-2 md:col-span-4">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Thumbnail Social Share (WhatsApp / FB / Twitter)</p>
+                    <p className="text-[10px] text-gray-500">Gambar yang otomatis muncul saat link homepage atau link umum dibagikan (Rasio 1200x630)</p>
+                  </div>
+                  <div className="w-full h-40 bg-white rounded-lg border flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
+                    {ogImagePreview ? (
+                      <img key={`og-${ogImagePreview}`} src={ogImagePreview} alt="Social Share Thumbnail" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <div className="text-center p-4">
+                        <ImageIcon size={32} className="mx-auto text-gray-300 mb-1" />
+                        <p className="text-xs font-semibold text-gray-500">Belum ada thumbnail khusus social share</p>
+                        <p className="text-[10px] text-gray-400">Rekomendasi ukuran: 1200 x 630 px (.PNG / .JPG)</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
+                      <span>{ogImagePreview ? 'Ganti Thumbnail Share' : 'Upload Thumbnail Share (1200x630)'}</span>
+                      <input type="file" accept="image/*" onChange={handleOgImageUpload} className="hidden" />
+                    </label>
+                    {ogImagePreview && (
+                      <button
+                        type="button"
+                        onClick={() => { setOgImagePreview(''); triggerToast('Thumbnail social share direset.'); }}
+                        className="px-4 py-2 text-xs text-red-600 hover:bg-red-50 border border-red-200 rounded-lg font-bold"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
                 </div>
 
               </div>

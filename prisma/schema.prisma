@@ -78,6 +78,7 @@ model CustomPage {
   content     String // JSON string storing block structure
   published   Boolean  @default(true)
   useRootPath Boolean  @default(false)
+  ogImageUrl  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -155,6 +156,7 @@ model SiteSettings {
   logoAdminUrl    String
   logoFooterUrl   String
   faviconUrl      String
+  ogImageUrl      String?  // Social Share Preview Thumbnail (1200x630)
   // CTA Banner settings
   ctaTitle        String?
   ctaDescription  String?

@@ -61,6 +61,7 @@ export interface CustomPage {
   content: string; // JSON string of blocks
   published: boolean;
   useRootPath: boolean;
+  ogImageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }

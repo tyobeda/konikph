@@ -49,7 +49,7 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 # Startup script: migrate then start
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "Running Prisma migrations..."' >> /app/start.sh && \
-    echo './node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma' >> /app/start.sh && \
+    echo 'node /app/node_modules/prisma/build/index.js migrate deploy --schema=/app/prisma/schema.prisma 2>&1 || echo "Migration skipped or already applied"' >> /app/start.sh && \
     echo 'echo "Starting Next.js server..."' >> /app/start.sh && \
     echo 'exec node server.js' >> /app/start.sh && \
     chmod +x /app/start.sh

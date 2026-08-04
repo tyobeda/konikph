@@ -98,6 +98,7 @@ export interface DataContextType {
     logoAdminUrl: string;  // Logo Warna Terang (Admin Panel)
     logoFooterUrl: string; // Logo Putih (Footer)
     faviconUrl: string;
+    ogImageUrl?: string;   // Social Share Preview Thumbnail (1200x630)
     // CTA Banner Settings
     ctaTitle?: string;
     ctaDescription?: string;
