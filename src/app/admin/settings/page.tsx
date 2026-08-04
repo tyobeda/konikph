@@ -194,10 +194,18 @@ export default function AdminSettingsPage() {
     if (file) {
       try {
         triggerToast('Mengompres dan mengunggah gambar thumbnail...');
-        const compressedFile = await compressImageFile(file, 1200, 0.85);
-        const url = await uploadFile(compressedFile);
-        setOgImagePreview(url);
-        triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan Perubahan Identitas" untuk menerapkan.');
+        const compressedResult = await compressImageFile(file, 2, 1200, 0.85);
+        if (compressedResult && compressedResult.dataUrl) {
+          const blob = await (await fetch(compressedResult.dataUrl)).blob();
+          const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' });
+          const url = await uploadFile(compressedFile);
+          setOgImagePreview(url);
+          triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan Perubahan Identitas" untuk menerapkan.');
+        } else {
+          const url = await uploadFile(file);
+          setOgImagePreview(url);
+          triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan Perubahan Identitas" untuk menerapkan.');
+        }
       } catch (err: any) {
         try {
           const url = await uploadFile(file);
