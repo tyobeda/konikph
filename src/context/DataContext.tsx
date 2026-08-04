@@ -131,6 +131,7 @@ export interface DataContextType {
   brandKits: BrandKit[];
   addBrandKit: (kit: Omit<BrandKit, 'id' | 'createdAt'>) => void;
   updateBrandKit: (id: string, updated: Partial<BrandKit>) => void;
+  deleteBrandKit: (id: string) => void;
   isSettingsLoaded: boolean;
   isPagesLoaded: boolean;
   isTwibbonsLoaded: boolean;
@@ -781,7 +782,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateSiteSettings = async (updated: Partial<DataContextType['siteSettings']>) => {
-    setSiteSettings((prev) => {
+    setSiteSettings((prev: DataContextType['siteSettings']) => {
       const newSettings = { ...prev, ...updated };
       setClientCookie('pksart_site_settings', JSON.stringify(newSettings), 365);
       return newSettings;
@@ -833,7 +834,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const completeResetRequest = async (id: string) => {
-    setResetRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Selesai' } : r)));
+    setResetRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Completed' as const } : r)));
     await dbCompleteResetRequest(id);
   };
 

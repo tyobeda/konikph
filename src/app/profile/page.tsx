@@ -416,7 +416,7 @@ export default function ProfilePage() {
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
-                  addResetRequest(resetName, resetEmail, resetPhone);
+                  addResetRequest({ name: resetName, email: resetEmail, phone: resetPhone });
                   setResetSuccessMessage(true);
                 }}
                 className="space-y-4 mt-4"

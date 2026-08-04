@@ -73,7 +73,11 @@ export async function registerUser(data: {
 
     const user = await prisma.user.create({
       data: {
-        ...data,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address || '',
+        region: data.region || '',
         role: data.role || 'Kreator',
         avatar: data.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200',
       }
@@ -99,7 +103,7 @@ export async function updateUser(id: string, data: any) {
       user: {
         ...user,
         createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
-        updatedAt: user.updatedAt?.toISOString() || new Date().toISOString(),
+        updatedAt: (user as any).updatedAt?.toISOString?.() || new Date().toISOString(),
       }
     };
   } catch (error) {
