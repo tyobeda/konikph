@@ -64,6 +64,7 @@ export async function updateDBSiteSettings(data: any) {
     if (data.logoAdminUrl !== undefined) updateData.logoAdminUrl = data.logoAdminUrl;
     if (data.logoFooterUrl !== undefined) updateData.logoFooterUrl = data.logoFooterUrl;
     if (data.faviconUrl !== undefined) updateData.faviconUrl = data.faviconUrl;
+    if (data.ogImageUrl !== undefined) updateData.ogImageUrl = data.ogImageUrl;
     if (data.ctaTitle !== undefined) updateData.ctaTitle = data.ctaTitle;
     if (data.ctaDescription !== undefined) updateData.ctaDescription = data.ctaDescription;
     if (data.ctaButtonText !== undefined) updateData.ctaButtonText = data.ctaButtonText;
@@ -87,6 +88,7 @@ export async function updateDBSiteSettings(data: any) {
         logoAdminUrl: data.logoAdminUrl || DEFAULT_SETTINGS.logoAdminUrl,
         logoFooterUrl: data.logoFooterUrl || DEFAULT_SETTINGS.logoFooterUrl,
         faviconUrl: data.faviconUrl || DEFAULT_SETTINGS.faviconUrl,
+        ogImageUrl: data.ogImageUrl || null,
         ctaTitle: data.ctaTitle || DEFAULT_SETTINGS.ctaTitle,
         ctaDescription: data.ctaDescription || DEFAULT_SETTINGS.ctaDescription,
         ctaButtonText: data.ctaButtonText || DEFAULT_SETTINGS.ctaButtonText,
