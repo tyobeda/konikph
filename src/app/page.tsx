@@ -114,7 +114,7 @@ export default function HomePage() {
         
         {/* 🌟 HERO SHOWCASE BANNER (TIMELINE HIGHLIGHTS) */}
         {heroFeaturedArtwork && (
-          <div className="bg-gradient-to-r from-gray-900 via-slate-900 to-gray-900 rounded-3xl overflow-hidden shadow-xl border border-slate-800 mb-8 relative">
+          <div className="bg-gradient-to-r from-gray-900 via-slate-900 to-gray-900 rounded-xl overflow-hidden mb-8 relative">
             <div className="flex flex-col lg:grid lg:grid-cols-12 items-stretch lg:items-center">
               
               {/* Image Banner Preview (Top on Mobile, Right on Desktop) */}
@@ -210,7 +210,23 @@ export default function HomePage() {
         />
 
         {/* Masonry Feed Grid */}
-        {displayedArtworks.length > 0 ? (
+        {artworks.length === 0 ? (
+          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-4 break-inside-avoid animate-pulse">
+                <div className={`w-full bg-gray-200 ${i % 3 === 0 ? 'h-72' : i % 3 === 1 ? 'h-56' : 'h-64'}`} />
+                <div className="p-3 space-y-2">
+                  <div className="h-3.5 bg-gray-200 rounded-full w-3/4" />
+                  <div className="h-2.5 bg-gray-100 rounded-full w-1/2" />
+                  <div className="flex items-center gap-2 pt-1">
+                    <div className="w-6 h-6 rounded-full bg-gray-200" />
+                    <div className="h-2.5 bg-gray-100 rounded-full w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayedArtworks.length > 0 ? (
           <>
             <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
               {displayedArtworks.map((artwork) => (

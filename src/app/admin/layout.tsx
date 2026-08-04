@@ -25,7 +25,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { siteSettings, isMounted } = useData();
+  const { siteSettings, isMounted, unreadNotificationCount } = useData();
   const hasCustomAdminLogo = isMounted && siteSettings?.logoAdminUrl && siteSettings.logoAdminUrl !== '/favicon.ico' && siteSettings.logoAdminUrl.startsWith('data:image/');
 
   // Close mobile drawer whenever page navigation changes
@@ -39,6 +39,7 @@ export default function AdminLayout({
     { label: 'Kelola Kreator', href: '/admin/creators', icon: Users },
     { label: 'Kelola DPW', href: '/admin/dpw', icon: Building },
     { label: 'Kelola Twibbon', href: '/admin/twibbon', icon: Sparkles },
+    { label: 'Brand Kit', href: '/admin/brandkit', icon: LayoutDashboard },
     { label: 'Kelola Halaman', href: '/admin/pages', icon: FileText },
     { label: 'Pengaturan Situs', href: '/admin/settings', icon: Settings },
   ];
@@ -81,7 +82,7 @@ export default function AdminLayout({
         <div className="flex items-center gap-2">
           <Link href="/notifikasi" className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
             <Bell size={18} />
-            <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+            {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />}
           </Link>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

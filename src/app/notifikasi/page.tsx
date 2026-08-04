@@ -8,7 +8,7 @@ import { getNotifications, markAllAsRead } from '@/actions/notification';
 import { useEffect, useState } from 'react';
 
 export default function NotificationPage() {
-  const { currentUser } = useData();
+  const { currentUser, refreshUnreadNotifications } = useData();
   const [dbNotifications, setDbNotifications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,67 +30,12 @@ export default function NotificationPage() {
       const res = await markAllAsRead(currentUser.id);
       if (res.success) {
         setDbNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        refreshUnreadNotifications();
       }
     }
   };
 
-  const dummyNotifications = [
-    {
-      id: 1,
-      type: 'like',
-      title: 'Karya Anda disukai',
-      description: 'Ahmad Sinan menyukai karya "Poster Pelantikan Pengurus Jabar".',
-      time: '2 jam yang lalu',
-      isRead: false,
-      icon: Heart,
-      iconColor: 'text-pink-500',
-      bgColor: 'bg-pink-50',
-    },
-    {
-      id: 2,
-      type: 'comment',
-      title: 'Komentar baru pada karya Anda',
-      description: 'Lita Haryati mengomentari: "Masya Allah keren banget desainnya akhi!"',
-      time: '5 jam yang lalu',
-      isRead: false,
-      icon: MessageCircle,
-      iconColor: 'text-blue-500',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      id: 3,
-      type: 'system',
-      title: 'Karya berhasil dipublikasikan',
-      description: 'Karya "Spanduk Kemerdekaan RI Ke-81" telah disetujui oleh admin dan kini tayang publik.',
-      time: '1 hari yang lalu',
-      isRead: true,
-      icon: CheckCircle2,
-      iconColor: 'text-emerald-500',
-      bgColor: 'bg-emerald-50',
-    },
-    {
-      id: 4,
-      type: 'warning',
-      title: 'Peringatan Moderasi',
-      description: 'Laporan terhadap karya "Desain Logo Milad PKS" sedang ditinjau oleh tim admin.',
-      time: '2 hari yang lalu',
-      isRead: true,
-      icon: AlertTriangle,
-      iconColor: 'text-amber-500',
-      bgColor: 'bg-amber-50',
-    },
-    {
-      id: 5,
-      type: 'admin',
-      title: 'Pembaruan Sistem PKSart',
-      description: 'Sistem telah diupdate ke versi 2.0 dengan berbagai fitur baru. Cek sekarang!',
-      time: '1 minggu yang lalu',
-      isRead: true,
-      icon: ShieldCheck,
-      iconColor: 'text-indigo-500',
-      bgColor: 'bg-indigo-50',
-    }
-  ];
+  // Dummy notifications removed - now purely dynamic
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-20 pt-24">
@@ -136,10 +81,25 @@ export default function NotificationPage() {
               Masuk / Daftar
             </Link>
           </div>
+        ) : isLoading ? (
+          <div className="bg-white rounded-3xl p-10 text-center shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#F26522] border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-sm font-semibold text-gray-500">Memuat notifikasi...</p>
+          </div>
+        ) : dbNotifications.length === 0 ? (
+          <div className="bg-white rounded-3xl p-10 text-center shadow-sm border border-gray-100">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200">
+              <Bell size={32} className="text-gray-300" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Belum ada notifikasi</h2>
+            <p className="text-gray-500 max-w-md mx-auto text-sm leading-relaxed">
+              Pemberitahuan aktivitas, likes, dan komentar pada karya Anda akan muncul di sini.
+            </p>
+          </div>
         ) : (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="divide-y divide-gray-100">
-              {(dbNotifications.length > 0 ? dbNotifications : dummyNotifications).map((notif) => {
+              {dbNotifications.map((notif) => {
                 let Icon = Bell;
                 if (notif.type === 'like') Icon = Heart;
                 else if (notif.type === 'comment') Icon = MessageCircle;

@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -66,6 +67,7 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  isEdited  Boolean  @default(false)
 }
 
 model CustomPage {
@@ -118,4 +120,49 @@ model DpwOffice {
   totalArtworks  Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model ArtworkReport {
+  id              String   @id @default(uuid())
+  artworkId       String
+  artworkTitle    String
+  artworkImageUrl String
+  reason          String
+  status          String   @default("Pending") // "Pending", "Resolved", "Rejected"
+  createdAt       DateTime @default(now())
+}
+
+model BrandKit {
+  id        String   @id @default(uuid())
+  title     String
+  category  String
+  format    String
+  size      String
+  iconType  String
+  color     String
+  fileUrl   String
+  createdAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id              String   @id @default("settings")
+  siteName        String
+  siteDescription String
+  logoUrl         String
+  logoAdminUrl    String
+  logoFooterUrl   String
+  faviconUrl      String
+  // CTA Banner settings
+  ctaTitle        String?
+  ctaDescription  String?
+  ctaButtonText   String?
+  ctaButtonLink   String?
+  ctaLogoUrl      String?
+  ctaImageUrl     String?
+  ctaBgUrl        String?
+  ctaEnabled      Boolean  @default(true)
+  ctaSocialText   String?
+  ctaSocialUrl    String?
+  ctaLinks        String?  // Store serialized JSON array of links
+  updatedAt       DateTime @updatedAt
 }

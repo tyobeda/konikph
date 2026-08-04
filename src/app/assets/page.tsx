@@ -21,47 +21,13 @@ import {
 } from 'lucide-react';
 
 export default function AssetsPage() {
-  const { artworks } = useData();
+  const { artworks, brandKits } = useData();
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [searchQuery, setSearchQuery] = useState('');
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
 
-  // Official Brand Kit Items
-  const officialBrandKit = [
-    {
-      title: 'Logo Resmi PKS Vektor (Master Pack)',
-      category: 'Logo Vektor',
-      format: 'AI / SVG / EPS / PNG HD',
-      size: '24.8 MB',
-      icon: ImageIcon,
-      color: 'bg-orange-50 text-[#F26522] border-orange-200',
-    },
-    {
-      title: 'Pedoman Standar Identitas Visual (GSM)',
-      category: 'Guideline PDF',
-      format: 'PDF High-Res (48 Halaman)',
-      size: '12.4 MB',
-      icon: FileText,
-      color: 'bg-blue-50 text-blue-600 border-blue-200',
-    },
-    {
-      title: 'Palet Warna Resmi & Typography Brand',
-      category: 'Color & Font',
-      format: '#F26522 (Orange), #000000 (Black)',
-      size: '3.2 MB',
-      icon: Palette,
-      color: 'bg-purple-50 text-purple-600 border-purple-200',
-    },
-    {
-      title: 'Templat Presentasi Rapat & Sosialisasi',
-      category: 'PowerPoint & Canva',
-      format: 'PPTX / Canva Template',
-      size: '18.6 MB',
-      icon: Presentation,
-      color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    },
-  ];
+  
 
   const handleDownloadKit = (title: string) => {
     alert(`Mengunduh paket "${title}"... Terima kasih!`);
@@ -121,8 +87,13 @@ export default function AssetsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {officialBrandKit.map((item, idx) => {
-              const Icon = item.icon;
+            {brandKits.length === 0 && (
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-500">
+                Belum ada aset Brand Kit yang ditambahkan.
+              </div>
+            )}
+            {brandKits.map((item, idx) => {
+              const Icon = item.iconType === 'image' ? ImageIcon : item.iconType === 'file-text' ? FileText : item.iconType === 'palette' ? Palette : Presentation;
               return (
                 <div
                   key={idx}
@@ -146,7 +117,7 @@ export default function AssetsPage() {
                   <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-[11px] font-bold text-gray-400">{item.size}</span>
                     <button
-                      onClick={() => handleDownloadKit(item.title)}
+                      onClick={() => item.fileUrl ? window.open(item.fileUrl, '_blank') : handleDownloadKit(item.title)}
                       className="px-3.5 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
                     >
                       <Download size={13} />

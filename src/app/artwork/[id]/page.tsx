@@ -31,51 +31,36 @@ export default function ArtworkDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { currentUser, artworks, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport } = useData();
+  const { currentUser, artworks, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport } = useData();
 
   const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const artwork = artworks.find((item) => item.id === id);
 
-  // Find artwork or default to first item
-  const artwork =
-    artworks.find((item) => item.id === id) || artworks[0] || {
-      id: 'default',
-      title: 'Poster PKS Official',
-      description: 'Deskripsi poster pks',
-      imageUrl: '/img/1315216787313421.jpg',
-      category: 'Poster',
-      region: 'Nasional',
-      likesCount: 120,
-      commentsCount: 15,
-      downloadsCount: 450,
-      author: {
-        id: 'u1',
-        name: 'Kreator PKS',
-        email: 'kreator@pks.id',
-        phone: '081234567890',
-        address: 'Jakarta',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
-        region: 'Nasional',
-      },
-      createdAt: '2026-07-20',
-    };
-
-  const [likesCount, setLikesCount] = useState(artwork.likesCount);
+  const [likesCount, setLikesCount] = useState(artwork?.likesCount || 0);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [showToast, setShowToast] = useState('');
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [visibleCommentsCount, setVisibleCommentsCount] = useState(3);
   const [editContent, setEditContent] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (artwork) {
+      setLikesCount(artwork.likesCount || 0);
+    }
+  }, [artwork?.likesCount]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -86,6 +71,26 @@ export default function ArtworkDetailPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  if (!isMounted || artworks.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F26522] mb-4"></div>
+        <p>Memuat karya...</p>
+      </div>
+    );
+  }
+
+  if (!artwork) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500">
+        <p>Karya tidak ditemukan.</p>
+        <button onClick={() => router.back()} className="mt-4 text-[#F26522] hover:underline">
+          Kembali
+        </button>
+      </div>
+    );
+  }
 
   const currentComments = artwork.comments || [];
 
@@ -107,7 +112,19 @@ export default function ArtworkDetailPage() {
   };
 
   const getCommentTime = (comment: any) => {
-    return comment?.createdAt || comment?.time || 'Baru saja';
+    const raw = comment?.createdAt || comment?.time;
+    if (!raw) return 'Baru saja';
+    if (raw instanceof Date) {
+      return raw.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    if (typeof raw === 'string') {
+      const d = new Date(raw);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+      return raw;
+    }
+    return 'Baru saja';
   };
 
   const canEditComment = (comment: any) => {
@@ -118,9 +135,10 @@ export default function ArtworkDetailPage() {
       (author.name && author.name === currentUser.name)
     );
     if (!isOwner) return false;
-    // Allow edit if created within 60 seconds (1 minute)
-    if (comment.timestampMs) {
-      return Date.now() - comment.timestampMs <= 60000;
+    // Allow edit if created within 10 minutes (600,000 ms)
+    if (comment.createdAt) {
+      const createdTime = new Date(comment.createdAt).getTime();
+      return Date.now() - createdTime <= 600000;
     }
     return true;
   };
@@ -163,6 +181,7 @@ export default function ArtworkDetailPage() {
   };
 
   const handleLikeToggle = () => {
+    toggleLikeArtwork(artwork.id);
     if (isLiked) {
       setLikesCount((prev) => prev - 1);
       setIsLiked(false);
@@ -186,10 +205,10 @@ export default function ArtworkDetailPage() {
     triggerToast(`Mengunduh file ${artwork.format || 'PSD/AI/CDR'}...`);
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    addCommentToArtwork(artwork.id, newComment);
+    await addCommentToArtwork(artwork.id, newComment);
     setNewComment('');
     triggerToast('Komentar berhasil dikirim!');
   };
@@ -248,7 +267,7 @@ export default function ArtworkDetailPage() {
                 <div className="flex items-center gap-3">
                   <Link href={`/creators/${artwork.author.id || 'admin'}`}>
                     <img
-                      src={artwork.author.avatar}
+                      src={artwork.author.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                       alt={artwork.author.name}
                       className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
                     />
@@ -330,7 +349,7 @@ export default function ArtworkDetailPage() {
                   <p className="text-[10px] text-gray-400 mt-0.5">Jadilah yang pertama menuliskan pendapat Anda!</p>
                 </div>
               ) : (
-                currentComments.map((comment: any) => {
+                currentComments.slice(0, visibleCommentsCount).map((comment: any) => {
                   const author = getCommentAuthor(comment);
                   const content = getCommentContent(comment);
                   const time = getCommentTime(comment);
@@ -387,11 +406,17 @@ export default function ArtworkDetailPage() {
                         {/* Comment Content or Edit Form */}
                         {isEditingThis ? (
                           <div className="mt-2 space-y-2">
-                            <input
-                              type="text"
+                            <textarea
                               value={editContent}
                               onChange={(e) => setEditContent(e.target.value)}
-                              className="w-full bg-white border border-[#F26522] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-semibold focus:outline-none"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveEdit(comment.id);
+                                }
+                              }}
+                              className="w-full bg-white border border-[#F26522] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-semibold focus:outline-none resize-none min-h-[36px]"
+                              rows={2}
                               autoFocus
                             />
                             <div className="flex items-center gap-1.5 justify-end">
@@ -412,12 +437,20 @@ export default function ArtworkDetailPage() {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-gray-700 mt-1 leading-normal">{content}</p>
+                          <p className="text-gray-700 mt-1 leading-normal whitespace-pre-wrap break-words">{content}</p>
                         )}
                       </div>
                     </div>
                   );
                 })
+              )}
+              {currentComments.length > visibleCommentsCount && (
+                <button
+                  onClick={() => setVisibleCommentsCount((prev) => prev + 10)}
+                  className="w-full py-2 mt-2 text-xs font-bold text-[#F26522] bg-[#F26522]/10 rounded-xl hover:bg-[#F26522]/20 transition-colors"
+                >
+                  Tampilkan {Math.min(10, currentComments.length - visibleCommentsCount)} komentar lainnya
+                </button>
               )}
             </div>
 
@@ -426,12 +459,18 @@ export default function ArtworkDetailPage() {
               
               {/* Comment Input */}
               <form onSubmit={handleAddComment} className="flex gap-2">
-                <input
-                  type="text"
+                <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddComment(e as unknown as React.FormEvent);
+                    }
+                  }}
                   placeholder="Tulis komentar..."
-                  className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
+                  className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all resize-none min-h-[36px] overflow-hidden"
+                  rows={2}
                 />
                 <button
                   type="submit"

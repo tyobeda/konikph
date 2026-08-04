@@ -13,7 +13,7 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { addArtworkReport } = useData();
+  const { addArtworkReport, toggleLikeArtwork } = useData();
   const [likes, setLikes] = useState(artwork.likesCount);
   const [isLiked, setIsLiked] = useState(false);
   const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
@@ -38,6 +38,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    toggleLikeArtwork(artwork.id);
     if (isLiked) {
       setLikes((prev) => prev - 1);
       setIsLiked(false);

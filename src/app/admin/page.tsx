@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
                         #{creator.rank}
                       </span>
                       <img
-                        src={creator.user.avatar}
+                        src={creator.user.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                         alt={creator.user.name}
                         className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-gray-200"
                       />

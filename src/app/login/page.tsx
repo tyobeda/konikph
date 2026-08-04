@@ -16,12 +16,12 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
 
     setIsSubmitting(true);
-    const result = loginUser(email, password);
+    const result = await loginUser(email, password);
 
     setTimeout(() => {
       setIsSubmitting(false);
@@ -37,20 +37,24 @@ export default function LoginPage() {
     }, 500);
   };
 
-  const handleQuickSuperAdmin = () => {
+  const handleQuickSuperAdmin = async () => {
     setEmail('admin@pks.art');
     setPassword('admin123');
     setIsSubmitting(true);
 
+    const result = await loginUser('admin@pks.art', 'admin123');
     setTimeout(() => {
-      const result = loginUser('admin@pks.art', 'admin123');
       setIsSubmitting(false);
       setToastMessage(result.message);
 
       setTimeout(() => {
-        router.push('/admin');
+        if (result.user?.role === 'Super Admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
       }, 600);
-    }, 400);
+    }, 500);
   };
 
   return (

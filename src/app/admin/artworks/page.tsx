@@ -351,7 +351,7 @@ export default function AdminArtworksPage() {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
                         <img
-                          src={art.author.avatar}
+                          src={art.author.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                           alt={art.author.name}
                           className="w-7 h-7 rounded-full object-cover shrink-0"
                         />

@@ -86,3 +86,15 @@ export async function createNotification(data: {
     return { success: false, error: 'Failed to create notification' };
   }
 }
+
+export async function getUnreadNotificationCount(userId: string) {
+  try {
+    const count = await prisma.notification.count({
+      where: { userId, isRead: false },
+    });
+    return { success: true, count };
+  } catch (error) {
+    console.error('Error fetching unread count:', error);
+    return { success: false, count: 0 };
+  }
+}

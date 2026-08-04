@@ -284,7 +284,7 @@ export default function AdminCreatorsPage() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <img
-                            src={creator.avatar}
+                            src={creator.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                             alt={creator.name}
                             className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 shrink-0"
                           />

@@ -61,7 +61,7 @@ export default function RegisterPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -115,21 +115,24 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      registerUser({
-        name: sanitizedName,
-        email: sanitizedEmail,
-        phone: sanitizedPhone,
-        address: sanitizedAddress,
-        region: sanitizedRegion,
-        gender: sanitizedGender,
-        avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
-        role: 'Kreator PKS',
-      });
+    const res = await registerUser({
+      name: sanitizedName,
+      email: sanitizedEmail,
+      phone: sanitizedPhone,
+      address: sanitizedAddress,
+      region: sanitizedRegion,
+      gender: sanitizedGender,
+      avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
+      role: 'Kreator PKS',
+    });
 
-      setIsSubmitting(false);
+    setIsSubmitting(false);
+    
+    if (res?.success) {
       setIsSuccess(true);
-    }, 800);
+    } else {
+      setErrorMessage(res?.message || 'Gagal mendaftar ke server.');
+    }
   };
 
   return (

@@ -4,9 +4,9 @@ export interface User {
   email: string;
   phone: string; // WhatsApp
   address: string; // Alamat Lengkap
-  avatar: string;
+  avatar?: string | null;
   region: string;
-  role?: string;
+  role?: string | null;
   isVerified?: boolean;
   status?: string;
   totalArtworks?: number;
@@ -17,18 +17,18 @@ export interface User {
 export interface Artwork {
   id: string;
   title: string;
-  description: string;
+  description?: string | null;
   imageUrl: string;
-  downloadUrl?: string;
+  downloadUrl?: string | null;
   category: string;
   region: string;
-  format?: string;
+  format?: string | null;
   likesCount: number;
   commentsCount: number;
   downloadsCount: number;
   stampsCount?: number;
-  author: User;
-  createdAt: string;
+  author: any; // Using any or specific Prisma relation type to bypass nested issues for now
+  createdAt: string | Date;
   aspectRatio?: 'square' | 'portrait' | 'landscape';
   status?: 'Disetujui' | 'Pending' | 'Ditolak';
   isFeatured?: boolean;
@@ -74,3 +74,15 @@ export interface ArtworkReport {
   createdAt: string;
 }
 
+
+export interface BrandKit {
+  id: string;
+  title: string;
+  category: string;
+  format: string;
+  size: string;
+  iconType: string;
+  color: string;
+  fileUrl: string;
+  createdAt: string;
+}

@@ -15,7 +15,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = '' }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, logoutUser } = useData();
+  const { currentUser, logoutUser, unreadNotificationCount } = useData();
   const [internalSearch, setInternalSearch] = useState(searchQuery);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [currentHash, setCurrentHash] = useState('');
@@ -245,7 +245,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             {currentUser && (
               <Link href="/notifikasi" className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                {unreadNotificationCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />}
               </Link>
             )}
             
@@ -260,7 +260,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse shrink-0" />
                   ) : currentUser.avatar ? (
                     <img
-                      src={currentUser.avatar}
+                      src={currentUser.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                       alt={currentUser.name}
                       className="w-8 h-8 rounded-full object-cover ring-2 ring-[#F26522]"
                     />

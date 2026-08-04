@@ -133,7 +133,7 @@ export default function CreatorsPage() {
                     <div className="flex items-start gap-4 mb-4">
                       <Link href={`/creators/${user.id}`} className="shrink-0">
                         <img
-                          src={user.avatar}
+                          src={user.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                           alt={user.name}
                           className="w-14 h-14 rounded-full object-cover ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
                         />

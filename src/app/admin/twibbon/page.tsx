@@ -227,7 +227,7 @@ export default function AdminTwibbonPage() {
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <img
-                        src={tw.author.avatar}
+                        src={tw.author.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                         alt={tw.author.name}
                         className="w-6 h-6 rounded-full object-cover"
                       />
