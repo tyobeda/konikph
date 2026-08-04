@@ -39,6 +39,8 @@ services:
       PORT: 3000
     ports:
       - "3000:3000"
+    volumes:
+      - ./public/uploads:/app/public/uploads
     networks:
       - pksart_network
 
