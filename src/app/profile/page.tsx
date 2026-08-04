@@ -108,10 +108,14 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 500, 0.85);
-        setAvatarPreview(result.dataUrl);
+        const formDataPayload = new FormData();
+        formDataPayload.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formDataPayload });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Upload gagal');
+        setAvatarPreview(data.url);
         setUserData((prev) => {
-          const next = { ...prev, avatar: result.dataUrl };
+          const next = { ...prev, avatar: data.url };
           if (currentUser?.id) {
             updateUser(currentUser.id, next);
           }
@@ -120,7 +124,7 @@ export default function ProfilePage() {
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 3000);
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses gambar avatar.');
+        alert(err.message || 'Gagal upload foto profil.');
       }
     }
   };

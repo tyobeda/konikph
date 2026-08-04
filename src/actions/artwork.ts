@@ -185,3 +185,29 @@ export async function deleteCommentDB(commentId: string) {
     return { success: false, error: 'Failed to delete comment' };
   }
 }
+
+export async function incrementArtworkDownloadDB(id: string) {
+  try {
+    await prisma.artwork.update({
+      where: { id },
+      data: { downloadsCount: { increment: 1 } },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Error incrementing artwork download:', error);
+    return { success: false, error: 'Failed to increment download count' };
+  }
+}
+
+export async function deleteAllArtworksDB() {
+  try {
+    await prisma.artwork.deleteMany({});
+    revalidatePath('/explore');
+    revalidatePath('/');
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting all artworks:', error);
+    return { success: false, error: 'Failed to delete all artworks' };
+  }
+}

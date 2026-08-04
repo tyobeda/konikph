@@ -43,6 +43,22 @@ async function main() {
   ];
 
   const createdUsers = [];
+  
+  // Always create Super Admin explicitly to avoid fkey upload crashes
+  const superAdmin = await prisma.user.create({
+    data: {
+      id: 'superadmin_1',
+      name: 'Super Admin PKSart',
+      email: 'admin@pks.art',
+      phone: '081199887766',
+      address: 'DPP PKS Official, Jakarta Selatan',
+      region: 'DPP PKS Official',
+      role: 'Super Admin',
+      avatar: '/img/877859417715829.jpg',
+    }
+  });
+  createdUsers.push(superAdmin);
+
   for (const [index, user] of usersData.entries()) {
     const createdUser = await prisma.user.create({
       data: {

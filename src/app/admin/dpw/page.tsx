@@ -18,7 +18,7 @@ import { PksLogo } from '@/components/PksLogo';
 import { useData, DpwOffice } from '@/context/DataContext';
 
 export default function AdminDpwPage() {
-  const { dpwList, addDpw, updateDpw, deleteDpw } = useData();
+  const { dpwList, addDpw, updateDpw, deleteDpw, users = [], artworks = [] } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingDpw, setEditingDpw] = useState<DpwOffice | null>(null);
@@ -31,6 +31,11 @@ export default function AdminDpwPage() {
     email: '',
     address: '',
   });
+
+  const handleToggleActive = (dpw: DpwOffice) => {
+    const nextState = dpw.isActive === false ? true : false;
+    updateDpw(dpw.id, { isActive: nextState });
+  };
 
   const handleDelete = (id: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus data wilayah DPW ini dari sistem?')) {
@@ -65,12 +70,22 @@ export default function AdminDpwPage() {
     alert('Laporan Rekapitulasi DPW PKS (.csv) berhasil di-generate dan diunduh.');
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const filteredDpw = dpwList.filter(
     (dpw) =>
       dpw.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dpw.coordinator.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dpw.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredDpw.length / itemsPerPage));
+  const paginatedDpw = filteredDpw.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <>
@@ -146,74 +161,169 @@ export default function AdminDpwPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredDpw.map((dpw) => (
-                <tr key={dpw.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#F26522] font-black flex items-center justify-center text-xs shrink-0 border border-orange-100">
-                        {dpw.code.split('-')[1] || 'DPW'}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900">{dpw.name}</p>
-                        <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
-                          <CheckCircle size={12} />
-                          <span>DPW Aktif</span>
-                        </span>
-                      </div>
-                    </div>
-                  </td>
+              {paginatedDpw.length > 0 ? (
+                paginatedDpw.map((dpw) => {
+                  const realCreators = users.filter((u) =>
+                    u.region && (
+                      u.region.toLowerCase().includes(dpw.name.toLowerCase()) ||
+                      dpw.name.toLowerCase().includes(u.region.toLowerCase()) ||
+                      u.region.toLowerCase().includes(dpw.code.toLowerCase())
+                    )
+                  ).length;
 
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-0.5">
-                      <p className="font-bold text-gray-900">{dpw.coordinator}</p>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <PhoneCall size={12} className="text-[#F26522]" />
-                        <span>{dpw.phone}</span>
-                      </p>
-                      <p className="text-xs text-gray-400 flex items-center gap-1">
-                        <Mail size={12} />
-                        <span>{dpw.email}</span>
-                      </p>
-                    </div>
-                  </td>
+                  const realArtworks = artworks.filter((a) =>
+                    a.region && (
+                      a.region.toLowerCase().includes(dpw.name.toLowerCase()) ||
+                      dpw.name.toLowerCase().includes(a.region.toLowerCase()) ||
+                      a.region.toLowerCase().includes(dpw.code.toLowerCase())
+                    )
+                  ).length;
 
-                  <td className="py-3.5 px-4 max-w-xs">
-                    <p className="text-xs text-gray-600 truncate flex items-start gap-1">
-                      <MapPin size={14} className="text-gray-400 shrink-0 mt-0.5" />
-                      <span>{dpw.address}</span>
-                    </p>
-                  </td>
+                  const activeCreatorsCount = Math.max(dpw.activeCreators || 0, realCreators);
+                  const totalArtworksCount = Math.max(dpw.totalArtworks || 0, realArtworks);
 
-                  <td className="py-3.5 px-4">
-                    <div className="text-xs space-y-0.5">
-                      <p className="font-extrabold text-gray-900">{dpw.totalArtworks} Karya Terpublikasi</p>
-                      <p className="text-gray-500 font-medium">{dpw.activeCreators} Kreator Aktif</p>
-                    </div>
-                  </td>
+                  return (
+                    <tr key={dpw.id} className={`transition-colors ${dpw.isActive === false ? 'bg-gray-50/75 opacity-75' : 'hover:bg-gray-50/60'}`}>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-xs shrink-0 border ${
+                            dpw.isActive === false ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-orange-50 text-[#F26522] border-orange-100'
+                          }`}>
+                            {dpw.code.split('-')[1] || 'DPW'}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{dpw.name}</p>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleActive(dpw)}
+                              className={`mt-0.5 text-xs font-bold inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                                dpw.isActive !== false
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                              }`}
+                              title={dpw.isActive !== false ? 'Klik untuk menonaktifkan wilayah DPW ini' : 'Klik untuk mengaktifkan wilayah DPW ini'}
+                            >
+                              <div className={`w-2 h-2 rounded-full ${dpw.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                              <span>{dpw.isActive !== false ? 'DPW Aktif' : 'DPW Nonaktif'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </td>
 
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => openEditModal(dpw)}
-                        className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors"
-                        title="Edit Data DPW"
-                      >
-                        <Edit size={16} />
-                      </button>
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-gray-900">{dpw.coordinator}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            <PhoneCall size={12} className="text-[#F26522]" />
+                            <span>{dpw.phone}</span>
+                          </p>
+                          <p className="text-xs text-gray-400 flex items-center gap-1">
+                            <Mail size={12} />
+                            <span>{dpw.email}</span>
+                          </p>
+                        </div>
+                      </td>
 
-                      <button
-                        onClick={() => handleDelete(dpw.id)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Hapus DPW"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                      <td className="py-3.5 px-4 max-w-xs">
+                        <p className="text-xs text-gray-600 truncate flex items-start gap-1">
+                          <MapPin size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                          <span>{dpw.address}</span>
+                        </p>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="text-xs space-y-0.5">
+                          <p className="font-extrabold text-gray-900">{totalArtworksCount} Karya Terpublikasi</p>
+                          <p className="text-gray-500 font-medium">{activeCreatorsCount} Kreator Aktif Terhubung</p>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleToggleActive(dpw)}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all ${
+                              dpw.isActive !== false
+                                ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                            }`}
+                          >
+                            {dpw.isActive !== false ? 'Nonaktifkan' : 'Aktifkan'}
+                          </button>
+
+                          <button
+                            onClick={() => openEditModal(dpw)}
+                            className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors"
+                            title="Edit Data DPW"
+                          >
+                            <Edit size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(dpw.id)}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Hapus DPW"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-gray-400 font-medium">
+                    Tidak ada data wilayah DPW yang sesuai dengan pencarian.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
+          <div className="text-gray-500 font-medium">
+            Menampilkan <span className="font-bold text-gray-800">{filteredDpw.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * itemsPerPage, filteredDpw.length)}</span> dari <span className="font-bold text-gray-800">{filteredDpw.length}</span> Wilayah DPW
+          </div>
+
+          <div className="flex items-center gap-1.5 font-bold">
+            <button
+              type="button"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+            >
+              &larr; Prev
+            </button>
+
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                    currentPage === page
+                      ? 'bg-[#F26522] text-white shadow-sm'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || filteredDpw.length === 0}
+              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+            >
+              Next &rarr;
+            </button>
+          </div>
         </div>
 
       </div>

@@ -7,16 +7,16 @@ const DEFAULT_SETTINGS = {
   id: 'settings',
   siteName: 'PKSart - Galeri Desain & Foto PKS Official',
   siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
-  logoUrl: '/favicon.ico',
-  logoAdminUrl: '/favicon.ico',
-  logoFooterUrl: '/favicon.ico',
+  logoUrl: '',
+  logoAdminUrl: '',
+  logoFooterUrl: '',
   faviconUrl: '/favicon.ico',
   ctaTitle: 'Ayo Gabung Jadi Kreator PKSart!',
   ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
   ctaButtonText: 'Daftar Sekarang',
   ctaButtonLink: '/register',
   ctaLogoUrl: '',
-  ctaImageUrl: '/img/970023295166107.jpg', // Use a clean local image path instead of raw SVG string
+  ctaImageUrl: '',
   ctaBgUrl: '',
   ctaEnabled: true,
   ctaLinks: JSON.stringify([
@@ -37,11 +37,11 @@ const DEFAULT_SETTINGS = {
 export async function getDBSiteSettings() {
   noStore();
   try {
-    let settings = await prisma.siteSettings.findUnique({
+    let settings = await (prisma as any).siteSettings.findUnique({
       where: { id: 'settings' }
     });
     if (!settings) {
-      settings = await prisma.siteSettings.create({
+      settings = await (prisma as any).siteSettings.create({
         data: DEFAULT_SETTINGS
       });
     }
@@ -56,28 +56,29 @@ export async function getDBSiteSettings() {
 
 export async function updateDBSiteSettings(data: any) {
   try {
-    const serializedCtaLinks = data.ctaLinks ? JSON.stringify(data.ctaLinks) : DEFAULT_SETTINGS.ctaLinks;
-    const settings = await prisma.siteSettings.upsert({
+    console.log("updateDBSiteSettings called with keys:", Object.keys(data));
+    const updateData: any = {};
+    if (data.siteName !== undefined) updateData.siteName = data.siteName;
+    if (data.siteDescription !== undefined) updateData.siteDescription = data.siteDescription;
+    if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
+    if (data.logoAdminUrl !== undefined) updateData.logoAdminUrl = data.logoAdminUrl;
+    if (data.logoFooterUrl !== undefined) updateData.logoFooterUrl = data.logoFooterUrl;
+    if (data.faviconUrl !== undefined) updateData.faviconUrl = data.faviconUrl;
+    if (data.ctaTitle !== undefined) updateData.ctaTitle = data.ctaTitle;
+    if (data.ctaDescription !== undefined) updateData.ctaDescription = data.ctaDescription;
+    if (data.ctaButtonText !== undefined) updateData.ctaButtonText = data.ctaButtonText;
+    if (data.ctaButtonLink !== undefined) updateData.ctaButtonLink = data.ctaButtonLink;
+    if (data.ctaLogoUrl !== undefined) updateData.ctaLogoUrl = data.ctaLogoUrl;
+    if (data.ctaImageUrl !== undefined) updateData.ctaImageUrl = data.ctaImageUrl;
+    if (data.ctaBgUrl !== undefined) updateData.ctaBgUrl = data.ctaBgUrl;
+    if (data.ctaEnabled !== undefined) updateData.ctaEnabled = Boolean(data.ctaEnabled);
+    if (data.ctaLinks !== undefined) updateData.ctaLinks = JSON.stringify(data.ctaLinks);
+    if (data.ctaSocialText !== undefined) updateData.ctaSocialText = data.ctaSocialText;
+    if (data.ctaSocialUrl !== undefined) updateData.ctaSocialUrl = data.ctaSocialUrl;
+
+    const settings = await (prisma as any).siteSettings.upsert({
       where: { id: 'settings' },
-      update: {
-        siteName: data.siteName,
-        siteDescription: data.siteDescription,
-        logoUrl: data.logoUrl,
-        logoAdminUrl: data.logoAdminUrl,
-        logoFooterUrl: data.logoFooterUrl,
-        faviconUrl: data.faviconUrl,
-        ctaTitle: data.ctaTitle,
-        ctaDescription: data.ctaDescription,
-        ctaButtonText: data.ctaButtonText,
-        ctaButtonLink: data.ctaButtonLink,
-        ctaLogoUrl: data.ctaLogoUrl,
-        ctaImageUrl: data.ctaImageUrl,
-        ctaBgUrl: data.ctaBgUrl,
-        ctaEnabled: data.ctaEnabled !== undefined ? Boolean(data.ctaEnabled) : true,
-        ctaLinks: serializedCtaLinks,
-        ctaSocialText: data.ctaSocialText,
-        ctaSocialUrl: data.ctaSocialUrl,
-      },
+      update: updateData,
       create: {
         id: 'settings',
         siteName: data.siteName || DEFAULT_SETTINGS.siteName,
@@ -94,7 +95,7 @@ export async function updateDBSiteSettings(data: any) {
         ctaImageUrl: data.ctaImageUrl || DEFAULT_SETTINGS.ctaImageUrl,
         ctaBgUrl: data.ctaBgUrl || DEFAULT_SETTINGS.ctaBgUrl,
         ctaEnabled: data.ctaEnabled !== undefined ? Boolean(data.ctaEnabled) : true,
-        ctaLinks: serializedCtaLinks,
+        ctaLinks: data.ctaLinks ? JSON.stringify(data.ctaLinks) : DEFAULT_SETTINGS.ctaLinks,
         ctaSocialText: data.ctaSocialText || DEFAULT_SETTINGS.ctaSocialText,
         ctaSocialUrl: data.ctaSocialUrl || DEFAULT_SETTINGS.ctaSocialUrl,
       }

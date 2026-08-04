@@ -29,6 +29,7 @@ import { User } from '@/lib/types';
 export default function AdminCreatorsPage() {
   const { 
     users, 
+    dpwList,
     toggleVerifyUser, 
     toggleSuspendUser, 
     deleteUser, 
@@ -42,7 +43,7 @@ export default function AdminCreatorsPage() {
   const [editingCreator, setEditingCreator] = useState<User | null>(null);
   const [suspendingUser, setSuspendingUser] = useState<User | null>(null);
 
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -126,7 +127,7 @@ export default function AdminCreatorsPage() {
   );
 
   const totalItems = activeTab === 'resets' ? filteredResets.length : filteredCreators.length;
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
   const paginatedResets = filteredResets.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -142,16 +143,16 @@ export default function AdminCreatorsPage() {
     <>
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-              <Users className="text-[#F26522]" />
-              <span>Kelola Kreator & Member PKSart</span>
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Verifikasi lencana Kreator PKS Official, kelola kontak WhatsApp/Email, dan kontrol status akun.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <Users className="text-[#F26522]" />
+            <span>Kelola Kreator & Member PKSart</span>
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Verifikasi lencana Kreator PKS Official, kelola kontak WhatsApp/Email, dan kontrol status akun.
+          </p>
         </div>
+      </div>
 
       {/* Tab Switcher */}
       <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold">
@@ -195,43 +196,44 @@ export default function AdminCreatorsPage() {
             </span>
           </div>
 
-            <div className="relative flex-1 max-w-xs">
-              <Search size={16} className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama, email, atau DPW..."
-                className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-              />
-            </div>
+          <div className="relative flex-1 max-w-xs">
+            <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama, email, atau DPW..."
+              className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+            />
           </div>
+        </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
-                {activeTab === 'resets' ? (
-                  <tr>
-                    <th className="py-3.5 px-4">Nama Lengkap</th>
-                    <th className="py-3.5 px-4">Alamat Email</th>
-                    <th className="py-3.5 px-4">Nomor WhatsApp</th>
-                    <th className="py-3.5 px-4">Tanggal Pengajuan</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 text-right">Aksi Admin</th>
-                  </tr>
-                ) : (
-                  <tr>
-                    <th className="py-3.5 px-4">Kreator & Lencana</th>
-                    <th className="py-3.5 px-4">Kontak WhatsApp & Email</th>
-                    <th className="py-3.5 px-4">Wilayah DPW</th>
-                    <th className="py-3.5 px-4">Total Karya</th>
-                    <th className="py-3.5 px-4">Status Akun</th>
-                    <th className="py-3.5 px-4 text-right">Aksi Admin</th>
-                  </tr>
-                )}
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {activeTab === 'resets' ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-600">
+            <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+              {activeTab === 'resets' ? (
+                <tr>
+                  <th className="py-3.5 px-4">Nama Lengkap</th>
+                  <th className="py-3.5 px-4">Alamat Email</th>
+                  <th className="py-3.5 px-4">Nomor WhatsApp</th>
+                  <th className="py-3.5 px-4">Tanggal Pengajuan</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4 text-right">Aksi Admin</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th className="py-3.5 px-4">Kreator & Lencana</th>
+                  <th className="py-3.5 px-4">Kontak WhatsApp & Email</th>
+                  <th className="py-3.5 px-4">Wilayah DPW</th>
+                  <th className="py-3.5 px-4">Total Karya</th>
+                  <th className="py-3.5 px-4">Status Akun</th>
+                  <th className="py-3.5 px-4 text-right">Aksi Admin</th>
+                </tr>
+              )}
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {activeTab === 'resets' ? (
+                paginatedResets.length > 0 ? (
                   paginatedResets.map((req) => (
                     <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
                       <td className="py-3.5 px-4 font-bold text-gray-900">{req.name}</td>
@@ -279,6 +281,14 @@ export default function AdminCreatorsPage() {
                     </tr>
                   ))
                 ) : (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
+                      Tidak ada permintaan reset kata sandi.
+                    </td>
+                  </tr>
+                )
+              ) : (
+                paginatedCreators.length > 0 ? (
                   paginatedCreators.map((creator) => (
                     <tr key={creator.id} className="hover:bg-gray-50/60 transition-colors">
                       <td className="py-3.5 px-4">
@@ -323,7 +333,7 @@ export default function AdminCreatorsPage() {
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                             creator.status === 'Suspended'
-                              ? 'bg-red-50 text-red-650 border border-red-200'
+                              ? 'bg-red-50 text-red-600 border border-red-200'
                               : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                           }`}
                         >
@@ -372,174 +382,166 @@ export default function AdminCreatorsPage() {
                       </td>
                     </tr>
                   ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-white sm:px-6 rounded-b-2xl">
-              <div className="flex flex-1 justify-between sm:hidden">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="relative ml-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Selanjutnya
-                </button>
-              </div>
-              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Menampilkan <span className="font-bold text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> hingga <span className="font-bold text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-900">{totalItems}</span> data
-                  </p>
-                </div>
-                <div>
-                  <nav className="isolate inline-flex -space-x-px rounded-lg shadow-sm" aria-label="Pagination">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="relative inline-flex items-center rounded-l-lg px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                    >
-                      <span className="sr-only">Previous</span>
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 ${
-                          page === currentPage 
-                            ? 'z-10 bg-[#F26522] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F26522]' 
-                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center rounded-r-lg px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                    >
-                      <span className="sr-only">Next</span>
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </nav>
-                </div>
-              </div>
-            </div>
-          )}
-
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
+                      Tidak ada data akun kreator yang sesuai dengan pencarian.
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Edit Creator Modal */}
-        {editingCreator && (
-          <div
-            onClick={() => setEditingCreator(null)}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Edit Data Kreator (Admin)
-              </h3>
-
-              <form onSubmit={handleSaveEdit} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:border-[#F26522]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Alamat Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Nomor WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Wilayah DPW
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.region}
-                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingCreator(null)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
-                  >
-                    Simpan Perubahan
-                  </button>
-                </div>
-              </form>
-            </div>
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
+          <div className="text-gray-500 font-medium">
+            Menampilkan <span className="font-bold text-gray-800">{totalItems > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-800">{totalItems}</span> data {activeTab === 'resets' ? 'pengajuan reset' : 'kreator'}
           </div>
-        )}
 
-        <ConfirmSuspendModal
-          isOpen={!!suspendingUser}
-          title={suspendingUser?.status === 'Suspended' ? `Aktifkan ${suspendingUser?.name}?` : `Suspend ${suspendingUser?.name}?`}
-          isSuspending={suspendingUser?.status !== 'Suspended'}
-          onConfirm={confirmSuspendUser}
-          onCancel={() => setSuspendingUser(null)}
-        />
+          <div className="flex items-center gap-1.5 font-bold">
+            <button
+              type="button"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+            >
+              &larr; Prev
+            </button>
+
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                    currentPage === page
+                      ? 'bg-[#F26522] text-white shadow-sm'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || totalItems === 0}
+              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+            >
+              Next &rarr;
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Edit Creator Modal */}
+      {editingCreator && (
+        <div
+          onClick={() => setEditingCreator(null)}
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Edit Data Kreator (Admin)
+            </h3>
+
+            <form onSubmit={handleSaveEdit} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Nama Lengkap
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Alamat Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Nomor WhatsApp
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Wilayah DPW
+                </label>
+                <select
+                  value={formData.region}
+                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:border-[#F26522]"
+                >
+                  <option value="">-- Pilih Wilayah DPW --</option>
+                  {formData.region && !dpwList.some(d => d.name.toLowerCase() === formData.region.toLowerCase()) && (
+                    <option value={formData.region}>{formData.region}</option>
+                  )}
+                  {dpwList.map((dpw) => (
+                    <option key={dpw.id} value={dpw.name}>
+                      {dpw.name} ({dpw.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCreator(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ConfirmSuspendModal
+        isOpen={!!suspendingUser}
+        title={suspendingUser?.status === 'Suspended' ? `Aktifkan ${suspendingUser?.name}?` : `Suspend ${suspendingUser?.name}?`}
+        isSuspending={suspendingUser?.status !== 'Suspended'}
+        onConfirm={confirmSuspendUser}
+        onCancel={() => setSuspendingUser(null)}
+      />
     </>
   );
 }

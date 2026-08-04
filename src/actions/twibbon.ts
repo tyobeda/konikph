@@ -105,3 +105,49 @@ export async function deleteTwibbon(id: string) {
     return { success: false, error: 'Failed to delete twibbon' };
   }
 }
+
+export async function toggleTwibbonFavorite(twibbonId: string, userId: string) {
+  try {
+    const existing = await prisma.twibbonFavorite.findUnique({
+      where: {
+        userId_twibbonId: {
+          userId,
+          twibbonId
+        }
+      }
+    });
+
+    if (existing) {
+      await prisma.twibbonFavorite.delete({ where: { id: existing.id } });
+      revalidatePath('/twibbon');
+      revalidatePath(`/twibbon/${twibbonId}`);
+      return { success: true, favorited: false };
+    } else {
+      await prisma.twibbonFavorite.create({
+        data: {
+          userId,
+          twibbonId
+        }
+      });
+      revalidatePath('/twibbon');
+      revalidatePath(`/twibbon/${twibbonId}`);
+      return { success: true, favorited: true };
+    }
+  } catch (error) {
+    console.error('Error toggling twibbon favorite:', error);
+    return { success: false, error: 'Failed to toggle twibbon favorite' };
+  }
+}
+
+export async function getUserTwibbonFavorites(userId: string) {
+  try {
+    const favorites = await prisma.twibbonFavorite.findMany({
+      where: { userId },
+      select: { twibbonId: true }
+    });
+    return { success: true, data: favorites.map(f => f.twibbonId) };
+  } catch (error) {
+    console.error('Error fetching twibbon favorites:', error);
+    return { success: false, error: 'Failed to fetch favorites', data: [] };
+  }
+}

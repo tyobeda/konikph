@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
+import { getClientCookie, setClientCookie } from '@/lib/cookies';
+import { getCustomPageBySlug } from '@/actions/page';
+
 export interface WelcomePopupConfig {
   isEnabled: boolean;
   displayFrequency: 'once' | 'session' | 'always';
@@ -31,40 +34,43 @@ export const WelcomePopup: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    // Read popup configuration from localStorage if updated by Admin
-    const storedConfig = localStorage.getItem('pksart_welcome_popup');
-    let config = DEFAULT_WELCOME_POPUP;
-
-    if (storedConfig) {
+    
+    const fetchConfig = async () => {
+      let config = DEFAULT_WELCOME_POPUP;
       try {
-        config = { ...DEFAULT_WELCOME_POPUP, ...JSON.parse(storedConfig) };
-        setPopupData(config);
-      } catch (e) {}
-    }
-
-    if (config.isEnabled) {
-      if (config.displayFrequency === 'always') {
-        setIsOpen(true);
-      } else if (config.displayFrequency === 'session') {
-        // Check if user dismissed popup in current browser session
-        const dismissed = sessionStorage.getItem('pksart_popup_dismissed');
-        if (!dismissed) {
-          setIsOpen(true);
+        const res = await getCustomPageBySlug('system-welcome-popup');
+        if (res.success && res.data && res.data.content) {
+          config = { ...DEFAULT_WELCOME_POPUP, ...JSON.parse(res.data.content) };
+          setPopupData(config);
         }
-      } else {
-        // Default 'once': Sekali saja per Pengunjung / IP / Device (Persistent in localStorage)
-        const shownOnce = localStorage.getItem('pksart_popup_shown_once_device');
-        if (!shownOnce) {
+      } catch(e) {}
+
+      if (config.isEnabled) {
+        if (config.displayFrequency === 'always') {
           setIsOpen(true);
+        } else if (config.displayFrequency === 'session') {
+          // Check if user dismissed popup in current browser session cookie
+          const dismissed = getClientCookie('pksart_popup_dismissed');
+          if (!dismissed) {
+            setIsOpen(true);
+          }
+        } else {
+          // Default 'once': Persistent cookie (expires in 365 days)
+          const shownOnce = getClientCookie('pksart_popup_shown_once_device');
+          if (!shownOnce) {
+            setIsOpen(true);
+          }
         }
       }
-    }
+    };
+    
+    fetchConfig();
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem('pksart_popup_dismissed', 'true');
-    localStorage.setItem('pksart_popup_shown_once_device', 'true');
+    setClientCookie('pksart_popup_dismissed', 'true');
+    setClientCookie('pksart_popup_shown_once_device', 'true', 365);
   };
 
   if (!isMounted || !isOpen || !popupData.isEnabled) return null;

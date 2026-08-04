@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -21,11 +21,51 @@ import {
 } from 'lucide-react';
 
 export default function AssetsPage() {
-  const { artworks, brandKits } = useData();
+  const { artworks, brandKits, isBrandKitsLoaded } = useData();
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
+
+  const triggerDirectDownload = async (fileUrl: string, fileName?: string) => {
+    if (!fileUrl) return;
+
+    let finalUrl = fileUrl;
+    const driveMatch = fileUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch && driveMatch[1]) {
+      finalUrl = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+    }
+
+    if (finalUrl.startsWith('/uploads/') || (typeof window !== 'undefined' && finalUrl.startsWith(window.location.origin))) {
+      try {
+        const response = await fetch(finalUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName || finalUrl.split('/').pop() || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        return;
+      } catch {
+        // Fallback
+      }
+    }
+
+    const link = document.createElement('a');
+    link.href = finalUrl;
+    link.setAttribute('download', fileName || 'download');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   
 
@@ -87,38 +127,55 @@ export default function AssetsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {brandKits.length === 0 && (
+            {!isMounted || (!isBrandKitsLoaded && brandKits.length === 0) ? (
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-400 font-medium animate-pulse">
+                Memuat aset brand kit...
+              </div>
+            ) : brandKits.length === 0 ? (
               <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-500">
                 Belum ada aset Brand Kit yang ditambahkan.
               </div>
-            )}
-            {brandKits.map((item, idx) => {
+            ) : (
+              brandKits.map((item, idx) => {
               const Icon = item.iconType === 'image' ? ImageIcon : item.iconType === 'file-text' ? FileText : item.iconType === 'palette' ? Palette : Presentation;
+              const hasImage = item.fileUrl && (/\.(jpg|jpeg|png|webp|svg|gif)$/i.test(item.fileUrl) || item.fileUrl.startsWith('/uploads/') || item.iconType === 'image');
               return (
                 <div
                   key={idx}
                   className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                 >
                   <div>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 border ${item.color}`}>
-                      <Icon size={20} />
-                    </div>
+                    {hasImage ? (
+                      <div className="w-full h-32 rounded-xl overflow-hidden border border-gray-200 mb-3 bg-gray-50 flex items-center justify-center p-1 shadow-inner group">
+                        <img
+                          src={item.fileUrl}
+                          alt={item.title}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border ${item.color}`}>
+                        <Icon size={20} />
+                      </div>
+                    )}
                     <span className="text-[10px] font-extrabold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                       {item.category}
                     </span>
                     <h3 className="font-extrabold text-sm text-gray-900 mt-2 leading-snug">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-gray-500 font-medium mt-1">
+                    <p className="text-xs text-gray-500 font-medium mt-1 lowercase">
                       {item.format}
                     </p>
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-gray-400">{item.size}</span>
+                  <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-end">
                     <button
-                      onClick={() => item.fileUrl ? window.open(item.fileUrl, '_blank') : handleDownloadKit(item.title)}
-                      className="px-3.5 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+                      onClick={() => item.fileUrl ? triggerDirectDownload(item.fileUrl, item.title) : handleDownloadKit(item.title)}
+                      className="px-3.5 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <Download size={13} />
                       <span>Unduh Kit</span>
@@ -126,7 +183,7 @@ export default function AssetsPage() {
                   </div>
                 </div>
               );
-            })}
+            }))}
           </div>
         </section>
 

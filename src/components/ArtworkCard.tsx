@@ -54,16 +54,28 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     alert(`Mengunduh karya "${artwork.title}" format (${artwork.format || 'PSD/AI'})...`);
   };
 
+  const [isImgLoaded, setIsImgLoaded] = useState(false);
+
   return (
     <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
       <Link href={`/artwork/${artwork.id}`} className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
         <div className="relative w-full overflow-hidden">
+          {/* Subtle loading placeholder background that matches masonry height */}
+          {!isImgLoaded && (
+            <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+          )}
           <img
             src={imgSrc}
             alt={artwork.title}
-            onError={() => setImgSrc(fallbackImage)}
-            className="w-full h-auto object-contain block group-hover:scale-[1.02] transition-transform duration-300"
+            onLoad={() => setIsImgLoaded(true)}
+            onError={() => {
+              setImgSrc(fallbackImage);
+              setIsImgLoaded(true);
+            }}
+            className={`w-full h-auto object-contain block group-hover:scale-[1.02] transition-all duration-300 ${
+              isImgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+            }`}
             loading="lazy"
           />
           {/* Overlay gradient */}

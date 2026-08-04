@@ -24,14 +24,23 @@ import {
   Sparkles,
   BadgeCheck,
   Flame,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
+
+const ITEMS_PER_PAGE = 8;
 
 export default function AdminDashboardPage() {
   const { artworks, users, twibbons, updateArtwork, deleteArtwork } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus]);
 
   const handleApprove = (id: string) => {
     updateArtwork(id, { status: 'Disetujui' } as any);
@@ -108,6 +117,23 @@ export default function AdminDashboardPage() {
     format: 'PNG Frame',
   }));
 
+  const filteredArtworks = artworks.filter((art) => {
+    const matchesSearch =
+      art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      art.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      art.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (art.region && art.region.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesStatus =
+      filterStatus === 'all' || (art as any).status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredArtworks.length / ITEMS_PER_PAGE));
+  const paginatedArtworks = filteredArtworks.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <>
       {/* Top Header Row */}
@@ -123,6 +149,14 @@ export default function AdminDashboardPage() {
 
         <div className="flex items-center gap-3">
           <Link
+            href="/admin/analytics"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-sm font-bold rounded-xl shadow-sm transition-all"
+          >
+            <TrendingUp size={16} className="text-[#F26522]" />
+            <span>Analisis Trafik & Geo-IP</span>
+          </Link>
+
+          <Link
             href="/upload"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-bold rounded-xl shadow-sm transition-all"
           >
@@ -131,6 +165,7 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
       </div>
+
 
         {/* Stats Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -327,7 +362,6 @@ export default function AdminDashboardPage() {
           </div>
 
         </div>
-
         {/* Artworks Management Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           
@@ -337,7 +371,7 @@ export default function AdminDashboardPage() {
                 Manajemen Moderasi Karya
               </h2>
               <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
-                {artworks.length} Item
+                {filteredArtworks.length} Item
               </span>
             </div>
 
@@ -379,16 +413,8 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {artworks
-                  .filter((art) => {
-                    const matchesSearch =
-                      art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      art.author.name.toLowerCase().includes(searchQuery.toLowerCase());
-                    const matchesStatus =
-                      filterStatus === 'all' || (art as any).status === filterStatus;
-                    return matchesSearch && matchesStatus;
-                  })
-                  .map((artwork) => (
+                {paginatedArtworks.length > 0 ? (
+                  paginatedArtworks.map((artwork) => (
                     <tr key={artwork.id} className="hover:bg-gray-50/60 transition-colors">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
@@ -495,13 +521,70 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
+                      Tidak ada karya yang sesuai dengan kriteria pencarian / filter.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-        </div>
+          {/* Pagination Controls */}
+          {filteredArtworks.length > 0 && (
+            <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 font-medium bg-gray-50/50">
+              <div>
+                Menampilkan <span className="font-bold text-gray-800">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, filteredArtworks.length)}</span> dari <span className="font-bold text-gray-800">{filteredArtworks.length}</span> karya
+              </div>
 
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                          currentPage === pageNum
+                            ? 'bg-[#F26522] text-white shadow-sm'
+                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                  title="Halaman Selanjutnya"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
     </>
   );
 }

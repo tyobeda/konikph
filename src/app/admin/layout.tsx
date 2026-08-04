@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 import {
   LayoutDashboard,
+  BarChart3,
   Image as ImageIcon,
   Users,
   Building,
@@ -25,8 +26,14 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { siteSettings, isMounted, unreadNotificationCount } = useData();
-  const hasCustomAdminLogo = isMounted && siteSettings?.logoAdminUrl && siteSettings.logoAdminUrl !== '/favicon.ico' && siteSettings.logoAdminUrl.startsWith('data:image/');
+  const { siteSettings, isMounted, isSettingsLoaded, unreadNotificationCount } = useData();
+  const hasCustomAdminLogo = Boolean(
+    siteSettings?.logoAdminUrl &&
+    siteSettings.logoAdminUrl !== '/favicon.ico' &&
+    siteSettings.logoAdminUrl.trim() !== ''
+  );
+
+  const isLogoReady = isMounted && isSettingsLoaded;
 
   // Close mobile drawer whenever page navigation changes
   useEffect(() => {
@@ -35,6 +42,7 @@ export default function AdminLayout({
 
   const navLinks = [
     { label: 'Dashboard Overview', href: '/admin', icon: LayoutDashboard },
+    { label: 'Analisis Pengunjung', href: '/admin/analytics', icon: BarChart3 },
     { label: 'Kelola Karya', href: '/admin/artworks', icon: ImageIcon },
     { label: 'Kelola Kreator', href: '/admin/creators', icon: Users },
     { label: 'Kelola DPW', href: '/admin/dpw', icon: Building },
@@ -52,10 +60,10 @@ export default function AdminLayout({
       {/* 📱 MOBILE STICKY HEADER WITH BURGER MENU */}
       <header className="md:hidden sticky top-0 z-50 bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-slate-700/60">
         <Link href="/admin" className="flex items-center gap-2 min-h-[28px]">
-          {!isMounted ? (
+          {hasCustomAdminLogo ? (
+            <img src={siteSettings.logoAdminUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-7 w-auto object-contain" />
+          ) : !isMounted || !isSettingsLoaded ? (
             <div className="h-6 w-20 bg-slate-800 animate-pulse rounded" />
-          ) : hasCustomAdminLogo ? (
-            <img src={siteSettings.logoAdminUrl} alt="Logo Admin" className="h-7 w-auto object-contain" />
           ) : (
             <>
               <div className="w-7 h-7 rounded-full bg-[#F26522] text-white font-black flex items-center justify-center text-[10px]">
@@ -80,7 +88,7 @@ export default function AdminLayout({
 
         {/* Burger Toggle Button */}
         <div className="flex items-center gap-2">
-          <Link href="/notifikasi" className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
+          <Link href="/notifikasi?from=admin" className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
             <Bell size={18} />
             {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />}
           </Link>
@@ -112,10 +120,10 @@ export default function AdminLayout({
           {/* Drawer Header */}
           <div className="p-4 border-b border-slate-700/60 flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-2 min-h-[32px]">
-              {!isMounted ? (
+              {hasCustomAdminLogo ? (
+                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-8 w-auto object-contain" />
+              ) : !isMounted || !isSettingsLoaded ? (
                 <div className="h-7 w-24 bg-slate-800 animate-pulse rounded" />
-              ) : hasCustomAdminLogo ? (
-                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" className="h-8 w-auto object-contain" />
               ) : (
                 <>
                   <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
@@ -174,10 +182,10 @@ export default function AdminLayout({
           {/* Brand Area */}
           <div className="p-5 border-b border-slate-700/60 flex items-center justify-between shrink-0">
             <Link href="/admin" className="flex items-center gap-2 min-h-[36px]">
-              {!isMounted ? (
+              {hasCustomAdminLogo ? (
+                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-9 w-auto object-contain" />
+              ) : !isMounted || !isSettingsLoaded ? (
                 <div className="h-8 w-24 bg-slate-800 animate-pulse rounded" />
-              ) : hasCustomAdminLogo ? (
-                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" className="h-9 w-auto object-contain" />
               ) : (
                 <>
                   <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
@@ -195,9 +203,9 @@ export default function AdminLayout({
               )}
             </Link>
             
-            <Link href="/notifikasi" className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
+            <Link href="/notifikasi?from=admin" className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
               <Bell size={18} />
-              <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />}
             </Link>
           </div>
 

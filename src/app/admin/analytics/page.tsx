@@ -1,0 +1,894 @@
+'use client';
+
+import React, { useState, useEffect, useTransition } from 'react';
+import Link from 'next/link';
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Eye,
+  Globe,
+  MapPin,
+  Smartphone,
+  Monitor,
+  Share2,
+  RefreshCw,
+  Clock,
+  ArrowUpRight,
+  ShieldCheck,
+  Search,
+  Trash2,
+  Sparkles,
+  ExternalLink,
+  ChevronRight,
+  Activity,
+  Layers,
+  Laptop,
+} from 'lucide-react';
+import {
+  getAnalyticsStats,
+  seedSampleAnalyticsData,
+  clearAnalyticsLogs,
+} from '@/actions/analytics';
+
+export default function AdminAnalyticsPage() {
+  const [timeRange, setTimeRange] = useState<'today' | '7d' | '30d' | 'all'>('7d');
+  const [stats, setStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const [searchLogQuery, setSearchLogQuery] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  const [showClearModal, setShowClearModal] = useState(false);
+
+  const fetchStats = async (range = timeRange) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/analytics?range=${range}&t=${Date.now()}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStats(json.data);
+        return;
+      }
+      const serverRes = await getAnalyticsStats(range);
+      if (serverRes.success && serverRes.data) {
+        setStats(serverRes.data);
+      }
+    } catch (e) {
+      console.error(e);
+      try {
+        const serverRes = await getAnalyticsStats(range);
+        if (serverRes.success && serverRes.data) {
+          setStats(serverRes.data);
+        }
+      } catch (err) {}
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats(timeRange);
+  }, [timeRange]);
+
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const handleSeedData = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'seed', count: 25, range: timeRange }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStats(json.data);
+        triggerToast(`+${json.count || 25} data kunjungan simulasi baru berhasil ditambahkan!`);
+        return;
+      }
+      const serverRes = await seedSampleAnalyticsData(25);
+      if (serverRes.success) {
+        if (serverRes.data) setStats(serverRes.data);
+        else await fetchStats(timeRange);
+        triggerToast(`+${serverRes.count || 25} data kunjungan simulasi baru berhasil ditambahkan!`);
+      }
+    } catch (e) {
+      alert('Gagal membuat data simulasi.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    setIsLoading(true);
+    setShowClearModal(false);
+    try {
+      const res = await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear', range: timeRange }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStats(json.data);
+        triggerToast('Seluruh log analitik berhasil dibersihkan.');
+        return;
+      }
+      const serverRes = await clearAnalyticsLogs();
+      if (serverRes.success) {
+        if (serverRes.data) setStats(serverRes.data);
+        else await fetchStats(timeRange);
+        triggerToast('Seluruh log analitik berhasil dibersihkan.');
+      }
+    } catch (e) {
+      alert('Gagal membersihkan data.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
+  const getSourceBadgeColor = (source: string) => {
+    const s = source.toLowerCase();
+    if (s.includes('instagram')) return 'bg-pink-50 text-pink-700 border-pink-200';
+    if (s.includes('whatsapp')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (s.includes('google')) return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (s.includes('tiktok')) return 'bg-slate-900 text-white border-slate-700';
+    if (s.includes('facebook')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    if (s.includes('twitter') || s.includes('x')) return 'bg-gray-100 text-gray-800 border-gray-300';
+    if (s.includes('direct')) return 'bg-orange-50 text-[#F26522] border-orange-200';
+    return 'bg-gray-50 text-gray-700 border-gray-200';
+  };
+
+  const formatRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffSec < 60) return `${diffSec} dtk lalu`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} mnt lalu`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour} jam lalu`;
+    const diffDay = Math.floor(diffHour / 24);
+    return `${diffDay} hari lalu`;
+  };
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchLogQuery, timeRange]);
+
+  const filteredLogs = stats?.recentLogs?.filter((log: any) => {
+    if (!searchLogQuery) return true;
+    const q = searchLogQuery.toLowerCase();
+    return (
+      log.path?.toLowerCase().includes(q) ||
+      log.ip?.toLowerCase().includes(q) ||
+      log.region?.toLowerCase().includes(q) ||
+      log.city?.toLowerCase().includes(q) ||
+      log.source?.toLowerCase().includes(q) ||
+      log.device?.toLowerCase().includes(q) ||
+      log.browser?.toLowerCase().includes(q)
+    );
+  }) || [];
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
+  const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const mobileViews = stats?.devices?.find((d: any) => d.name === 'Mobile')?.count || 0;
+  const desktopViews = stats?.devices?.find((d: any) => d.name === 'Desktop')?.count || 0;
+  const mobilePercent = stats?.totalViews > 0 ? Math.round((mobileViews / stats.totalViews) * 100) : 75;
+
+  return (
+    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans">
+      
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#1E293B] text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-bottom-2">
+          <Sparkles className="text-amber-400" size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 text-[#F26522] flex items-center justify-center font-bold shadow-inner">
+              <BarChart3 size={22} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+                Analisis Trafik & Pengunjung
+              </h1>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Pantau asal rujukan trafik, sebaran geolokasi IP provinsi & negara, serta performa konten real-time.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls & Period Selector */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center bg-gray-100 p-1 rounded-2xl border border-gray-200/80">
+            {(['today', '7d', '30d', 'all'] as const).map((r) => {
+              const labels = {
+                today: 'Hari Ini',
+                '7d': '7 Hari',
+                '30d': '30 Hari',
+                all: 'Semua',
+              };
+              const active = timeRange === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => setTimeRange(r)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    active
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {labels[r]}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => fetchStats()}
+            disabled={isLoading}
+            className="p-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-600 hover:text-gray-900 transition-colors shadow-sm"
+            title="Refresh Data"
+          >
+            <RefreshCw size={16} className={isLoading ? 'animate-spin text-[#F26522]' : ''} />
+          </button>
+
+          <button
+            onClick={handleSeedData}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-xs font-bold rounded-xl transition-all shadow-sm disabled:opacity-50"
+          >
+            <Sparkles size={14} className={isLoading ? 'animate-spin' : ''} />
+            <span>{isLoading ? 'Menambahkan Data...' : '+ Simulasi 25 Kunjungan'}</span>
+          </button>
+
+
+          <button
+            onClick={() => setShowClearModal(true)}
+            className="p-2.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-rose-600 transition-colors shadow-sm"
+            title="Bersihkan Log Analitik"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* KPI Metrics Overview (4 Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Total Page Views */}
+        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Total Tayangan (Views)
+            </p>
+            <div className="w-9 h-9 rounded-xl bg-orange-50 text-[#F26522] flex items-center justify-center">
+              <Eye size={18} />
+            </div>
+          </div>
+          <div className="mt-3">
+            <h3 className="text-3xl font-black text-gray-900">
+              {stats?.totalViews?.toLocaleString() || 0}
+            </h3>
+            <p className="text-[11px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
+              <TrendingUp size={12} />
+              <span>Semua halaman terakumulasi</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2: Unique Visitors */}
+        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Pengunjung Unik (IP)
+            </p>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Users size={18} />
+            </div>
+          </div>
+          <div className="mt-3">
+            <h3 className="text-3xl font-black text-gray-900">
+              {stats?.uniqueVisitors?.toLocaleString() || 0}
+            </h3>
+            <p className="text-[11px] font-medium text-blue-600 mt-1">
+              Berdasarkan IP unik pengunjung
+            </p>
+          </div>
+        </div>
+
+        {/* Card 3: Today's Page Views */}
+        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Kunjungan Hari Ini
+            </p>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Activity size={18} />
+            </div>
+          </div>
+          <div className="mt-3">
+            <h3 className="text-3xl font-black text-gray-900">
+              {stats?.todayCount?.toLocaleString() || 0}
+            </h3>
+            <p className="text-[11px] font-medium text-gray-400 mt-1">
+              Sejak pukul 00:00 WIB
+            </p>
+          </div>
+        </div>
+
+        {/* Card 4: Mobile vs Desktop */}
+        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Pengguna Smartphone
+            </p>
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <Smartphone size={18} />
+            </div>
+          </div>
+          <div className="mt-3">
+            <h3 className="text-3xl font-black text-gray-900">
+              {mobilePercent}%
+            </h3>
+            <p className="text-[11px] font-medium text-purple-600 mt-1 flex items-center gap-2">
+              <span>{mobileViews} HP</span>
+              <span>•</span>
+              <span>{desktopViews} Komputer</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Visual Chart: Daily Views & Visitors Trend */}
+      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-base font-extrabold text-gray-900">
+              Grafik Tren Kunjungan Harian
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Perbandingan total tayangan halaman (*Page Views*) dan pengunjung unik per hari.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-xs font-semibold">
+            <div className="flex items-center gap-1.5 text-gray-600">
+              <span className="w-3 h-3 rounded bg-[#F26522] inline-block" />
+              <span>Page Views</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-gray-600">
+              <span className="w-3 h-3 rounded bg-blue-500 inline-block" />
+              <span>Pengunjung Unik</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bar Chart Representation */}
+        <div className="pt-4">
+          {stats?.viewsTrend && stats.viewsTrend.length > 0 ? (
+            <div className="grid grid-cols-7 gap-2 sm:gap-4 items-end h-56 pt-6 border-b border-gray-100 pb-2">
+              {stats.viewsTrend.map((item: any, idx: number) => {
+                const maxVal = Math.max(
+                  ...stats.viewsTrend.map((t: any) => t.views),
+                  10
+                );
+                const viewHeightPercent = Math.min(
+                  Math.round((item.views / maxVal) * 100),
+                  100
+                );
+                const visitorHeightPercent = Math.min(
+                  Math.round((item.visitors / maxVal) * 100),
+                  100
+                );
+
+                return (
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center gap-2 h-full justify-end group relative"
+                  >
+                    {/* Tooltip on Hover */}
+                    <div className="absolute -top-12 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-20 whitespace-nowrap">
+                      {item.date}: {item.views} Views ({item.visitors} Unik)
+                    </div>
+
+                    <div className="w-full flex items-end justify-center gap-1 h-full">
+                      {/* Bar Views */}
+                      <div
+                        style={{ height: `${Math.max(viewHeightPercent, 6)}%` }}
+                        className="w-1/2 max-w-[28px] bg-[#F26522] hover:bg-[#d85517] rounded-t-lg transition-all shadow-sm"
+                      />
+                      {/* Bar Visitors */}
+                      <div
+                        style={{ height: `${Math.max(visitorHeightPercent, 4)}%` }}
+                        className="w-1/2 max-w-[28px] bg-blue-500/80 hover:bg-blue-600 rounded-t-lg transition-all shadow-sm"
+                      />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-500 truncate w-full text-center">
+                      {item.date}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-44 flex items-center justify-center text-xs text-gray-400 font-medium">
+              Belum ada data grafik untuk periode ini.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Grid 2 Columns: Traffic Sources & Geo Provinces */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* SECTION 1: Asal Trafik (Traffic Channels / Referrer) */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F26522] flex items-center justify-center">
+                  <Share2 size={16} />
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-gray-900">
+                    Asal Saluran Trafik (Referrer)
+                  </h2>
+                  <p className="text-[11px] text-gray-400">
+                    Dari mana pengunjung datang ke website PKSart
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 mt-4">
+              {stats?.sources && stats.sources.length > 0 ? (
+                stats.sources.map((item: any, idx: number) => (
+                  <div key={idx} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 font-bold text-gray-400 text-[11px]">
+                          #{idx + 1}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${getSourceBadgeColor(item.name)}`}>
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 font-bold text-gray-700">
+                        <span>{item.count} kunjungan</span>
+                        <span className="text-gray-400 font-normal">
+                          ({item.percentage}%)
+                        </span>
+                      </div>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${item.percentage}%` }}
+                        className="h-full bg-gradient-to-r from-orange-400 to-[#F26522] rounded-full transition-all"
+                      />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 py-8 text-center">
+                  Belum ada rekaman saluran trafik.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 2: Sebaran Geografis Wilayah Indonesia (Provinsi) */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-gray-900">
+                    Sebaran Provinsi Pengunjung
+                  </h2>
+                  <p className="text-[11px] text-gray-400">
+                    Top 10 Provinsi di Indonesia berdasarkan IP Geo-Location
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 mt-4">
+              {stats?.provinces && stats.provinces.length > 0 ? (
+                stats.provinces.map((item: any, idx: number) => (
+                  <div key={idx} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 font-bold text-gray-400 text-[11px]">
+                          #{idx + 1}
+                        </span>
+                        <span className="font-bold text-gray-800">
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 font-bold text-gray-700">
+                        <span>{item.count} views</span>
+                        <span className="text-gray-400 font-normal">
+                          ({item.percentage}%)
+                        </span>
+                      </div>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${item.percentage}%` }}
+                        className="h-full bg-gradient-to-r from-emerald-400 to-teal-600 rounded-full transition-all"
+                      />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 py-8 text-center">
+                  Belum ada data geolokasi wilayah.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Grid 2 Columns: Top Pages & Devices Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* SECTION 3: Halaman Paling Sering Dikunjungi */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Layers size={16} />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-gray-900">
+                  Halaman Paling Populer (Top Pages)
+                </h2>
+                <p className="text-[11px] text-gray-400">
+                  Konten dan landing page yang paling diminati pengunjung
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-100 mt-2">
+            {stats?.topPages && stats.topPages.length > 0 ? (
+              stats.topPages.map((page: any, idx: number) => (
+                <div key={idx} className="py-3 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="font-bold text-gray-400 text-xs w-5">
+                      #{idx + 1}
+                    </span>
+                    <Link
+                      href={page.name}
+                      target="_blank"
+                      className="font-mono text-gray-800 hover:text-[#F26522] truncate transition-colors flex items-center gap-1"
+                    >
+                      <span>{page.name === '/' ? '/ (Beranda Utama)' : page.name}</span>
+                      <ExternalLink size={11} className="text-gray-400" />
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 font-bold">
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-[11px]">
+                      {page.count} views
+                    </span>
+                    <span className="text-gray-400 text-[11px] w-8 text-right">
+                      {page.percentage}%
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-gray-400 py-6 text-center">
+                Belum ada data halaman.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* SECTION 4: Perangkat, Browser & OS */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <Laptop size={16} />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-gray-900">
+                  Perangkat & Browser Pengunjung
+                </h2>
+                <p className="text-[11px] text-gray-400">
+                  Kategori browser, OS, dan rasio hardware
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            {/* Devices */}
+            <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Tipe Perangkat
+              </p>
+              <div className="space-y-2">
+                {stats?.devices?.map((d: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-gray-700">{d.name}</span>
+                    <span className="font-bold text-gray-900">{d.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Browsers */}
+            <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Browser
+              </p>
+              <div className="space-y-2">
+                {stats?.browsers?.slice(0, 4).map((b: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-gray-700">{b.name}</span>
+                    <span className="font-bold text-gray-900">{b.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* OS */}
+            <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Sistem Operasi
+              </p>
+              <div className="space-y-2">
+                {stats?.operatingSystems?.slice(0, 4).map((o: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-gray-700">{o.name}</span>
+                    <span className="font-bold text-gray-900">{o.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Negara Pengunjung */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">
+              Negara Asal Pengunjung
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {stats?.countries?.map((c: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200/80 rounded-xl text-xs flex items-center gap-1.5 font-bold text-gray-800"
+                >
+                  <span>{c.name === 'Indonesia' ? '🇮🇩' : '🌐'}</span>
+                  <span>{c.name}</span>
+                  <span className="text-gray-400 font-normal">({c.count})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* SECTION 5: Real-Time Live Activity Stream / Table */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <h2 className="text-base font-extrabold text-gray-900">
+                Log Kunjungan Pengunjung Real-Time
+              </h2>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Daftar aktivitas penjelajahan halaman terbaru dari setiap pengunjung
+            </p>
+          </div>
+
+          {/* Search Box in Table */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
+            <input
+              type="text"
+              placeholder="Cari IP, rute, kota, provinsi..."
+              value={searchLogQuery}
+              onChange={(e) => setSearchLogQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#F26522]"
+            />
+          </div>
+        </div>
+
+        {/* Table Container */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50/75 text-gray-500 font-bold border-b border-gray-100 uppercase tracking-wider text-[10px]">
+              <tr>
+                <th className="py-3 px-5">Waktu</th>
+                <th className="py-3 px-5">IP & Perangkat</th>
+                <th className="py-3 px-5">Lokasi (Geo-IP)</th>
+                <th className="py-3 px-5">Halaman Dibuka</th>
+                <th className="py-3 px-5">Asal Referer</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-gray-700">
+              {paginatedLogs.length > 0 ? (
+                paginatedLogs.map((log: any) => (
+                  <tr key={log.id} className="hover:bg-gray-50/80 transition-colors">
+                    
+                    {/* Waktu */}
+                    <td className="py-3.5 px-5 whitespace-nowrap">
+                      <div className="font-semibold text-gray-900">
+                        {formatRelativeTime(log.createdAt)}
+                      </div>
+                      <div className="text-[10px] text-gray-400 font-mono">
+                        {new Date(log.createdAt).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </div>
+                    </td>
+
+                    {/* IP & Perangkat */}
+                    <td className="py-3.5 px-5 whitespace-nowrap">
+                      <div className="font-mono font-bold text-gray-900">
+                        {log.ip}
+                      </div>
+                      <div className="text-[11px] text-gray-500 flex items-center gap-1.5 mt-0.5">
+                        <span>{log.device}</span>
+                        <span>•</span>
+                        <span>{log.browser} ({log.os})</span>
+                      </div>
+                    </td>
+
+                    {/* Lokasi */}
+                    <td className="py-3.5 px-5 whitespace-nowrap">
+                      <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                        <span>{log.country === 'Indonesia' ? '🇮🇩' : '🌐'}</span>
+                        <span>{log.region}</span>
+                      </div>
+                      <div className="text-[11px] text-gray-500">
+                        {log.city || 'Indonesia'}
+                      </div>
+                    </td>
+
+                    {/* Halaman Dibuka */}
+                    <td className="py-3.5 px-5 max-w-[200px] truncate">
+                      <Link
+                        href={log.path}
+                        target="_blank"
+                        className="font-mono text-gray-900 hover:text-[#F26522] font-semibold flex items-center gap-1 truncate"
+                      >
+                        <span className="truncate">{log.path}</span>
+                        <ExternalLink size={11} className="text-gray-400 shrink-0" />
+                      </Link>
+                    </td>
+
+                    {/* Referer */}
+                    <td className="py-3.5 px-5 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${getSourceBadgeColor(log.source)}`}>
+                        {log.source}
+                      </span>
+                    </td>
+
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-gray-400">
+                    Tidak ada log kunjungan yang sesuai dengan pencarian.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
+          <div className="text-gray-500 font-medium">
+            Menampilkan <span className="font-bold text-gray-800">{filteredLogs.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * itemsPerPage, filteredLogs.length)}</span> dari <span className="font-bold text-gray-800">{filteredLogs.length}</span> log aktivitas
+          </div>
+
+          <div className="flex items-center gap-1.5 font-bold">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+            >
+              &larr; Prev
+            </button>
+
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                    currentPage === page
+                      ? 'bg-[#F26522] text-white shadow-sm'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || filteredLogs.length === 0}
+              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+            >
+              Next &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Clear Logs Confirmation Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-gray-100 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <Trash2 size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-gray-900">
+                Bersihkan Semua Log Analitik?
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Tindakan ini akan menghapus riwayat log kunjungan pengunjung secara permanen dari database.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearModal(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleClearLogs}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition-colors"
+              >
+                Ya, Bersihkan Log
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

@@ -27,6 +27,7 @@ export interface Artwork {
   commentsCount: number;
   downloadsCount: number;
   stampsCount?: number;
+  authorId?: string | null;
   author: any; // Using any or specific Prisma relation type to bypass nested issues for now
   createdAt: string | Date;
   aspectRatio?: 'square' | 'portrait' | 'landscape';
@@ -80,9 +81,9 @@ export interface BrandKit {
   title: string;
   category: string;
   format: string;
-  size: string;
   iconType: string;
   color: string;
   fileUrl: string;
+  previewUrl?: string | null;
   createdAt: string;
 }

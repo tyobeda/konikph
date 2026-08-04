@@ -8,25 +8,37 @@ interface PksLogoProps {
 }
 
 export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md' }) => {
-  const { siteSettings, isMounted } = useData();
+  const { siteSettings, isMounted, isSettingsLoaded } = useData();
+  const [imageFailed, setImageFailed] = React.useState(false);
   const iconSize = size === 'sm' ? 28 : size === 'lg' ? 44 : 36;
   const textSize = size === 'sm' ? 'text-lg' : size === 'lg' ? 'text-2xl' : 'text-xl';
 
-  const hasCustomLogo = isMounted && siteSettings?.logoUrl && siteSettings.logoUrl !== '/favicon.ico' && siteSettings.logoUrl.startsWith('data:image/');
+  const hasCustomLogo = Boolean(
+    siteSettings?.logoUrl &&
+    siteSettings.logoUrl !== '/favicon.ico' &&
+    siteSettings.logoUrl.trim() !== '' &&
+    !imageFailed
+  );
+
+  const isReady = isMounted && isSettingsLoaded;
 
   return (
     <Link href="/" className={`inline-flex items-center gap-2 font-bold tracking-tight select-none ${className}`}>
-      {/* Logo Image or Circular Emblem */}
       {hasCustomLogo ? (
         <img
           src={siteSettings.logoUrl}
           alt={siteSettings.siteName || 'PKSart'}
+          onError={() => setImageFailed(true)}
+          fetchPriority="high"
+          decoding="sync"
           className="object-contain h-auto"
           style={{ 
             height: size === 'sm' ? '28px' : size === 'lg' ? '48px' : '40px',
             maxWidth: '180px'
           }}
         />
+      ) : !isReady ? (
+        <div className="bg-gray-200 animate-pulse rounded" style={{ width: iconSize, height: iconSize }} />
       ) : (
         <>
           {/* PKS Emblem Circle */}

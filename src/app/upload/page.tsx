@@ -27,6 +27,7 @@ export default function UploadPage() {
   const [category, setCategory] = useState(CATEGORIES[0] || 'Poster');
   const [region, setRegion] = useState(REGIONS[1] || 'DPW Jawa Barat');
   const [fileFormat, setFileFormat] = useState('PSD');
+  const [downloadUrl, setDownloadUrl] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [compressionInfo, setCompressionInfo] = useState<CompressionResult | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
@@ -38,11 +39,14 @@ export default function UploadPage() {
     if (file) {
       setIsCompressing(true);
       try {
-        const result = await compressImageFile(file, 2, 1920, 0.85);
-        setPreviewUrl(result.dataUrl);
-        setCompressionInfo(result);
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Upload gagal');
+        setPreviewUrl(data.url);
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file gambar.');
+        alert(err.message || 'Gagal upload file gambar.');
       } finally {
         setIsCompressing(false);
       }
@@ -58,7 +62,7 @@ export default function UploadPage() {
         title,
         description,
         imageUrl: previewUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800',
-        downloadUrl: '#',
+        downloadUrl: downloadUrl || '#',
         category,
         region,
         format: fileFormat,
@@ -134,9 +138,9 @@ export default function UploadPage() {
                       {compressionInfo && (
                         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
                           {compressionInfo.isCompressed ? (
-                            <span>⚡ Kompresi Sukses: {compressionInfo.originalSizeMb}MB → {compressionInfo.compressedSizeMb}MB (Maks 2MB)</span>
+                            <span>Kompresi Sukses: {Math.round(compressionInfo.originalSizeMb * 1024)}kb → {Math.round(compressionInfo.compressedSizeMb * 1024)}kb (Maks 2048kb)</span>
                           ) : (
-                            <span>✨ Ukuran Optimal: {compressionInfo.originalSizeMb}MB (Maks 2MB)</span>
+                            <span>{Math.round(compressionInfo.compressedSizeMb * 1024)}kb (Maks 2048kb)</span>
                           )}
                         </div>
                       )}
@@ -212,13 +216,62 @@ export default function UploadPage() {
               {/* Source Format */}
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Format File Master (Yang disertakan untuk diunduh)
+                  Format File Master (Opsional)
+                </label>
+                <div className="space-y-3">
+                  <select
+                    value={fileFormat === '' ? 'NONE' : ['PSD', 'AI', 'CDR'].includes(fileFormat) ? fileFormat : 'CUSTOM'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'CUSTOM') {
+                        setFileFormat('CUSTOM_VAL');
+                      } else if (val === 'NONE') {
+                        setFileFormat('');
+                      } else {
+                        setFileFormat(val);
+                      }
+                    }}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
+                  >
+                    <option value="NONE">Hanya Gambar (JPG/PNG - Tanpa File Master)</option>
+                    <option value="PSD">PSD (Photoshop)</option>
+                    <option value="AI">AI (Illustrator)</option>
+                    <option value="CDR">CDR (CorelDraw)</option>
+                    <option value="CUSTOM">Format Kustom / Lainnya...</option>
+                  </select>
+
+                  {!['', 'PSD', 'AI', 'CDR'].includes(fileFormat) && (
+                    <div className="flex gap-2 animate-fadeIn">
+                      <input
+                        type="text"
+                        value={fileFormat === 'CUSTOM_VAL' ? '' : fileFormat}
+                        onChange={(e) => setFileFormat(e.target.value.toUpperCase())}
+                        placeholder="Masukkan format kustom, contoh: CANVA, FIGMA, INDD"
+                        className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-semibold"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFileFormat('')}
+                        className="px-3 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Download URL Input (Link Download) */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Tautan File Master / Tautan Berbagi <span className="text-gray-400 font-normal">(Misal: Link Canva, Google Drive, dll.)</span>
                 </label>
                 <input
-                  type="text"
-                  value={fileFormat}
-                  onChange={(e) => setFileFormat(e.target.value)}
-                  placeholder="Contoh: PSD / AI / CDR / CANVA"
+                  type="url"
+                  value={downloadUrl}
+                  onChange={(e) => setDownloadUrl(e.target.value)}
+                  placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-medium"
                 />
               </div>

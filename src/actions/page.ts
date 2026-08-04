@@ -15,6 +15,21 @@ export async function getCustomPages() {
   }
 }
 
+export async function getCustomPageBySlug(slug: string, useRootPath?: boolean) {
+  try {
+    const where: any = { slug: { equals: slug, mode: 'insensitive' }, published: true };
+    if (useRootPath !== undefined) {
+      where.useRootPath = useRootPath;
+    }
+    const page = await prisma.customPage.findFirst({ where });
+    if (!page) return { success: true, data: null };
+    return { success: true, data: { ...page, createdAt: page.createdAt?.toISOString() || new Date().toISOString(), updatedAt: page.updatedAt?.toISOString() || new Date().toISOString() } };
+  } catch (error) {
+    console.error('Error fetching custom page by slug:', error);
+    return { success: false, error: 'Failed to fetch page' };
+  }
+}
+
 export async function addCustomPage(data: any) {
   try {
     const page = await prisma.customPage.create({

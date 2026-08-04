@@ -22,7 +22,17 @@ import { useData } from '@/context/DataContext';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { registerUser, users } = useData();
+  const { registerUser, users, currentUser, isMounted } = useData();
+
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
+        router.replace('/admin');
+      } else {
+        router.replace('/');
+      }
+    }
+  }, [currentUser, router]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -134,6 +144,17 @@ export default function RegisterPage() {
       setErrorMessage(res?.message || 'Gagal mendaftar ke server.');
     }
   };
+
+  if (!isMounted || currentUser) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
+          <span className="text-sm font-semibold text-gray-500">Memeriksa sesi...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 font-sans">

@@ -25,6 +25,7 @@ model User {
   createdAt     DateTime       @default(now())
   notifications Notification[]
   twibbonFrames TwibbonFrame[]
+  twibbonFavorites TwibbonFavorite[]
 }
 
 model Artwork {
@@ -105,6 +106,7 @@ model TwibbonFrame {
   isFeatured Boolean  @default(false)
   authorId   String
   author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  favorites  TwibbonFavorite[]
   createdAt  DateTime @default(now())
 }
 
@@ -118,6 +120,7 @@ model DpwOffice {
   address        String
   activeCreators Int      @default(0)
   totalArtworks  Int      @default(0)
+  isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -133,15 +136,15 @@ model ArtworkReport {
 }
 
 model BrandKit {
-  id        String   @id @default(uuid())
-  title     String
-  category  String
-  format    String
-  size      String
-  iconType  String
-  color     String
-  fileUrl   String
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  title      String
+  category   String
+  format     String
+  iconType   String
+  color      String
+  fileUrl    String
+  previewUrl String?
+  createdAt  DateTime @default(now())
 }
 
 model SiteSettings {
@@ -166,3 +169,46 @@ model SiteSettings {
   ctaLinks        String?  // Store serialized JSON array of links
   updatedAt       DateTime @updatedAt
 }
+
+model PageView {
+  id          String   @id @default(uuid())
+  path        String   // e.g. "/", "/explore", "/twibbon"
+  referrer    String?  // e.g. "https://instagram.com", "https://google.com"
+  source      String   @default("Direct") // "Direct", "Google", "Instagram", "WhatsApp", "Facebook", "TikTok", "Twitter / X", "Lainnya"
+  ip          String?
+  country     String   @default("Indonesia")
+  countryCode String   @default("ID")
+  region      String   @default("DKI Jakarta") // Provinsi
+  city        String   @default("Jakarta")     // Kota/Kabupaten
+  device      String   @default("Mobile")      // "Mobile", "Desktop", "Tablet"
+  browser     String   @default("Chrome")      // "Chrome", "Safari", "Edge", "Firefox", etc.
+  os          String   @default("Android")     // "Android", "iOS", "Windows", "macOS"
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([source])
+  @@index([region])
+}
+
+model TwibbonFavorite {
+  id        String   @id @default(uuid())
+  userId    String
+  twibbonId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  twibbon   TwibbonFrame @relation(fields: [twibbonId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, twibbonId])
+}
+
+model ResetRequest {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  status    String   @default("Pending") // "Pending", "Selesai"
+  createdAt DateTime @default(now())
+}
+
+

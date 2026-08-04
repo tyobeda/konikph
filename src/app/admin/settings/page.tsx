@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -30,17 +30,19 @@ import { PksLogo } from '@/components/PksLogo';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
+import { getCustomPageBySlug, addCustomPage, updateCustomPage } from '@/actions/page';
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
   const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'resource' | 'backup' | 'danger'>('identity');
 
-  const [siteName, setSiteName] = useState(siteSettings.siteName);
-  const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription);
-  const [logoPreview, setLogoPreview] = useState(siteSettings.logoUrl);
-  const [logoAdminPreview, setLogoAdminPreview] = useState(siteSettings.logoAdminUrl || siteSettings.logoUrl);
-  const [logoFooterPreview, setLogoFooterPreview] = useState(siteSettings.logoFooterUrl || siteSettings.logoUrl);
-  const [faviconPreview, setFaviconPreview] = useState(siteSettings.faviconUrl);
+  const [siteName, setSiteName] = useState(siteSettings.siteName || '');
+  const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription || '');
+  const [logoPreview, setLogoPreview] = useState(siteSettings.logoUrl || '');
+  const [logoAdminPreview, setLogoAdminPreview] = useState(siteSettings.logoAdminUrl || '');
+  const [logoFooterPreview, setLogoFooterPreview] = useState(siteSettings.logoFooterUrl || '');
+  const [faviconPreview, setFaviconPreview] = useState(siteSettings.faviconUrl || '/favicon.ico');
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
 
   // CTA States
   const [ctaTitle, setCtaTitle] = useState(siteSettings.ctaTitle || '');
@@ -54,17 +56,14 @@ export default function AdminSettingsPage() {
   const [ctaLinks, setCtaLinks] = useState<{ label: string; url: string }[]>(siteSettings.ctaLinks || []);
   const [ctaSocialText, setCtaSocialText] = useState(siteSettings.ctaSocialText || '');
   const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
-
-  // Sync state when siteSettings is loaded or updated
   useEffect(() => {
     if (siteSettings) {
-      setSiteName(siteSettings.siteName);
-      setSiteDescription(siteSettings.siteDescription);
-      setLogoPreview(siteSettings.logoUrl);
-      setLogoAdminPreview(siteSettings.logoAdminUrl || siteSettings.logoUrl);
-      setLogoFooterPreview(siteSettings.logoFooterUrl || siteSettings.logoUrl);
-      setFaviconPreview(siteSettings.faviconUrl);
-
+      setSiteName(siteSettings.siteName || '');
+      setSiteDescription(siteSettings.siteDescription || '');
+      setLogoPreview(siteSettings.logoUrl || '');
+      setLogoAdminPreview(siteSettings.logoAdminUrl || '');
+      setLogoFooterPreview(siteSettings.logoFooterUrl || '');
+      setFaviconPreview(siteSettings.faviconUrl || '/favicon.ico');
       setCtaTitle(siteSettings.ctaTitle || '');
       setCtaDescription(siteSettings.ctaDescription || '');
       setCtaButtonText(siteSettings.ctaButtonText || '');
@@ -78,23 +77,28 @@ export default function AdminSettingsPage() {
       setCtaSocialUrl(siteSettings.ctaSocialUrl || '');
     }
   }, [siteSettings]);
-
   // Welcome Popup Configuration State
   const [initialPopupConfig, setInitialPopupConfig] = useState(DEFAULT_WELCOME_POPUP);
   const [popupConfig, setPopupConfig] = useState(DEFAULT_WELCOME_POPUP);
   const [showUnsavedConfirmModal, setShowUnsavedConfirmModal] = useState(false);
 
+  const [popupPageId, setPopupPageId] = useState<string | null>(null);
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('pksart_welcome_popup');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setInitialPopupConfig(parsed);
-          setPopupConfig(parsed);
-        } catch (e) {}
+    const fetchConfig = async () => {
+      const res = await getCustomPageBySlug('system-welcome-popup');
+      if (res.success && res.data) {
+        setPopupPageId(res.data.id);
+        if (res.data.content) {
+          try {
+            const parsed = JSON.parse(res.data.content);
+            setInitialPopupConfig(parsed);
+            setPopupConfig(parsed);
+          } catch(e) {}
+        }
       }
-    }
+    };
+    fetchConfig();
   }, []);
 
   const isPopupDirty = JSON.stringify(popupConfig) !== JSON.stringify(initialPopupConfig);
@@ -122,15 +126,24 @@ export default function AdminSettingsPage() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Upload gagal');
+    return data.url;
+  };
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 512, 0.9);
-        setLogoPreview(result.dataUrl);
-        triggerToast('Logo Utama berhasil dipilih!');
+        const url = await uploadFile(file);
+        setLogoPreview(url);
+        triggerToast('Logo Utama berhasil diupload! Klik "Simpan" untuk menerapkan.');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file logo.');
+        alert(err.message || 'Gagal upload logo.');
       }
     }
   };
@@ -139,11 +152,11 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 512, 0.9);
-        setLogoAdminPreview(result.dataUrl);
-        triggerToast('Logo Admin (Warna Terang) berhasil dipilih!');
+        const url = await uploadFile(file);
+        setLogoAdminPreview(url);
+        triggerToast('Logo Admin berhasil diupload! Klik "Simpan" untuk menerapkan.');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file logo.');
+        alert(err.message || 'Gagal upload logo.');
       }
     }
   };
@@ -152,11 +165,11 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 512, 0.9);
-        setLogoFooterPreview(result.dataUrl);
-        triggerToast('Logo Putih (Footer) berhasil dipilih!');
+        const url = await uploadFile(file);
+        setLogoFooterPreview(url);
+        triggerToast('Logo Footer berhasil diupload! Klik "Simpan" untuk menerapkan.');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file logo.');
+        alert(err.message || 'Gagal upload logo.');
       }
     }
   };
@@ -165,39 +178,47 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 1, 64, 0.9);
-        setFaviconPreview(result.dataUrl);
-        triggerToast('Favicon baru berhasil dipilih!');
+        const url = await uploadFile(file);
+        setFaviconPreview(url);
+        triggerToast('Favicon berhasil diupload! Klik "Simpan" untuk menerapkan.');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file favicon.');
+        alert(err.message || 'Gagal upload favicon.');
       }
     }
   };
 
-  const handleSaveGeneral = (e: React.FormEvent) => {
+  const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateSiteSettings({
-      siteName,
-      siteDescription,
-      logoUrl: logoPreview,
-      logoAdminUrl: logoAdminPreview,
-      logoFooterUrl: logoFooterPreview,
-      faviconUrl: faviconPreview,
-    });
-    setIsSaved(true);
-    triggerToast('Pengaturan identitas situs berhasil disimpan!');
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSavingGeneral(true);
+    try {
+      await updateSiteSettings({
+        siteName,
+        siteDescription,
+        logoUrl: logoPreview,
+        logoAdminUrl: logoAdminPreview,
+        logoFooterUrl: logoFooterPreview,
+        faviconUrl: faviconPreview,
+      });
+      setIsSaved(true);
+      triggerToast('Pengaturan identitas situs berhasil disimpan permanen!');
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err: any) {
+      alert('Gagal menyimpan identitas situs: ' + (err?.message || 'Error'));
+    } finally {
+      setIsSavingGeneral(false);
+    }
   };
+
 
   const handleCtaLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 512, 0.9);
-        setCtaLogoPreview(result.dataUrl);
-        triggerToast('Logo Banner CTA berhasil dipilih!');
+        const url = await uploadFile(file);
+        setCtaLogoPreview(url);
+        triggerToast('Logo Banner CTA berhasil diupload!');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file logo.');
+        alert(err.message || 'Gagal upload logo.');
       }
     }
   };
@@ -206,11 +227,11 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 800, 0.85);
-        setCtaImagePreview(result.dataUrl);
-        triggerToast('Gambar Banner CTA berhasil dipilih!');
+        const url = await uploadFile(file);
+        setCtaImagePreview(url);
+        triggerToast('Gambar Banner CTA berhasil diupload!');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses gambar banner.');
+        alert(err.message || 'Gagal upload gambar.');
       }
     }
   };
@@ -219,15 +240,14 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 1920, 0.8);
-        setCtaBgPreview(result.dataUrl);
-        triggerToast('Background Banner CTA berhasil dipilih!');
+        const url = await uploadFile(file);
+        setCtaBgPreview(url);
+        triggerToast('Background Banner CTA berhasil diupload!');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses background banner.');
+        alert(err.message || 'Gagal upload background.');
       }
     }
   };
-
   const handleSaveCta = (e: React.FormEvent) => {
     e.preventDefault();
     updateSiteSettings({
@@ -248,26 +268,57 @@ export default function AdminSettingsPage() {
     setTimeout(() => setIsSaved(false), 3000);
   };
 
-  const handleSavePopupConfig = (e: React.FormEvent) => {
+  const [isSavingPopup, setIsSavingPopup] = useState(false);
+
+  const handleSavePopupConfig = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('pksart_welcome_popup', JSON.stringify(popupConfig));
-    sessionStorage.removeItem('pksart_popup_dismissed');
-    setInitialPopupConfig(popupConfig);
-    triggerToast('Pengaturan Welcome Pop-up berhasil disimpan & diperbarui!');
+    setIsSavingPopup(true);
+    
+    try {
+      const payload = {
+        title: 'System Welcome Popup',
+        slug: 'system-welcome-popup',
+        content: JSON.stringify(popupConfig),
+        published: true,
+        useRootPath: false
+      };
+      
+      let res;
+      if (popupPageId) {
+        res = await updateCustomPage(popupPageId, payload);
+      } else {
+        res = await addCustomPage(payload);
+        if (res.success && res.data) {
+          setPopupPageId(res.data.id);
+        }
+      }
+      
+      if (res && res.success) {
+        setInitialPopupConfig(popupConfig);
+        triggerToast('Pengaturan Welcome Pop-up berhasil disimpan permanen di database!');
+      } else {
+        alert(res?.error || 'Gagal menyimpan pengaturan.');
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('Terjadi kesalahan saat menyimpan pengaturan popup.');
+    } finally {
+      setIsSavingPopup(false);
+    }
   };
 
   const handlePopupImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 1920, 0.85);
+        const url = await uploadFile(file);
         setPopupConfig((prev) => ({
           ...prev,
-          imageUrl: result.dataUrl,
+          imageUrl: url,
         }));
-        triggerToast(`Gambar banner dioptimalkan (${result.compressedSizeMb}MB).`);
+        triggerToast('Gambar banner pop-up berhasil diupload!');
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses gambar banner.');
+        alert(err.message || 'Gagal upload gambar banner.');
       }
     }
   };
@@ -338,12 +389,14 @@ export default function AdminSettingsPage() {
   return (
     <>
       {/* Toast Banner */}
-      {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle size={18} className="text-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <div 
+        className={`fixed top-6 right-6 z-50 bg-gray-900 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transition-all duration-300 ${
+          toastMessage ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+        }`}
+      >
+        <CheckCircle size={18} className="text-emerald-400" />
+        <span>{toastMessage || 'Berhasil disimpan'}</span>
+      </div>
 
       {/* Top Title */}
         <div className="mb-8">
@@ -416,16 +469,26 @@ export default function AdminSettingsPage() {
                     <p className="text-[10px] text-gray-400">Homepage Header (Transparan)</p>
                   </div>
                   <div className="w-full h-28 bg-white rounded-lg border flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
-                    {logoPreview ? (
-                      <img src={logoPreview} alt="Logo Web" className="max-w-full max-h-full object-contain" />
+                    {logoPreview && logoPreview !== '/favicon.ico' ? (
+                      <img key={`logo-main-${logoPreview}`} src={logoPreview} alt="Logo Web" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <PksLogo size="sm" />
+                      <PksLogo key="logo-main-default" size="sm" />
                     )}
                   </div>
-                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
-                    <span>Ganti Logo</span>
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  </label>
+                  <div className="space-y-1.5">
+                    <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
+                      <span>{logoPreview && logoPreview !== '/favicon.ico' ? 'Ganti Logo' : 'Upload Logo'}</span>
+                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                    </label>
+                    <button
+                      type="button"
+                      style={{ display: logoPreview && logoPreview !== '/favicon.ico' ? 'block' : 'none' }}
+                      onClick={() => { setLogoPreview(''); triggerToast('Logo utama direset ke default.'); }}
+                      className="w-full text-center py-1 text-[11px] text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      Reset ke Default
+                    </button>
+                  </div>
                 </div>
 
                 {/* Logo Warna Terang (Admin) */}
@@ -435,16 +498,31 @@ export default function AdminSettingsPage() {
                     <p className="text-[10px] text-gray-400">Sidebar Admin Gelap (Transparan)</p>
                   </div>
                   <div className="w-full h-28 bg-gray-900 rounded-lg border border-gray-750 flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
-                    {logoAdminPreview ? (
-                      <img src={logoAdminPreview} alt="Logo Admin" className="max-w-full max-h-full object-contain" />
+                    {logoAdminPreview && logoAdminPreview !== '/favicon.ico' ? (
+                      <img key={`logo-admin-${logoAdminPreview}`} src={logoAdminPreview} alt="Logo Admin" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <span className="text-xs text-gray-500 font-bold">N/A</span>
+                      <div key="logo-admin-default" className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-[#F26522] text-white font-black flex items-center justify-center text-[10px]">
+                          PKS
+                        </div>
+                        <span className="text-xs text-white font-bold">Admin Standard</span>
+                      </div>
                     )}
                   </div>
-                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
-                    <span>Ganti Logo</span>
-                    <input type="file" accept="image/*" onChange={handleLogoAdminUpload} className="hidden" />
-                  </label>
+                  <div className="space-y-1.5">
+                    <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
+                      <span>{logoAdminPreview && logoAdminPreview !== '/favicon.ico' ? 'Ganti Logo' : 'Upload Logo'}</span>
+                      <input type="file" accept="image/*" onChange={handleLogoAdminUpload} className="hidden" />
+                    </label>
+                    <button
+                      type="button"
+                      style={{ display: logoAdminPreview && logoAdminPreview !== '/favicon.ico' ? 'block' : 'none' }}
+                      onClick={() => { setLogoAdminPreview(''); triggerToast('Logo admin direset ke default.'); }}
+                      className="w-full text-center py-1 text-[11px] text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      Reset ke Default
+                    </button>
+                  </div>
                 </div>
 
                 {/* Logo Putih (Footer) */}
@@ -454,16 +532,26 @@ export default function AdminSettingsPage() {
                     <p className="text-[10px] text-gray-400">Footer Bawah (Transparan)</p>
                   </div>
                   <div className="w-full h-28 bg-gray-800 rounded-lg border border-gray-750 flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
-                    {logoFooterPreview ? (
-                      <img src={logoFooterPreview} alt="Logo Footer" className="max-w-full max-h-full object-contain" />
+                    {logoFooterPreview && logoFooterPreview !== '/favicon.ico' ? (
+                      <img key={`logo-footer-${logoFooterPreview}`} src={logoFooterPreview} alt="Logo Footer" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <span className="text-xs text-gray-500 font-bold">N/A</span>
+                      <span key="logo-footer-default" className="text-xs text-gray-400 font-bold">Logo Standar</span>
                     )}
                   </div>
-                  <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
-                    <span>Ganti Logo</span>
-                    <input type="file" accept="image/*" onChange={handleLogoFooterUpload} className="hidden" />
-                  </label>
+                  <div className="space-y-1.5">
+                    <label className="w-full text-center py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg cursor-pointer transition-colors block">
+                      <span>{logoFooterPreview && logoFooterPreview !== '/favicon.ico' ? 'Ganti Logo' : 'Upload Logo'}</span>
+                      <input type="file" accept="image/*" onChange={handleLogoFooterUpload} className="hidden" />
+                    </label>
+                    <button
+                      type="button"
+                      style={{ display: logoFooterPreview && logoFooterPreview !== '/favicon.ico' ? 'block' : 'none' }}
+                      onClick={() => { setLogoFooterPreview(''); triggerToast('Logo footer direset ke default.'); }}
+                      className="w-full text-center py-1 text-[11px] text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      Reset ke Default
+                    </button>
+                  </div>
                 </div>
 
                 {/* Favicon Web */}
@@ -473,10 +561,10 @@ export default function AdminSettingsPage() {
                     <p className="text-[10px] text-gray-400">ICO / PNG (32x32)</p>
                   </div>
                   <div className="w-full h-28 bg-white rounded-lg border flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
-                    {faviconPreview ? (
-                      <img src={faviconPreview} alt="Favicon" className="max-w-full max-h-full object-contain" />
+                    {faviconPreview && faviconPreview !== '/favicon.ico' ? (
+                      <img key={`favicon-${faviconPreview}`} src={faviconPreview} alt="Favicon" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <div className="w-9 h-9 rounded-lg bg-orange-500/10 text-[#F26522] flex items-center justify-center font-bold text-xs">
+                      <div key="favicon-default" className="w-9 h-9 rounded-lg bg-orange-500/10 text-[#F26522] flex items-center justify-center font-bold text-xs">
                         ICO
                       </div>
                     )}
@@ -492,10 +580,12 @@ export default function AdminSettingsPage() {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                  disabled={isSavingGeneral}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50"
                 >
                   <Save size={16} />
-                  <span>Simpan Perubahan Identitas</span>
+                  <span className={isSavingGeneral ? 'hidden' : 'block'}>Simpan Perubahan Identitas</span>
+                  <span className={isSavingGeneral ? 'block' : 'hidden'}>Menyimpan...</span>
                 </button>
               </div>
 
@@ -1033,7 +1123,7 @@ export default function AdminSettingsPage() {
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Save size={16} />
-                    <span>Simpan Pengaturan Pop-up</span>
+                    <span>{isSavingPopup ? 'Menyimpan...' : 'Simpan Pengaturan Pop-up'}</span>
                   </button>
                 </div>
               </div>

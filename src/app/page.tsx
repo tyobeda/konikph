@@ -64,6 +64,26 @@ export default function HomePage() {
   // Display pagination limit
   const [visibleCount, setVisibleCount] = useState(12);
   const observerTargetRef = useRef<HTMLDivElement | null>(null);
+  
+  const gridContainerRef = useRef<HTMLDivElement | null>(null);
+  const [gridMinHeight, setGridMinHeight] = useState<number | undefined>(undefined);
+
+  // Smooth filter handler
+  const handleCategoryChange = (val: string) => {
+    if (gridContainerRef.current) {
+      setGridMinHeight(gridContainerRef.current.offsetHeight);
+    }
+    setActiveCategory(val);
+    setTimeout(() => setGridMinHeight(undefined), 600);
+  };
+
+  const handleRegionChange = (val: string) => {
+    if (gridContainerRef.current) {
+      setGridMinHeight(gridContainerRef.current.offsetHeight);
+    }
+    setSelectedRegion(val);
+    setTimeout(() => setGridMinHeight(undefined), 600);
+  };
 
   // Reset pagination count when category/region/search changes
   useEffect(() => {
@@ -204,35 +224,40 @@ export default function HomePage() {
         {/* Filter Bar */}
         <FilterBar
           activeCategory={activeCategory}
-          onSelectCategory={setActiveCategory}
+          onSelectCategory={handleCategoryChange}
           selectedRegion={selectedRegion}
-          onSelectRegion={setSelectedRegion}
+          onSelectRegion={handleRegionChange}
         />
 
         {/* Masonry Feed Grid */}
-        {artworks.length === 0 ? (
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-4 break-inside-avoid animate-pulse">
-                <div className={`w-full bg-gray-200 ${i % 3 === 0 ? 'h-72' : i % 3 === 1 ? 'h-56' : 'h-64'}`} />
-                <div className="p-3 space-y-2">
-                  <div className="h-3.5 bg-gray-200 rounded-full w-3/4" />
-                  <div className="h-2.5 bg-gray-100 rounded-full w-1/2" />
-                  <div className="flex items-center gap-2 pt-1">
-                    <div className="w-6 h-6 rounded-full bg-gray-200" />
-                    <div className="h-2.5 bg-gray-100 rounded-full w-20" />
+        <div 
+          ref={gridContainerRef}
+          style={{ minHeight: gridMinHeight !== undefined ? `${gridMinHeight}px` : 'auto', transition: 'min-height 0.6s ease-in-out' }}
+          className="relative transition-all duration-300"
+        >
+          {artworks.length === 0 ? (
+            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-4 break-inside-avoid animate-pulse">
+                  <div className={`w-full bg-gray-200 ${i % 3 === 0 ? 'h-72' : i % 3 === 1 ? 'h-56' : 'h-64'}`} />
+                  <div className="p-3 space-y-2">
+                    <div className="h-3.5 bg-gray-200 rounded-full w-3/4" />
+                    <div className="h-2.5 bg-gray-100 rounded-full w-1/2" />
+                    <div className="flex items-center gap-2 pt-1">
+                      <div className="w-6 h-6 rounded-full bg-gray-200" />
+                      <div className="h-2.5 bg-gray-100 rounded-full w-20" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : displayedArtworks.length > 0 ? (
-          <>
-            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-              {displayedArtworks.map((artwork) => (
-                <ArtworkCard key={artwork.id} artwork={artwork} />
               ))}
             </div>
+          ) : displayedArtworks.length > 0 ? (
+            <>
+              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+                {displayedArtworks.map((artwork) => (
+                  <ArtworkCard key={artwork.id} artwork={artwork} />
+                ))}
+              </div>
 
             {/* Infinite Scroll Loader Target */}
             {hasMore && (
@@ -265,6 +290,7 @@ export default function HomePage() {
             </button>
           </div>
         )}
+        </div>
       </main>
 
       {/* Dynamic CTA Banner Section - Full Width, No Rounded Corners */}

@@ -61,11 +61,15 @@ export default function AdminTwibbonPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const result = await compressImageFile(file, 2, 1920, 0.85);
-        setFilePreview(result.dataUrl);
-        setFormData((prev) => ({ ...prev, imageUrl: result.dataUrl }));
+        const formDataPayload = new FormData();
+        formDataPayload.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formDataPayload });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Upload gagal');
+        setFilePreview(data.url);
+        setFormData((prev) => ({ ...prev, imageUrl: data.url }));
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses gambar Twibbon.');
+        alert(err.message || 'Gagal upload gambar Twibbon.');
       }
     }
   };
@@ -407,18 +411,6 @@ export default function AdminTwibbonPage() {
                     </div>
                   )}
                 </label>
-
-                {/* Fallback URL Input */}
-                <div className="mt-2.5">
-                  <span className="text-[11px] font-bold text-gray-400 uppercase">Atau tautan URL gambar (opsional):</span>
-                  <input
-                    type="text"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://domain.com/frame-twibbon.png"
-                    className="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

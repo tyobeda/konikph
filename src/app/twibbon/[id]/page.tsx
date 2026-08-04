@@ -6,12 +6,13 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
+import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
 
 export default function TwibbonEditorPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { twibbons, updateTwibbon, users } = useData();
+  const { twibbons, updateTwibbon, users, currentUser } = useData();
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -29,29 +30,52 @@ export default function TwibbonEditorPage() {
   const [showShareToast, setShowShareToast] = useState(false);
 
   // Favorites state
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('pksart_favorite_twibbons');
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (currentUser?.id) {
+      getUserTwibbonFavorites(currentUser.id).then(res => {
+        if (res.success && res.data) setFavorites(res.data);
+      });
+    } else {
+      setFavorites([]);
+    }
+  }, [currentUser?.id]);
 
   const activeTwibbon = twibbons.find((t) => t.id === id);
 
-  const toggleFavorite = () => {
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState<string | null>(null);
+
+  const toggleFavorite = async () => {
     if (!activeTwibbon) return;
-    setFavorites((prev) => {
-      const next = prev.includes(activeTwibbon.id)
+
+    if (!currentUser) {
+      alert('Silakan login untuk menyimpan Twibbon favorit Anda!');
+      return;
+    }
+
+    if (isTogglingFavorite) return;
+    setIsTogglingFavorite(activeTwibbon.id);
+
+    // Optimistic UI update
+    setFavorites((prev) =>
+      prev.includes(activeTwibbon.id)
         ? prev.filter((item) => item !== activeTwibbon.id)
-        : [...prev, activeTwibbon.id];
-      localStorage.setItem('pksart_favorite_twibbons', JSON.stringify(next));
-      return next;
-    });
+        : [...prev, activeTwibbon.id]
+    );
+
+    const res = await toggleTwibbonFavorite(activeTwibbon.id, currentUser.id);
+    if (!res.success) {
+      alert('Gagal memperbarui status favorit.');
+      setFavorites((prev) =>
+        prev.includes(activeTwibbon.id)
+          ? prev.filter((item) => item !== activeTwibbon.id)
+          : [...prev, activeTwibbon.id]
+      );
+    }
+    
+    setIsTogglingFavorite(null);
   };
 
   const handleShareLink = () => {

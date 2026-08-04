@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Database PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: pksart_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pksart_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pksart_secure_pass123}
+      POSTGRES_DB: ${POSTGRES_DB:-pksart_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432" # Hanya terbuka ke localhost host VPS
+    networks:
+      - pksart_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pksart_admin} -d ${POSTGRES_DB:-pksart_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Aplikasi Next.js (PKS Art)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pksart_web
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pksart_admin}:${POSTGRES_PASSWORD:-pksart_secure_pass123}@db:5432/${POSTGRES_DB:-pksart_db}?schema=public
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://pks.art}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - pksart_network
+
+volumes:
+  postgres_data:
+    name: pksart_postgres_data
+
+networks:
+  pksart_network:
+    name: pksart_network

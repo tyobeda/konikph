@@ -202,7 +202,39 @@ export default function ArtworkDetailPage() {
   };
 
   const handleDownloadTemplate = () => {
-    triggerToast(`Mengunduh file ${artwork.format || 'PSD/AI/CDR'}...`);
+    if (artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== '') {
+      let finalUrl = artwork.downloadUrl;
+
+      // Google Drive Link Bypass Logic
+      const driveRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\/(?:view|edit)/;
+      const driveMatch = artwork.downloadUrl.match(driveRegex);
+      
+      if (driveMatch && driveMatch[1]) {
+        const fileId = driveMatch[1];
+        finalUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        triggerToast(`Mengunduh file langsung dari Google Drive...`);
+        
+        // Quietly trigger download in the same tab (no new window/tab)
+        const link = document.createElement('a');
+        link.href = finalUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        triggerToast(`Membuka tautan unduhan file master...`);
+        window.open(finalUrl, '_blank', 'noopener,noreferrer');
+      }
+    } else {
+      triggerToast(`Mengunduh pratinjau gambar JPG/PNG...`);
+      // Fallback direct download link for local image preview
+      const link = document.createElement('a');
+      link.href = artwork.imageUrl;
+      link.download = `${artwork.title.replace(/\s+/g, '_')}_preview.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -522,7 +554,15 @@ export default function ArtworkDetailPage() {
                 className="w-full py-3 px-5 bg-[#F26522] hover:bg-[#d95416] active:scale-[0.99] text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <Download size={18} />
-                <span>Unduh</span>
+                <span>
+                  {!artwork.format
+                    ? 'Unduh Gambar (JPG)'
+                    : artwork.downloadUrl && artwork.downloadUrl.toLowerCase().includes('canva.com')
+                    ? 'Buka di Canva'
+                    : artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== ''
+                    ? `Unduh File Master (${artwork.format})`
+                    : `Unduh Gambar (${artwork.format} Preview)`}
+                </span>
               </button>
             </div>
 

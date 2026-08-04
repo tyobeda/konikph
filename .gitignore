@@ -42,3 +42,11 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Temporary scratch scripts
+patch_*.js
+clear_db.js
+revert_user.js
+seed_notif.js
+append_schema.js
+test_supabase.ts

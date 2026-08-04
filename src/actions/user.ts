@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function getUsers() {
   noStore();
@@ -19,9 +20,19 @@ export async function getUsers() {
 
 export async function loginUser(email: string, phone: string) {
   try {
+    const cleanEmail = email.trim().toLowerCase();
+    const rateCheck = checkRateLimit(`login:${cleanEmail}`, 20, 15 * 60 * 1000);
+    if (!rateCheck.success) {
+      const minutesLeft = Math.ceil(rateCheck.resetInMs / 60000);
+      return { 
+        success: false, 
+        message: `Terlalu banyak percobaan login untuk akun ${cleanEmail}. Silakan coba lagi dalam ${minutesLeft} menit.` 
+      };
+    }
+
     // Basic mock login: just find a user by email
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
     
     if (user) {
@@ -38,12 +49,20 @@ export async function registerUser(data: {
   name: string;
   email: string;
   phone: string;
-  address: string;
-  region: string;
+  address?: string;
+  region?: string;
   role?: string;
   avatar?: string;
 }) {
   try {
+    const cleanEmail = data.email.trim().toLowerCase();
+    const rateCheck = checkRateLimit(`register:${cleanEmail}`, 12, 60 * 60 * 1000);
+    if (!rateCheck.success) {
+      return { 
+        success: false, 
+        message: 'Batas pendaftaran tercapai untuk email ini. Silakan tunggu beberapa saat.' 
+      };
+    }
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -69,11 +88,20 @@ export async function registerUser(data: {
 
 export async function updateUser(id: string, data: any) {
   try {
+    const { id: _, createdAt, updatedAt, totalArtworks, totalDownloads, ...updateData } = data;
     const user = await prisma.user.update({
       where: { id },
-      data,
+      data: updateData,
     });
-    return { success: true, user };
+    revalidatePath('/admin/creators');
+    return {
+      success: true,
+      user: {
+        ...user,
+        createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: user.updatedAt?.toISOString() || new Date().toISOString(),
+      }
+    };
   } catch (error) {
     console.error('Update user error:', error);
     return { success: false, error: 'Gagal memperbarui user' };
@@ -87,5 +115,18 @@ export async function deleteUser(id: string) {
   } catch (error) {
     console.error('Delete user error:', error);
     return { success: false, error: 'Gagal menghapus user' };
+  }
+}
+
+export async function deleteAllUsersDB() {
+  try {
+    await prisma.user.deleteMany({
+      where: { id: { not: 'superadmin_1' } },
+    });
+    revalidatePath('/admin/creators');
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting all users:', error);
+    return { success: false, error: 'Failed to delete all users' };
   }
 }

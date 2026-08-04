@@ -24,6 +24,8 @@ import {
   Save,
   ArrowUp,
   ArrowDown,
+  ArrowLeft,
+  AlertTriangle,
   Info,
   CheckCircle,
   Loader2,
@@ -44,10 +46,12 @@ import {
   Check,
   Trash2,
   Link as LinkIcon,
-  Unlink
+  Unlink,
+  SlidersHorizontal
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { CustomPage } from '@/lib/types';
+import SliderWidget, { SliderEffect, SlideItem, SLIDER_EFFECT_OPTIONS } from '@/components/SliderWidget';
 
 const parseMarkdownToHtml = (text: string) => {
   if (!text) return '';
@@ -90,7 +94,7 @@ const parseMarkdownToHtml = (text: string) => {
 
 interface Block {
   id: string;
-  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery';
+  type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery' | 'slider';
   title?: string;
   subtitle?: string;
   titleSize?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -110,6 +114,19 @@ interface Block {
   quoteAuthor?: string;
   galleryImages?: string[];
   galleryCols?: number;
+  bgPosition?: string;
+  // Slider properties
+  sliderImages?: string[];
+  slides?: SlideItem[];
+  sliderEffect?: SliderEffect;
+  sliderAutoplay?: boolean;
+  sliderInterval?: number;
+  sliderAspectRatio?: '16:9' | '4:3' | '1:1' | '21:9' | '3:2' | 'auto';
+  sliderHeight?: 'small' | 'medium' | 'large' | 'auto';
+  sliderShowDots?: boolean;
+  sliderShowArrows?: boolean;
+  sliderBorderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+  sliderOverlay?: 'none' | 'dark' | 'gradient' | 'light';
 }
 
 const ContentEditableEditor = React.memo(({ id, value, onChange, className }: { id: string, value: string, onChange: (val: string) => void, className: string }) => {
@@ -165,6 +182,8 @@ export default function AdminPageWorkspace() {
   const [pageUseRootPath, setPageUseRootPath] = useState(false);
   const [pageWidth, setPageWidth] = useState<'70' | 'full'>('70');
   const [containerStyle, setContainerStyle] = useState<'boxed' | 'clean'>('boxed');
+  const [hideTitle, setHideTitle] = useState(false);
+  const [hideTitleBorder, setHideTitleBorder] = useState(false);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
 
@@ -175,7 +194,9 @@ export default function AdminPageWorkspace() {
 
   // Media Explorer Modal State
   const [showMediaModal, setShowMediaModal] = useState(false);
-  const [mediaTarget, setMediaTarget] = useState<'mainImage' | 'gallery'>('mainImage');
+  const [mediaTarget, setMediaTarget] = useState<'mainImage' | 'gallery' | 'slider' | 'singleSlide'>('mainImage');
+  const [targetSlideIndex, setTargetSlideIndex] = useState<number | null>(null);
+  const [selectedMediaUrls, setSelectedMediaUrls] = useState<string[]>([]);
   const [mediaTab, setMediaTab] = useState<'library' | 'upload'>('library');
   const [searchMedia, setSearchMedia] = useState('');
   const [customMediaList, setCustomMediaList] = useState<string[]>([
@@ -202,7 +223,13 @@ export default function AdminPageWorkspace() {
 
   // Success Toast state
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState({ title: 'Penyimpanan Berhasil!', subtitle: 'Semua data halaman kustom telah berhasil disimpan.' });
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Unsaved Changes & Draft popup modal state
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const initialStateSnapshotRef = useRef<string>('');
+  const hasInitializedRef = useRef<boolean>(false);
 
   // Temp faq state
   const [tempFaqQ, setTempFaqQ] = useState('');
@@ -212,10 +239,59 @@ export default function AdminPageWorkspace() {
   const [sidebarTab, setSidebarTab] = useState<'content' | 'settings'>('content');
   const [textEditorTab, setTextEditorTab] = useState<'visual' | 'code'>('visual');
 
+  // Helper to compute snapshot string for dirty checking
+  const getCurrentSnapshot = useCallback(() => {
+    return JSON.stringify({
+      title: pageTitle,
+      slug: pageSlug,
+      published: pagePublished,
+      useRootPath: pageUseRootPath,
+      pageWidth,
+      containerStyle,
+      hideTitle,
+      hideTitleBorder,
+      blocks,
+    });
+  }, [pageTitle, pageSlug, pagePublished, pageUseRootPath, pageWidth, containerStyle, hideTitle, hideTitleBorder, blocks]);
+
+  // Set initial snapshot once page data is loaded
+  useEffect(() => {
+    if (isLoaded && !hasInitializedRef.current) {
+      initialStateSnapshotRef.current = getCurrentSnapshot();
+      hasInitializedRef.current = true;
+    }
+  }, [isLoaded, getCurrentSnapshot]);
+
+  // Dirty detection: checks if current state differs from initial snapshot
+  const isDirty = hasInitializedRef.current && getCurrentSnapshot() !== initialStateSnapshotRef.current;
+
+  // Warn user before closing/reloading the browser tab if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   // Load target page data or new template
   useEffect(() => {
     if (!id) return;
     
+    // Safety fallback: if database load takes more than 3 seconds, break the loader
+    const timer = setTimeout(() => {
+      setIsLoaded((prev) => {
+        if (!prev) {
+          console.warn('Page builder load took too long, fallback triggered');
+          return true;
+        }
+        return prev;
+      });
+    }, 3000);
+
     if (id === 'new') {
       setPageTitle('Halaman Baru');
       setPageSlug('halaman-baru');
@@ -223,6 +299,8 @@ export default function AdminPageWorkspace() {
       setPageUseRootPath(false);
       setPageWidth('70');
       setContainerStyle('boxed');
+      setHideTitle(false);
+      setHideTitleBorder(false);
       setBlocks([
         {
           id: genBlockId(),
@@ -254,14 +332,25 @@ export default function AdminPageWorkspace() {
             setBlocks(bList.map((b: any) => ({ ...b, id: b.id || genBlockId() })));
             setPageWidth(parsed.pageWidth || '70');
             setContainerStyle(parsed.containerStyle || 'boxed');
+            setHideTitle(parsed.hideTitle || false);
+            setHideTitleBorder(parsed.hideTitleBorder || false);
           }
         } catch (e) {
           setBlocks([]);
         }
         setSelectedBlockIndex(0);
         setIsLoaded(true);
+      } else if (customPages.length > 0) {
+        // If pages have loaded but this specific page ID isn't in it, 
+        // it means page doesn't exist (deleted/not found). Fallback to empty to avoid infinite load.
+        setPageTitle('Halaman Tidak Ditemukan');
+        setPageSlug('tidak-ditemukan');
+        setBlocks([]);
+        setIsLoaded(true);
       }
     }
+
+    return () => clearTimeout(timer);
   }, [id, customPages]);
 
   // ── FLIP-based animated drag helpers ──
@@ -486,7 +575,7 @@ export default function AdminPageWorkspace() {
   const [mobileSheet, setMobileSheet] = useState<'closed' | 'widgets' | 'settings' | 'blockEdit'>('closed');
 
   const addBlock = (
-    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery',
+    type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery' | 'slider',
     atIndex?: number
   ) => {
     const id = genBlockId();
@@ -510,6 +599,38 @@ export default function AdminPageWorkspace() {
       newBlock = { id, type, faqs: [{ question: 'Pertanyaan FAQ Baru?', answer: 'Tulis jawaban detail di sini.' }] };
     } else if (type === 'gallery') {
       newBlock = { id, type, galleryImages: [], galleryCols: 3 };
+    } else if (type === 'slider') {
+      newBlock = {
+        id,
+        type,
+        sliderEffect: 'fade',
+        sliderAutoplay: true,
+        sliderInterval: 5000,
+        sliderAspectRatio: '16:9',
+        sliderHeight: 'medium',
+        sliderShowDots: true,
+        sliderShowArrows: true,
+        sliderBorderRadius: '2xl',
+        sliderOverlay: 'gradient',
+        slides: [
+          {
+            imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1200&auto=format&fit=crop&q=80',
+            title: 'Slide Pertama',
+            subtitle: 'Kreasikan slide Anda dengan animasi transisi memukau.',
+            ctaText: 'Pelajari Selengkapnya',
+            ctaLink: '#',
+          },
+          {
+            imageUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1200&auto=format&fit=crop&q=80',
+            title: 'Slide Kedua',
+            subtitle: 'Pilih transisi fade, blur fade, slide, push, atau efek 3D.',
+          },
+        ],
+        sliderImages: [
+          'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1200&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1200&auto=format&fit=crop&q=80',
+        ],
+      };
     } else if (type === 'image') {
       newBlock = { 
         id, 
@@ -527,12 +648,14 @@ export default function AdminPageWorkspace() {
     }
     
     if (typeof atIndex === 'number' && atIndex >= 0 && atIndex <= blocks.length) {
-      const newBlocks = [...blocks];
-      newBlocks.splice(atIndex, 0, newBlock);
-      setBlocks(newBlocks);
+      setBlocks((prev) => {
+        const newBlocks = [...prev];
+        newBlocks.splice(atIndex, 0, newBlock);
+        return newBlocks;
+      });
       setSelectedBlockIndex(atIndex);
     } else {
-      setBlocks([...blocks, newBlock]);
+      setBlocks((prev) => [...prev, newBlock]);
       setSelectedBlockIndex(blocks.length);
     }
   };
@@ -542,31 +665,156 @@ export default function AdminPageWorkspace() {
       e.stopPropagation();
       e.preventDefault();
     }
-    setBlocks(blocks.filter((_, idx) => idx !== index));
+    setBlocks((prev) => prev.filter((_, idx) => idx !== index));
     setSelectedBlockIndex(null);
   };
 
   const moveBlock = (index: number, direction: 'up' | 'down', e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === blocks.length - 1) return;
-
-    const newBlocks = [...blocks];
+    setBlocks((prev) => {
+      if (direction === 'up' && index === 0) return prev;
+      if (direction === 'down' && index === prev.length - 1) return prev;
+      const newBlocks = [...prev];
+      const targetIdx = direction === 'up' ? index - 1 : index + 1;
+      const temp = newBlocks[index];
+      newBlocks[index] = newBlocks[targetIdx];
+      newBlocks[targetIdx] = temp;
+      return newBlocks;
+    });
     const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    const temp = newBlocks[index];
-    newBlocks[index] = newBlocks[targetIdx];
-    newBlocks[targetIdx] = temp;
-    setBlocks(newBlocks);
     setSelectedBlockIndex(targetIdx);
   };
 
   const updateBlockField = (index: number, field: keyof Block, value: any) => {
-    setBlocks(
-      blocks.map((block, idx) => 
+    setBlocks((prev) =>
+      prev.map((block, idx) => 
         idx === index ? { ...block, [field]: value } : block
       )
     );
+  };
+
+  const updateBlockFields = (index: number, partial: Partial<Block>) => {
+    setBlocks((prev) =>
+      prev.map((block, idx) =>
+        idx === index ? { ...block, ...partial } : block
+      )
+    );
+  };
+
+  // Dedicated atomic handlers for slider items
+  const handleAddSlide = (blockIdx: number) => {
+    setBlocks((prev) =>
+      prev.map((block, idx) => {
+        if (idx !== blockIdx) return block;
+        const currentSlides = block.slides || [];
+        const newSlide: SlideItem = {
+          imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1200&auto=format&fit=crop&q=80',
+          title: `Slide ${currentSlides.length + 1}`,
+          subtitle: '',
+        };
+        const updatedSlides = [...currentSlides, newSlide];
+        return {
+          ...block,
+          slides: updatedSlides,
+          sliderImages: updatedSlides.map((s) => s.imageUrl),
+        };
+      })
+    );
+  };
+
+  const handleDeleteSlide = (blockIdx: number, slideIdx: number) => {
+    setBlocks((prev) =>
+      prev.map((block, idx) => {
+        if (idx !== blockIdx) return block;
+        const currentSlides = block.slides || [];
+        const updatedSlides = currentSlides.filter((_, i) => i !== slideIdx);
+        return {
+          ...block,
+          slides: updatedSlides,
+          sliderImages: updatedSlides.map((s) => s.imageUrl),
+        };
+      })
+    );
+  };
+
+  const handleMoveSlide = (blockIdx: number, slideIdx: number, direction: 'up' | 'down') => {
+    setBlocks((prev) =>
+      prev.map((block, idx) => {
+        if (idx !== blockIdx) return block;
+        const currentSlides = [...(block.slides || [])];
+        if (direction === 'up' && slideIdx > 0) {
+          const temp = currentSlides[slideIdx];
+          currentSlides[slideIdx] = currentSlides[slideIdx - 1];
+          currentSlides[slideIdx - 1] = temp;
+        } else if (direction === 'down' && slideIdx < currentSlides.length - 1) {
+          const temp = currentSlides[slideIdx];
+          currentSlides[slideIdx] = currentSlides[slideIdx + 1];
+          currentSlides[slideIdx + 1] = temp;
+        }
+        return {
+          ...block,
+          slides: currentSlides,
+          sliderImages: currentSlides.map((s) => s.imageUrl),
+        };
+      })
+    );
+  };
+
+  const handleUpdateSlideField = (blockIdx: number, slideIdx: number, field: keyof SlideItem, value: any) => {
+    setBlocks((prev) =>
+      prev.map((block, idx) => {
+        if (idx !== blockIdx) return block;
+        const currentSlides = [...(block.slides || [])];
+        if (currentSlides[slideIdx]) {
+          currentSlides[slideIdx] = { ...currentSlides[slideIdx], [field]: value };
+        }
+        return {
+          ...block,
+          slides: currentSlides,
+          sliderImages: currentSlides.map((s) => s.imageUrl),
+        };
+      })
+    );
+  };
+
+  const handleSetSlideImage = (blockIdx: number, slideIdx: number, imageUrl: string) => {
+    setBlocks((prev) =>
+      prev.map((block, idx) => {
+        if (idx !== blockIdx) return block;
+        const currentSlides = [...(block.slides || [])];
+        if (currentSlides[slideIdx]) {
+          currentSlides[slideIdx] = { ...currentSlides[slideIdx], imageUrl };
+        }
+        return {
+          ...block,
+          slides: currentSlides,
+          sliderImages: currentSlides.map((s) => s.imageUrl),
+        };
+      })
+    );
+  };
+
+  const handleAddBatchSlideImages = (blockIdx: number, newImageUrls: string[]) => {
+    if (newImageUrls.length === 0) return;
+    setBlocks((prev) =>
+      prev.map((block, idx) => {
+        if (idx !== blockIdx) return block;
+        const currentSlides = block.slides || [];
+        const createdSlides: SlideItem[] = newImageUrls.map((url, i) => ({
+          imageUrl: url,
+          title: `Slide ${currentSlides.length + i + 1}`,
+          subtitle: '',
+        }));
+        const updatedSlides = [...currentSlides, ...createdSlides];
+        return {
+          ...block,
+          slides: updatedSlides,
+          sliderImages: updatedSlides.map((s) => s.imageUrl),
+        };
+      })
+    );
+    setCustomMediaList((prev) => [...newImageUrls, ...prev]);
   };
 
   const addFaqItem = (blockIdx: number) => {
@@ -606,6 +854,8 @@ export default function AdminPageWorkspace() {
         blocks: blocks.map(b => ({ ...b, id: b.id || genBlockId() })),
         pageWidth: pageWidth,
         containerStyle: containerStyle,
+        hideTitle: hideTitle,
+        hideTitleBorder: hideTitleBorder,
       }),
     };
 
@@ -615,12 +865,74 @@ export default function AdminPageWorkspace() {
       updateCustomPage(id, pageData);
     }
 
+    // Update snapshot ref so it's not dirty anymore
+    initialStateSnapshotRef.current = getCurrentSnapshot();
+
     // Show beautiful success Toast and redirect
+    setToastMessage({
+      title: 'Penyimpanan Berhasil!',
+      subtitle: pagePublished ? 'Halaman telah berhasil disimpan dan dipublikasikan.' : 'Halaman telah berhasil disimpan sebagai Draf.',
+    });
     setShowToast(true);
     setTimeout(() => {
       setShowToast(false);
       router.push('/admin/pages');
-    }, 2000);
+    }, 1500);
+  };
+
+  const handleAttemptClose = () => {
+    if (isDirty) {
+      setShowUnsavedModal(true);
+    } else {
+      router.push('/admin/pages');
+    }
+  };
+
+  const handleSaveAsDraftAndLeave = () => {
+    const fallbackTitle = pageTitle.trim() || 'Draf Halaman';
+    const fallbackSlug = (pageSlug.trim() || `draft-${Date.now()}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-');
+
+    const pageData = {
+      title: fallbackTitle,
+      slug: fallbackSlug,
+      published: false, // Save as Draft
+      useRootPath: pageUseRootPath,
+      content: JSON.stringify({
+        blocks: blocks.map(b => ({ ...b, id: b.id || genBlockId() })),
+        pageWidth: pageWidth,
+        containerStyle: containerStyle,
+        hideTitle: hideTitle,
+        hideTitleBorder: hideTitleBorder,
+      }),
+    };
+
+    if (id === 'new') {
+      addCustomPage(pageData);
+    } else {
+      updateCustomPage(id, pageData);
+    }
+
+    // Reset dirty state
+    initialStateSnapshotRef.current = getCurrentSnapshot();
+    setShowUnsavedModal(false);
+
+    setToastMessage({
+      title: 'Draf Berhasil Disimpan!',
+      subtitle: 'Perubahan telah disimpan sebagai draf ke daftar halaman.',
+    });
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+      router.push('/admin/pages');
+    }, 1200);
+  };
+
+  const handleDiscardAndLeave = () => {
+    setShowUnsavedModal(false);
+    router.push('/admin/pages');
   };
 
   if (!isLoaded) {
@@ -644,8 +956,81 @@ export default function AdminPageWorkspace() {
             <CheckCircle size={18} />
           </div>
           <div>
-            <p className="font-bold text-sm text-emerald-950">Penyimpanan Berhasil!</p>
-            <p className="text-[10px] text-emerald-600/80 mt-0.5">Semua data halaman kustom telah berhasil disimpan.</p>
+            <p className="font-bold text-sm text-emerald-950">{toastMessage.title}</p>
+            <p className="text-[10px] text-emerald-600/80 mt-0.5">{toastMessage.subtitle}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ⚠️ UNSAVED CHANGES - SAVE AS DRAFT CONFIRMATION POPUP */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 text-center pb-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <AlertTriangle size={28} className="animate-pulse" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">
+                Simpan Perubahan Sebagai Draf?
+              </h3>
+              <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                Anda memiliki perubahan halaman yang belum disimpan. Apakah Anda ingin menyimpannya sebagai <strong className="text-gray-700 font-semibold">Draf</strong> sebelum meninggalkan halaman?
+              </p>
+
+              {/* Page Quick Info Preview */}
+              <div className="mt-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3 text-left flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#F26522] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <FileText size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-gray-900 truncate">
+                    {pageTitle || 'Halaman Belum Diberi Judul'}
+                  </p>
+                  <p className="text-[11px] text-gray-500 truncate">
+                    {blocks.length} Widget Blok • Slug: {pageSlug || 'belum-diatur'}
+                  </p>
+                </div>
+                <span className="text-[10px] font-black uppercase text-amber-700 bg-amber-200/70 px-2 py-0.5 rounded-full shrink-0">
+                  Belum Disimpan
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 bg-gray-50/80 border-t border-gray-100 space-y-2">
+              {/* Option 1: Save as Draft */}
+              <button
+                type="button"
+                onClick={handleSaveAsDraftAndLeave}
+                className="w-full py-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Save size={15} />
+                <span>Simpan sebagai Draf & Keluar</span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {/* Option 2: Discard */}
+                <button
+                  type="button"
+                  onClick={handleDiscardAndLeave}
+                  className="py-2.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Trash2 size={13} />
+                  <span>Buang Perubahan</span>
+                </button>
+
+                {/* Option 3: Cancel / Keep Editing */}
+                <button
+                  type="button"
+                  onClick={() => setShowUnsavedModal(false)}
+                  className="py-2.5 px-3 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <X size={13} />
+                  <span>Batal</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -654,8 +1039,9 @@ export default function AdminPageWorkspace() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-3 py-2.5 flex items-center justify-between shadow-sm">
         <button
           type="button"
-          onClick={() => router.push('/admin/pages')}
-          className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          onClick={handleAttemptClose}
+          className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+          title="Kembali ke Daftar Halaman"
         >
           <ChevronLeft size={20} />
         </button>
@@ -666,7 +1052,7 @@ export default function AdminPageWorkspace() {
           <button
             type="button"
             onClick={() => setMobileSheet(mobileSheet === 'settings' ? 'closed' : 'settings')}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-lg transition-colors cursor-pointer ${
               mobileSheet === 'settings'
                 ? 'bg-[#F26522]/10 text-[#F26522]'
                 : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
@@ -677,7 +1063,7 @@ export default function AdminPageWorkspace() {
           <button
             type="button"
             onClick={handleSavePage}
-            className="px-3 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-[11px] font-bold rounded-lg shadow-sm transition-all flex items-center gap-1"
+            className="px-3 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-[11px] font-bold rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer"
           >
             <Save size={13} />
             <span>Simpan</span>
@@ -690,13 +1076,18 @@ export default function AdminPageWorkspace() {
         
         {/* Top Toolbar Info */}
         <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#F26522] flex items-center justify-center font-black text-white text-xs">
-              P
-            </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleAttemptClose}
+              className="w-8 h-8 rounded-lg bg-gray-200/80 hover:bg-gray-300 text-gray-700 flex items-center justify-center transition-colors cursor-pointer"
+              title="Kembali ke Daftar Halaman"
+            >
+              <ArrowLeft size={16} />
+            </button>
             <div>
               <h4 className="text-xs font-medium text-gray-500">Visual Page Builder</h4>
-              <p className="text-xs text-slate-800 truncate max-w-[180px] font-semibold">{pageTitle || 'Halaman Baru'}</p>
+              <p className="text-xs text-slate-800 truncate max-w-[170px] font-semibold">{pageTitle || 'Halaman Baru'}</p>
             </div>
           </div>
 
@@ -850,6 +1241,33 @@ export default function AdminPageWorkspace() {
                 </div>
               </div>
 
+              {/* Sembunyikan Judul & Border */}
+              <div className="flex items-center gap-2.5 pt-2">
+                <input
+                  type="checkbox"
+                  id="sidebar-hidetitle"
+                  checked={hideTitle}
+                  onChange={(e) => setHideTitle(e.target.checked)}
+                  className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                />
+                <label htmlFor="sidebar-hidetitle" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
+                  Sembunyikan Judul Halaman
+                </label>
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <input
+                  type="checkbox"
+                  id="sidebar-hideborder"
+                  checked={hideTitleBorder}
+                  onChange={(e) => setHideTitleBorder(e.target.checked)}
+                  className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                />
+                <label htmlFor="sidebar-hideborder" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
+                  Sembunyikan Garis Bawah Judul
+                </label>
+              </div>
+
               <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-100/60 text-[11px] text-gray-500 space-y-1 mt-2">
                 <div className="flex items-center gap-1 text-gray-700 font-medium mb-1">
                   <Info size={12} className="text-[#F26522]" />
@@ -879,6 +1297,7 @@ export default function AdminPageWorkspace() {
                       {[
                         { type: 'heading', title: 'Judul (Title)', desc: 'Section Heading', icon: Heading, color: 'text-orange-500' },
                         { type: 'hero', title: 'Hero Header', desc: 'Headline & CTA', icon: Sparkles, color: 'text-purple-500' },
+                        { type: 'slider', title: 'Slider Transisi', desc: 'Animasi & Carousel', icon: SlidersHorizontal, color: 'text-rose-500' },
                         { type: 'text', title: 'Teks HTML', desc: 'Konten paragraf', icon: AlignLeft, color: 'text-sky-500' },
                         { type: 'cta', title: 'CTA Banner', desc: 'Tombol aksi', icon: Megaphone, color: 'text-amber-500' },
                         { type: 'faq', title: 'Accordion (FAQ)', desc: 'Tanya-Jawab', icon: HelpCircle, color: 'text-emerald-500' },
@@ -1053,7 +1472,86 @@ export default function AdminPageWorkspace() {
                             <span className="text-xs font-medium text-gray-700">Tampilan Full Width (Lebar Penuh Canvas)</span>
                           </label>
                         </div>
-                      </div>
+                                        <div className="pt-3.5 border-t border-gray-200 mt-3.5">
+                           <label className="block text-xs font-bold text-gray-700 mb-1.5">Gambar Latar Belakang (Hero BG)</label>
+                           
+                           {blocks[selectedBlockIndex].imageUrl ? (
+                             <div className="space-y-2">
+                               <div className="relative rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-50">
+                                 <img
+                                   src={blocks[selectedBlockIndex].imageUrl}
+                                   alt="Latar Belakang Hero"
+                                   className="w-full h-full object-cover"
+                                 />
+                                 <button
+                                   type="button"
+                                   onClick={() => updateBlockField(selectedBlockIndex, 'imageUrl', '')}
+                                   className="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow transition-all text-xs font-bold"
+                                 >
+                                   Hapus
+                                 </button>
+                               </div>
+
+                               {/* Background Position Control */}
+                               <div className="pt-1.5">
+                                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Posisi Gambar Latar (Align)</label>
+                                 <select
+                                   value={blocks[selectedBlockIndex].bgPosition || 'center'}
+                                   onChange={(e) => updateBlockField(selectedBlockIndex, 'bgPosition', e.target.value)}
+                                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                 >
+                                   <option value="center">Tengah (Center)</option>
+                                   <option value="top">Atas (Top)</option>
+                                   <option value="bottom">Bawah (Bottom)</option>
+                                   <option value="left">Kiri (Left)</option>
+                                   <option value="right">Kanan (Right)</option>
+                                 </select>
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="space-y-2">
+                               <div className="relative border-2 border-dashed border-gray-300 hover:border-[#F26522] rounded-xl p-4 flex flex-col items-center justify-center bg-gray-50 bg-opacity-50 transition-all cursor-pointer text-center">
+                                 <input
+                                   type="file"
+                                   accept="image/*"
+                                   onChange={(e) => {
+                                     const file = e.target.files?.[0];
+                                     if (file) {
+                                       const reader = new FileReader();
+                                       reader.onload = (event) => {
+                                         const dataUrl = event.target?.result as string;
+                                         if (dataUrl) {
+                                           updateBlockField(selectedBlockIndex, 'imageUrl', dataUrl);
+                                         }
+                                       };
+                                       reader.readAsDataURL(file);
+                                     }
+                                   }}
+                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                 />
+                                 <div className="w-8 h-8 rounded-full bg-orange-100 text-[#F26522] flex items-center justify-center mb-1.5">
+                                   <Upload size={16} />
+                                 </div>
+                                 <p className="text-[11px] font-extrabold text-gray-800">
+                                   Pilih atau Seret Gambar Latar ke Sini
+                                 </p>
+                               </div>
+
+                               {/* Media Library Fallback Selector */}
+                               <button
+                                 type="button"
+                                 onClick={() => {
+                                   setMediaTarget('mainImage');
+                                   setShowMediaModal(true);
+                                 }}
+                                 className="w-full py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                               >
+                                 <span>Pilih dari Pustaka Galeri Media</span>
+                               </button>
+                             </div>
+                           )}
+                         </div>
+                       </div>
                     )}
 
                     {blocks[selectedBlockIndex].type === 'text' && (
@@ -1503,47 +2001,475 @@ export default function AdminPageWorkspace() {
                             <option value={2}>2 Kolom</option>
                             <option value={3}>3 Kolom</option>
                             <option value={4}>4 Kolom</option>
+                            <option value={5}>5 Kolom</option>
                           </select>
                         </div>
                         
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1.5">Gambar Galeri</label>
-                          <div className="space-y-2">
-                            {(blocks[selectedBlockIndex].galleryImages || []).map((imgUrl, imgIdx) => (
-                              <div key={imgIdx} className="flex items-center gap-2 bg-gray-50 border border-gray-150 p-2 rounded-xl shadow-sm">
-                                <img src={imgUrl} alt={`Gallery ${imgIdx}`} className="w-12 h-12 object-cover rounded-lg flex-shrink-0 border border-gray-200" />
-                                <input 
-                                  type="text" 
-                                  value={imgUrl} 
-                                  readOnly 
-                                  className="w-full bg-transparent text-[10px] text-gray-500 outline-none truncate" 
-                                />
-                                <button 
-                                  type="button" 
-                                  onClick={() => {
-                                    const imgs = [...(blocks[selectedBlockIndex].galleryImages || [])];
-                                    imgs.splice(imgIdx, 1);
-                                    updateBlockField(selectedBlockIndex, 'galleryImages', imgs);
-                                  }}
-                                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0 transition-colors"
-                                  title="Hapus Gambar"
-                                >
-                                  <X size={14} />
-                                </button>
+                          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Gambar Galeri</label>
+                          <div className="space-y-3">
+                            {/* 1:1 Grid Preview with up to 5 Columns (Mobile) */}
+                            {(blocks[selectedBlockIndex].galleryImages || []).length > 0 && (
+                              <div className="grid grid-cols-5 gap-2">
+                                {(blocks[selectedBlockIndex].galleryImages || []).map((imgUrl, imgIdx) => (
+                                  <div key={imgIdx} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-xs">
+                                    <img 
+                                      src={imgUrl} 
+                                      alt={`Gallery ${imgIdx}`} 
+                                      className="w-full h-full object-cover" 
+                                    />
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const imgs = [...(blocks[selectedBlockIndex].galleryImages || [])];
+                                        imgs.splice(imgIdx, 1);
+                                        updateBlockField(selectedBlockIndex, 'galleryImages', imgs);
+                                      }}
+                                      className="absolute top-1 right-1 p-1 bg-red-650 hover:bg-red-750 text-white rounded-full shadow transition-all duration-150 cursor-pointer flex items-center justify-center"
+                                      title="Hapus gambar"
+                                    >
+                                      <X size={10} className="stroke-[3]" />
+                                    </button>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            )}
                             
                             <button
                               type="button"
                               onClick={() => {
                                 setMediaTarget('gallery');
+                                setSelectedMediaUrls([]);
                                 setShowMediaModal(true);
                               }}
-                              className="w-full py-2.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-[#F26522]/30 text-gray-700 hover:text-[#F26522] text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                              className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-200 border-dashed transition-all flex items-center justify-center gap-1.5 shadow-xs"
                             >
                               <Plus size={14} /> 
-                              <span>Tambah dari Media Explorer</span>
+                              <span>Tambah Gambar dari Galeri</span>
                             </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SLIDER BLOCK SETTINGS */}
+                    {blocks[selectedBlockIndex].type === 'slider' && (
+                      <div className="space-y-4">
+                        {/* 1. Transition Effect Selector */}
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>Animasi Transisi</span>
+                            <span className="text-[10px] text-[#F26522] font-semibold">15 Variasi</span>
+                          </label>
+                          <select
+                            value={blocks[selectedBlockIndex].sliderEffect || 'fade'}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderEffect', e.target.value as SliderEffect)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 cursor-pointer"
+                          >
+                            <optgroup label="✨ Fade (Pudar)">
+                              <option value="fade">Fade (Pudar Halus)</option>
+                              <option value="blur-fade">Blur Fade (Pudar Kabur)</option>
+                            </optgroup>
+                            <optgroup label="➡️ Slide (Geser Menimpa)">
+                              <option value="slide-left">Slide Kiri (Slide Left)</option>
+                              <option value="slide-right">Slide Kanan (Slide Right)</option>
+                              <option value="slide-up">Slide Atas (Slide Up)</option>
+                              <option value="slide-down">Slide Bawah (Slide Down)</option>
+                            </optgroup>
+                            <optgroup label="🎠 Push (Dorong Carousel)">
+                              <option value="push-left">Push Kiri (Push Left)</option>
+                              <option value="push-right">Push Kanan (Push Right)</option>
+                              <option value="push-up">Push Atas (Push Up)</option>
+                              <option value="push-down">Push Bawah (Push Down)</option>
+                            </optgroup>
+                            <optgroup label="🌟 Kreasi Eksklusif">
+                              <option value="ken-burns">Ken Burns (Sinematik Zoom & Pan)</option>
+                              <option value="zoom-in">Zoom In (Pemberesan Skala)</option>
+                              <option value="flip-3d">3D Flip (Putar Kartu)</option>
+                              <option value="cube-3d">3D Cube (Kubus Ruang 3D)</option>
+                              <option value="glass-swipe">Glass Swipe (Sapuan Kilau Kaca)</option>
+                            </optgroup>
+                          </select>
+                          <p className="text-[10px] text-gray-500 mt-1 italic">
+                            {SLIDER_EFFECT_OPTIONS.find(o => o.id === (blocks[selectedBlockIndex].sliderEffect || 'fade'))?.desc}
+                          </p>
+                        </div>
+
+                        {/* 2. Autoplay & Timing */}
+                        <div className="bg-gray-50/70 border border-gray-200/80 rounded-2xl p-3.5 space-y-3">
+                          <label className="flex items-center justify-between cursor-pointer">
+                            <span className="text-xs font-semibold text-gray-700">Putar Otomatis (Autoplay)</span>
+                            <input
+                              type="checkbox"
+                              checked={blocks[selectedBlockIndex].sliderAutoplay !== false}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderAutoplay', e.target.checked)}
+                              className="w-4 h-4 accent-[#F26522] rounded cursor-pointer"
+                            />
+                          </label>
+
+                          {blocks[selectedBlockIndex].sliderAutoplay !== false && (
+                            <div>
+                              <label className="block text-[11px] font-medium text-gray-600 mb-1">Durasi Antar Slide</label>
+                              <select
+                                value={blocks[selectedBlockIndex].sliderInterval || 5000}
+                                onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderInterval', parseInt(e.target.value))}
+                                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                              >
+                                <option value={2500}>2.5 Detik (Cepat)</option>
+                                <option value={3500}>3.5 Detik</option>
+                                <option value={5000}>5 Detik (Standar)</option>
+                                <option value={7000}>7 Detik</option>
+                                <option value={10000}>10 Detik (Lambat)</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 3. Aspect Ratio & Border Radius */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Rasio Gambar</label>
+                            <select
+                              value={blocks[selectedBlockIndex].sliderAspectRatio || '16:9'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderAspectRatio', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                            >
+                              <option value="16:9">16:9 (Landscape Standar)</option>
+                              <option value="4:3">4:3 (Klasik)</option>
+                              <option value="1:1">1:1 (Persegi Kotak)</option>
+                              <option value="21:9">21:9 (Sinematik Lebar)</option>
+                              <option value="3:2">3:2 (Format Foto)</option>
+                              <option value="auto">Auto Tinggi</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Sudut Melengkung</label>
+                            <select
+                              value={blocks[selectedBlockIndex].sliderBorderRadius || '2xl'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderBorderRadius', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                            >
+                              <option value="none">Kotak (0px)</option>
+                              <option value="md">Sedang (8px)</option>
+                              <option value="lg">Besar (12px)</option>
+                              <option value="xl">XL (16px)</option>
+                              <option value="2xl">2XL (24px Rounded)</option>
+                              <option value="3xl">3XL (32px Super)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* 4. Overlay & Controls */}
+                        <div className="space-y-2">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Efek Lapisan (Overlay)</label>
+                            <select
+                              value={blocks[selectedBlockIndex].sliderOverlay || 'gradient'}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderOverlay', e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                            >
+                              <option value="gradient">Gradasi Hitam Bawah (Mudah dibaca)</option>
+                              <option value="dark">Gelap Transparan</option>
+                              <option value="light">Terang Transparan</option>
+                              <option value="none">Tanpa Overlay (Polos)</option>
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={blocks[selectedBlockIndex].sliderShowArrows !== false}
+                                onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderShowArrows', e.target.checked)}
+                                className="w-3.5 h-3.5 accent-[#F26522] rounded cursor-pointer"
+                              />
+                              <span className="text-[11px] font-medium text-gray-700">Tombol Panah</span>
+                            </label>
+                            <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={blocks[selectedBlockIndex].sliderShowDots !== false}
+                                onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderShowDots', e.target.checked)}
+                                className="w-3.5 h-3.5 accent-[#F26522] rounded cursor-pointer"
+                              />
+                              <span className="text-[11px] font-medium text-gray-700">Titik Navigasi</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* 5. Slides & Images List */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                              Daftar Slide ({(blocks[selectedBlockIndex].slides || []).length})
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => handleAddSlide(selectedBlockIndex)}
+                              className="text-[11px] text-[#F26522] hover:text-orange-700 font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus size={12} /> Tambah Slide
+                            </button>
+                          </div>
+
+                          {/* Action Buttons: Batch Upload & Media Library */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <label className="py-2.5 px-2 bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#F26522] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-all text-center">
+                              <Upload size={13} className="shrink-0" />
+                              <span className="truncate">Upload Foto Baru</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                  const files = e.target.files;
+                                  if (files && files.length > 0) {
+                                    const fileArray = Array.from(files);
+                                    let count = 0;
+                                    const newUrls: string[] = [];
+                                    fileArray.forEach(file => {
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        const dataUrl = ev.target?.result as string;
+                                        if (dataUrl) newUrls.push(dataUrl);
+                                        count++;
+                                        if (count === fileArray.length) {
+                                          handleAddBatchSlideImages(selectedBlockIndex, newUrls);
+                                        }
+                                      };
+                                      reader.readAsDataURL(file);
+                                    });
+                                  }
+                                }}
+                              />
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMediaTarget('slider');
+                                setSelectedMediaUrls([]);
+                                setShowMediaModal(true);
+                              }}
+                              className="py-2.5 px-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-all text-center"
+                            >
+                              <Folder size={13} className="text-[#F26522] shrink-0" />
+                              <span className="truncate">Pustaka Media</span>
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {(blocks[selectedBlockIndex].slides || []).map((slide, sIdx) => (
+                              <div
+                                key={sIdx}
+                                className="p-3 bg-gray-50/90 border border-gray-200/90 rounded-2xl space-y-2.5 shadow-2xs relative group"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-5 h-5 rounded-full bg-[#F26522] text-white text-[10px] font-bold flex items-center justify-center">
+                                      {sIdx + 1}
+                                    </span>
+                                    <span className="text-xs font-bold text-gray-800 truncate max-w-[130px]">
+                                      {slide.title || `Slide #${sIdx + 1}`}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    {/* Move Up */}
+                                    <button
+                                      type="button"
+                                      disabled={sIdx === 0}
+                                      onClick={() => handleMoveSlide(selectedBlockIndex, sIdx, 'up')}
+                                      className="p-1 hover:bg-gray-200 rounded text-gray-500 disabled:opacity-30 cursor-pointer"
+                                      title="Geser ke atas"
+                                    >
+                                      <ArrowUp size={12} />
+                                    </button>
+                                    {/* Move Down */}
+                                    <button
+                                      type="button"
+                                      disabled={sIdx === (blocks[selectedBlockIndex].slides || []).length - 1}
+                                      onClick={() => handleMoveSlide(selectedBlockIndex, sIdx, 'down')}
+                                      className="p-1 hover:bg-gray-200 rounded text-gray-500 disabled:opacity-30 cursor-pointer"
+                                      title="Geser ke bawah"
+                                    >
+                                      <ArrowDown size={12} />
+                                    </button>
+                                    {/* Delete */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteSlide(selectedBlockIndex, sIdx)}
+                                      className="p-1 hover:bg-red-100 rounded text-red-500 cursor-pointer"
+                                      title="Hapus slide ini"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Slide Image Card: Thumbnail + Quick Upload/Media Action Buttons */}
+                                <div className="flex gap-2.5 items-center bg-white p-2 border border-gray-200 rounded-xl">
+                                  <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-200 relative group flex items-center justify-center">
+                                    {slide.imageUrl ? (
+                                      <img
+                                        src={slide.imageUrl}
+                                        alt={slide.title || ''}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          (e.currentTarget as HTMLElement).style.display = 'none';
+                                          const placeholder = (e.currentTarget as HTMLElement).parentElement?.querySelector('.placeholder-fallback');
+                                          if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                                        }}
+                                      />
+                                    ) : null}
+                                    <div
+                                      className="placeholder-fallback flex items-center justify-center text-gray-400 w-full h-full"
+                                      style={{ display: slide.imageUrl ? 'none' : 'flex' }}
+                                    >
+                                      <ImageIcon size={16} />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-1 flex flex-col gap-1.5">
+                                    <div className="flex gap-1.5">
+                                      <label className="flex-1 py-1.5 px-2 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200/70 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all">
+                                        <Upload size={11} />
+                                        <span>Upload</span>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              const reader = new FileReader();
+                                              reader.onload = (ev) => {
+                                                const dataUrl = ev.target?.result as string;
+                                                if (dataUrl) {
+                                                  handleSetSlideImage(selectedBlockIndex, sIdx, dataUrl);
+                                                  setCustomMediaList(prev => [dataUrl, ...prev]);
+                                                }
+                                              };
+                                              reader.readAsDataURL(file);
+                                            }
+                                          }}
+                                        />
+                                      </label>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setMediaTarget('singleSlide');
+                                          setTargetSlideIndex(sIdx);
+                                          setShowMediaModal(true);
+                                        }}
+                                        className="flex-1 py-1.5 px-2 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                                      >
+                                        <Folder size={11} className="text-[#F26522]" />
+                                        <span>Media</span>
+                                      </button>
+                                    </div>
+
+                                    {/* Direct URL input fallback */}
+                                    <input
+                                      type="text"
+                                      value={slide.imageUrl}
+                                      onChange={(e) => handleSetSlideImage(selectedBlockIndex, sIdx, e.target.value)}
+                                      placeholder="https://url-gambar.jpg"
+                                      className="w-full bg-gray-50 border border-gray-200 rounded-md px-2 py-1 text-[10px] text-gray-700 focus:outline-none focus:border-[#F26522]"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Slide Title */}
+                                <div>
+                                  <input
+                                    type="text"
+                                    value={slide.title || ''}
+                                    onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'title', e.target.value)}
+                                    placeholder="Judul Slide (opsional)"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                  />
+                                </div>
+
+                                {/* Slide Subtitle */}
+                                <div>
+                                  <input
+                                    type="text"
+                                    value={slide.subtitle || ''}
+                                    onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'subtitle', e.target.value)}
+                                    placeholder="Deskripsi / Sub-judul (opsional)"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                  />
+                                </div>
+
+                                {/* Slide CTA */}
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={slide.ctaText || ''}
+                                    onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'ctaText', e.target.value)}
+                                    placeholder="Teks Tombol"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={slide.ctaLink || ''}
+                                    onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'ctaLink', e.target.value)}
+                                    placeholder="Link Tombol"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Bottom Actions */}
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                              <label className="py-2 px-2 bg-orange-50 hover:bg-orange-100 text-[#F26522] text-[11px] font-bold rounded-xl border border-orange-200 border-dashed transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer text-center">
+                                <Upload size={12} className="shrink-0" />
+                                <span className="truncate">Upload Gambar</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    if (files && files.length > 0) {
+                                      const fileArray = Array.from(files);
+                                      let count = 0;
+                                      const newUrls: string[] = [];
+                                      fileArray.forEach(file => {
+                                        const reader = new FileReader();
+                                        reader.onload = (ev) => {
+                                          const dataUrl = ev.target?.result as string;
+                                          if (dataUrl) newUrls.push(dataUrl);
+                                          count++;
+                                          if (count === fileArray.length) {
+                                            handleAddBatchSlideImages(selectedBlockIndex, newUrls);
+                                          }
+                                        };
+                                        reader.readAsDataURL(file);
+                                      });
+                                    }
+                                  }}
+                                />
+                              </label>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMediaTarget('slider');
+                                  setSelectedMediaUrls([]);
+                                  setShowMediaModal(true);
+                                }}
+                                className="py-2 px-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-[11px] font-bold rounded-xl border border-gray-200 border-dashed transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer text-center"
+                              >
+                                <Folder size={12} className="text-[#F26522] shrink-0" />
+                                <span className="truncate">Pustaka Media</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1602,15 +2528,15 @@ export default function AdminPageWorkspace() {
         <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-2">
           <button
             type="button"
-            onClick={() => router.push('/admin/pages')}
-            className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-750 text-xs font-bold rounded-xl transition-all"
+            onClick={handleAttemptClose}
+            className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-750 text-xs font-bold rounded-xl transition-all cursor-pointer"
           >
             Batal
           </button>
           <button
             type="button"
             onClick={handleSavePage}
-            className="flex-1 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Save size={14} />
             <span>Simpan Halaman</span>
@@ -1636,6 +2562,15 @@ export default function AdminPageWorkspace() {
             <span className="text-[10px] font-extrabold uppercase text-[#F26522] bg-orange-50 border border-orange-100 px-2 py-0.5 rounded shadow-sm">
               LIVE PREVIEW
             </span>
+            <button
+              type="button"
+              onClick={handleAttemptClose}
+              className="px-2.5 py-1 bg-white hover:bg-red-50 text-gray-500 hover:text-red-600 border border-gray-200 hover:border-red-200 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
+              title="Keluar / Tutup Editor"
+            >
+              <X size={12} />
+              <span>Tutup</span>
+            </button>
           </div>
 
           {/* LIVE BUILDER CANVAS */}
@@ -1754,11 +2689,29 @@ export default function AdminPageWorkspace() {
 
                       {/* 1. HERO BLOCK */}
                       {block.type === 'hero' && (
-                        <div className={`bg-gradient-to-br from-[#1E293B] via-slate-900 to-black text-white p-6 sm:p-10 shadow-md relative overflow-hidden transition-all ${block.fullWidth ? '-mx-6 -mt-6 -mb-2 rounded-none' : 'rounded-2xl'}`}>
-                          <div className="absolute right-0 top-0 w-32 h-32 bg-[#F26522]/10 rounded-full blur-2xl" />
+                        <div 
+                          className={`text-white p-6 sm:p-10 shadow-md relative overflow-hidden transition-all bg-cover ${
+                            block.fullWidth ? '-mx-6 -mt-6 -mb-2 rounded-none' : 'rounded-2xl'
+                          }`}
+                          style={
+                            block.imageUrl
+                              ? { 
+                                  backgroundImage: `url(${block.imageUrl})`,
+                                  backgroundPosition: block.bgPosition || 'center'
+                                }
+                              : { backgroundColor: '#1E293B' }
+                          }
+                        >
+                          {/* Overlay to keep text readable if background is present */}
+                          {block.imageUrl ? (
+                            <div className="absolute inset-0 bg-black/60 z-0" />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#1E293B] via-slate-900 to-black z-0" />
+                          )}
+                          <div className="absolute right-0 top-0 w-32 h-32 bg-[#F26522]/10 rounded-full blur-2xl z-0" />
                           <div className="relative z-10 space-y-2">
                             <h3 className="text-xl sm:text-2xl font-black leading-tight">{block.title || 'Judul Hero'}</h3>
-                            <p className="text-xs text-slate-350 leading-relaxed">{block.subtitle || 'Sub-headline deskripsi.'}</p>
+                            <p className="text-xs text-slate-300 leading-relaxed">{block.subtitle || 'Sub-headline deskripsi.'}</p>
                             {block.ctaText && (
                               <span className="inline-block mt-2 px-4 py-2 bg-[#F26522] text-white text-[10px] font-bold rounded-lg shadow-sm">
                                 {block.ctaText}
@@ -1886,6 +2839,32 @@ export default function AdminPageWorkspace() {
                       </div>
                     )}
 
+                    {/* 5.6 SLIDER BLOCK */}
+                    {block.type === 'slider' && (
+                      <div className="w-full">
+                        <SliderWidget
+                          slides={block.slides}
+                          sliderImages={block.sliderImages}
+                          sliderEffect={block.sliderEffect}
+                          sliderAutoplay={block.sliderAutoplay}
+                          sliderInterval={block.sliderInterval}
+                          sliderAspectRatio={block.sliderAspectRatio}
+                          sliderHeight={block.sliderHeight}
+                          sliderShowDots={block.sliderShowDots}
+                          sliderShowArrows={block.sliderShowArrows}
+                          sliderBorderRadius={block.sliderBorderRadius}
+                          sliderOverlay={block.sliderOverlay}
+                          isEditable={true}
+                          onSelectImage={() => {
+                            setSelectedBlockIndex(idx);
+                            setMediaTarget('slider');
+                            setSelectedMediaUrls([]);
+                            setShowMediaModal(true);
+                          }}
+                        />
+                      </div>
+                    )}
+
                     {/* 6. QUOTE BLOCK */}
                     {block.type === 'quote' && (
                       <div className="bg-gradient-to-r from-orange-50/60 to-amber-50/30 border-l-4 border-[#F26522] rounded-r-2xl p-6 shadow-sm relative overflow-hidden">
@@ -1966,7 +2945,7 @@ export default function AdminPageWorkspace() {
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-semibold text-gray-400">#{idx + 1}</span>
                         <span className="capitalize">
-                          {b.type === 'hero' ? 'Hero Header' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : b.type === 'faq' ? 'FAQ Accordion' : b.type === 'image' ? 'Gambar' : b.type === 'gallery' ? 'Galeri' : b.type === 'quote' ? 'Kutipan' : 'Pemisah'}
+                          {b.type === 'hero' ? 'Hero Header' : b.type === 'slider' ? 'Slider Transisi' : b.type === 'heading' ? 'Judul Section' : b.type === 'text' ? 'Teks HTML' : b.type === 'cta' ? 'CTA Banner' : b.type === 'faq' ? 'FAQ Accordion' : b.type === 'image' ? 'Gambar' : b.type === 'gallery' ? 'Galeri' : b.type === 'quote' ? 'Kutipan' : 'Pemisah'}
                         </span>
                       </div>
                       <span className="text-[10px] font-medium text-gray-500 bg-gray-200/50 px-1.5 py-0.5 rounded capitalize">
@@ -2064,6 +3043,7 @@ export default function AdminPageWorkspace() {
                     {[
                       { type: 'heading', title: 'Judul', icon: Heading, color: 'text-orange-500' },
                       { type: 'hero', title: 'Hero', icon: Sparkles, color: 'text-purple-500' },
+                      { type: 'slider', title: 'Slider', icon: SlidersHorizontal, color: 'text-rose-500' },
                       { type: 'text', title: 'Teks', icon: AlignLeft, color: 'text-sky-500' },
                       { type: 'cta', title: 'CTA', icon: Megaphone, color: 'text-amber-500' },
                       { type: 'faq', title: 'Accordion', icon: HelpCircle, color: 'text-emerald-500' },
@@ -2647,44 +3627,460 @@ export default function AdminPageWorkspace() {
                           <option value={2}>2 Kolom</option>
                           <option value={3}>3 Kolom</option>
                           <option value={4}>4 Kolom</option>
+                          <option value={5}>5 Kolom</option>
                         </select>
                       </div>
                       
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Gambar Galeri</label>
-                        <div className="space-y-2">
-                          {(blocks[selectedBlockIndex].galleryImages || []).map((imgUrl, imgIdx) => (
-                            <div key={imgIdx} className="flex items-center gap-2 bg-gray-50 border border-gray-200 p-2 rounded-xl">
-                              <img src={imgUrl} alt={`Gallery ${imgIdx}`} className="w-10 h-10 object-cover rounded-lg flex-shrink-0" />
-                              <input 
-                                type="text" 
-                                value={imgUrl} 
-                                readOnly 
-                                className="w-full bg-transparent text-[10px] text-gray-500 outline-none" 
-                              />
-                              <button 
-                                type="button" 
-                                onClick={() => {
-                                  const imgs = [...(blocks[selectedBlockIndex].galleryImages || [])];
-                                  imgs.splice(imgIdx, 1);
-                                  updateBlockField(selectedBlockIndex, 'galleryImages', imgs);
-                                }}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
-                              >
-                                <X size={14} />
-                              </button>
+                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Gambar Galeri</label>
+                        <div className="space-y-3">
+                          {/* 1:1 Grid Preview with up to 5 Columns */}
+                          {(blocks[selectedBlockIndex].galleryImages || []).length > 0 && (
+                            <div className="grid grid-cols-5 gap-2.5">
+                              {(blocks[selectedBlockIndex].galleryImages || []).map((imgUrl, imgIdx) => (
+                                <div key={imgIdx} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-xs">
+                                  <img 
+                                    src={imgUrl} 
+                                    alt={`Gallery ${imgIdx}`} 
+                                    className="w-full h-full object-cover" 
+                                  />
+                                  <button 
+                                    type="button" 
+                                    onClick={() => {
+                                      const imgs = [...(blocks[selectedBlockIndex].galleryImages || [])];
+                                      imgs.splice(imgIdx, 1);
+                                      updateBlockField(selectedBlockIndex, 'galleryImages', imgs);
+                                    }}
+                                    className="absolute top-1 right-1 p-1 bg-red-650 hover:bg-red-700 text-white rounded-full shadow transition-all duration-150 cursor-pointer flex items-center justify-center"
+                                    title="Hapus gambar"
+                                  >
+                                    <X size={10} className="stroke-[3]" />
+                                  </button>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
+
                           <button
                             type="button"
                             onClick={() => {
                               setMediaTarget('gallery');
+                              setSelectedMediaUrls([]);
                               setShowMediaModal(true);
                             }}
-                            className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 transition-all flex items-center justify-center gap-1"
+                            className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-200 border-dashed transition-all flex items-center justify-center gap-1.5 shadow-xs"
                           >
-                            <Plus size={14} /> Tambah via Media Explorer
+                            <Plus size={14} /> Tambah Gambar dari Galeri
                           </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SLIDER BLOCK (MOBILE SHEET) */}
+                  {blocks[selectedBlockIndex].type === 'slider' && (
+                    <div className="space-y-4">
+                      {/* Transition Effect */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                          <span>Animasi Transisi</span>
+                          <span className="text-[10px] text-[#F26522] font-semibold">15 Variasi</span>
+                        </label>
+                        <select
+                          value={blocks[selectedBlockIndex].sliderEffect || 'fade'}
+                          onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderEffect', e.target.value as SliderEffect)}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        >
+                          <optgroup label="✨ Fade (Pudar)">
+                            <option value="fade">Fade (Pudar Halus)</option>
+                            <option value="blur-fade">Blur Fade (Pudar Kabur)</option>
+                          </optgroup>
+                          <optgroup label="➡️ Slide (Geser Menimpa)">
+                            <option value="slide-left">Slide Kiri (Slide Left)</option>
+                            <option value="slide-right">Slide Kanan (Slide Right)</option>
+                            <option value="slide-up">Slide Atas (Slide Up)</option>
+                            <option value="slide-down">Slide Bawah (Slide Down)</option>
+                          </optgroup>
+                          <optgroup label="🎠 Push (Dorong Carousel)">
+                            <option value="push-left">Push Kiri (Push Left)</option>
+                            <option value="push-right">Push Kanan (Push Right)</option>
+                            <option value="push-up">Push Atas (Push Up)</option>
+                            <option value="push-down">Push Bawah (Push Down)</option>
+                          </optgroup>
+                          <optgroup label="🌟 Kreasi Eksklusif">
+                            <option value="ken-burns">Ken Burns (Sinematik Zoom & Pan)</option>
+                            <option value="zoom-in">Zoom In (Pemberesan Skala)</option>
+                            <option value="flip-3d">3D Flip (Putar Kartu)</option>
+                            <option value="cube-3d">3D Cube (Kubus Ruang 3D)</option>
+                            <option value="glass-swipe">Glass Swipe (Sapuan Kilau Kaca)</option>
+                          </optgroup>
+                        </select>
+                        <p className="text-[10px] text-gray-500 mt-1 italic">
+                          {SLIDER_EFFECT_OPTIONS.find(o => o.id === (blocks[selectedBlockIndex].sliderEffect || 'fade'))?.desc}
+                        </p>
+                      </div>
+
+                      {/* Autoplay & Duration */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-3.5 space-y-3">
+                        <label className="flex items-center justify-between cursor-pointer">
+                          <span className="text-xs font-semibold text-gray-700">Putar Otomatis (Autoplay)</span>
+                          <input
+                            type="checkbox"
+                            checked={blocks[selectedBlockIndex].sliderAutoplay !== false}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderAutoplay', e.target.checked)}
+                            className="w-4 h-4 accent-[#F26522] rounded cursor-pointer"
+                          />
+                        </label>
+
+                        {blocks[selectedBlockIndex].sliderAutoplay !== false && (
+                          <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Durasi Antar Slide</label>
+                            <select
+                              value={blocks[selectedBlockIndex].sliderInterval || 5000}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderInterval', parseInt(e.target.value))}
+                              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                            >
+                              <option value={2500}>2.5 Detik (Cepat)</option>
+                              <option value={3500}>3.5 Detik</option>
+                              <option value={5000}>5 Detik (Standar)</option>
+                              <option value={7000}>7 Detik</option>
+                              <option value={10000}>10 Detik (Lambat)</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Aspect Ratio & Radius */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Rasio Gambar</label>
+                          <select
+                            value={blocks[selectedBlockIndex].sliderAspectRatio || '16:9'}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderAspectRatio', e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                          >
+                            <option value="16:9">16:9 (Landscape)</option>
+                            <option value="4:3">4:3 (Klasik)</option>
+                            <option value="1:1">1:1 (Persegi)</option>
+                            <option value="21:9">21:9 (Sinema)</option>
+                            <option value="3:2">3:2 (Foto)</option>
+                            <option value="auto">Auto Tinggi</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Sudut Melengkung</label>
+                          <select
+                            value={blocks[selectedBlockIndex].sliderBorderRadius || '2xl'}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderBorderRadius', e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                          >
+                            <option value="none">Kotak (0px)</option>
+                            <option value="md">Sedang (8px)</option>
+                            <option value="lg">Besar (12px)</option>
+                            <option value="xl">XL (16px)</option>
+                            <option value="2xl">2XL (24px)</option>
+                            <option value="3xl">3XL (32px)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Overlay & Controls */}
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Efek Lapisan (Overlay)</label>
+                          <select
+                            value={blocks[selectedBlockIndex].sliderOverlay || 'gradient'}
+                            onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderOverlay', e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#F26522] cursor-pointer"
+                          >
+                            <option value="gradient">Gradasi Hitam Bawah</option>
+                            <option value="dark">Gelap Transparan</option>
+                            <option value="light">Terang Transparan</option>
+                            <option value="none">Tanpa Overlay</option>
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <label className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={blocks[selectedBlockIndex].sliderShowArrows !== false}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderShowArrows', e.target.checked)}
+                              className="w-3.5 h-3.5 accent-[#F26522] rounded cursor-pointer"
+                            />
+                            <span className="text-xs font-medium text-gray-700">Tombol Panah</span>
+                          </label>
+                          <label className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={blocks[selectedBlockIndex].sliderShowDots !== false}
+                              onChange={(e) => updateBlockField(selectedBlockIndex, 'sliderShowDots', e.target.checked)}
+                              className="w-3.5 h-3.5 accent-[#F26522] rounded cursor-pointer"
+                            />
+                            <span className="text-xs font-medium text-gray-700">Titik Navigasi</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Slide List (Mobile) */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                            Daftar Slide ({(blocks[selectedBlockIndex].slides || []).length})
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => handleAddSlide(selectedBlockIndex)}
+                            className="text-xs text-[#F26522] hover:text-orange-700 font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Plus size={12} /> Tambah
+                          </button>
+                        </div>
+
+                        {/* Action Buttons: Batch Upload & Media Library */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="py-2.5 px-2 bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#F26522] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-all text-center">
+                            <Upload size={13} className="shrink-0" />
+                            <span className="truncate">Upload Foto Baru</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => {
+                                const files = e.target.files;
+                                if (files && files.length > 0) {
+                                  const fileArray = Array.from(files);
+                                  let count = 0;
+                                  const newUrls: string[] = [];
+                                  fileArray.forEach(file => {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      const dataUrl = ev.target?.result as string;
+                                      if (dataUrl) newUrls.push(dataUrl);
+                                      count++;
+                                      if (count === fileArray.length) {
+                                        handleAddBatchSlideImages(selectedBlockIndex, newUrls);
+                                      }
+                                    };
+                                    reader.readAsDataURL(file);
+                                  });
+                                }
+                              }}
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMediaTarget('slider');
+                              setSelectedMediaUrls([]);
+                              setShowMediaModal(true);
+                            }}
+                            className="py-2.5 px-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-all text-center"
+                          >
+                            <Folder size={13} className="text-[#F26522] shrink-0" />
+                            <span className="truncate">Pustaka Media</span>
+                          </button>
+                        </div>
+
+                        <div className="space-y-3">
+                          {(blocks[selectedBlockIndex].slides || []).map((slide, sIdx) => (
+                            <div
+                              key={sIdx}
+                              className="p-3 bg-gray-50 border border-gray-200 rounded-2xl space-y-2.5 relative"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-[#F26522] text-white text-[10px] font-bold flex items-center justify-center">
+                                    {sIdx + 1}
+                                  </span>
+                                  <span className="text-xs font-bold text-gray-800 truncate max-w-[150px]">
+                                    {slide.title || `Slide #${sIdx + 1}`}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={sIdx === 0}
+                                    onClick={() => handleMoveSlide(selectedBlockIndex, sIdx, 'up')}
+                                    className="p-1 hover:bg-gray-200 rounded text-gray-500 disabled:opacity-30 cursor-pointer"
+                                  >
+                                    <ArrowUp size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={sIdx === (blocks[selectedBlockIndex].slides || []).length - 1}
+                                    onClick={() => handleMoveSlide(selectedBlockIndex, sIdx, 'down')}
+                                    className="p-1 hover:bg-gray-200 rounded text-gray-500 disabled:opacity-30 cursor-pointer"
+                                  >
+                                    <ArrowDown size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSlide(selectedBlockIndex, sIdx)}
+                                    className="p-1 hover:bg-red-100 rounded text-red-500 cursor-pointer"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Slide Image Card */}
+                              <div className="flex gap-2.5 items-center bg-white p-2 border border-gray-200 rounded-xl">
+                                <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-200 relative group flex items-center justify-center">
+                                  {slide.imageUrl ? (
+                                    <img
+                                      src={slide.imageUrl}
+                                      alt={slide.title || ''}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLElement).style.display = 'none';
+                                        const placeholder = (e.currentTarget as HTMLElement).parentElement?.querySelector('.placeholder-fallback-mobile');
+                                        if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                                      }}
+                                    />
+                                  ) : null}
+                                  <div
+                                    className="placeholder-fallback-mobile flex items-center justify-center text-gray-400 w-full h-full"
+                                    style={{ display: slide.imageUrl ? 'none' : 'flex' }}
+                                  >
+                                    <ImageIcon size={16} />
+                                  </div>
+                                </div>
+
+                                <div className="flex-1 flex flex-col gap-1.5">
+                                  <div className="flex gap-1.5">
+                                    <label className="flex-1 py-1.5 px-2 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200/70 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all">
+                                      <Upload size={11} />
+                                      <span>Upload</span>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                              const dataUrl = ev.target?.result as string;
+                                              if (dataUrl) {
+                                                handleSetSlideImage(selectedBlockIndex, sIdx, dataUrl);
+                                                setCustomMediaList(prev => [dataUrl, ...prev]);
+                                              }
+                                            };
+                                            reader.readAsDataURL(file);
+                                          }
+                                        }}
+                                      />
+                                    </label>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setMediaTarget('singleSlide');
+                                        setTargetSlideIndex(sIdx);
+                                        setShowMediaModal(true);
+                                      }}
+                                      className="flex-1 py-1.5 px-2 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                                    >
+                                      <Folder size={11} className="text-[#F26522]" />
+                                      <span>Media</span>
+                                    </button>
+                                  </div>
+
+                                  <input
+                                    type="text"
+                                    value={slide.imageUrl}
+                                    onChange={(e) => handleSetSlideImage(selectedBlockIndex, sIdx, e.target.value)}
+                                    placeholder="https://url-gambar.jpg"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-md px-2 py-1 text-[10px] text-gray-700 focus:outline-none focus:border-[#F26522]"
+                                  />
+                                </div>
+                              </div>
+
+                              <input
+                                type="text"
+                                value={slide.title || ''}
+                                onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'title', e.target.value)}
+                                placeholder="Judul Slide (opsional)"
+                                className="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                              />
+
+                              <input
+                                type="text"
+                                value={slide.subtitle || ''}
+                                onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'subtitle', e.target.value)}
+                                placeholder="Deskripsi / Sub-judul (opsional)"
+                                className="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                              />
+
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <input
+                                  type="text"
+                                  value={slide.ctaText || ''}
+                                  onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'ctaText', e.target.value)}
+                                  placeholder="Teks Tombol"
+                                  className="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                />
+                                <input
+                                  type="text"
+                                  value={slide.ctaLink || ''}
+                                  onChange={(e) => handleUpdateSlideField(selectedBlockIndex, sIdx, 'ctaLink', e.target.value)}
+                                  placeholder="Link Tombol"
+                                  className="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#F26522]"
+                                />
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Bottom Actions */}
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <label className="py-2 px-2 bg-orange-50 hover:bg-orange-100 text-[#F26522] text-[11px] font-bold rounded-xl border border-orange-200 border-dashed transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer text-center">
+                              <Upload size={12} className="shrink-0" />
+                              <span className="truncate">Upload Gambar</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                  const files = e.target.files;
+                                  if (files && files.length > 0) {
+                                    const fileArray = Array.from(files);
+                                    let count = 0;
+                                    const newUrls: string[] = [];
+                                    fileArray.forEach(file => {
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        const dataUrl = ev.target?.result as string;
+                                        if (dataUrl) newUrls.push(dataUrl);
+                                        count++;
+                                        if (count === fileArray.length) {
+                                          handleAddBatchSlideImages(selectedBlockIndex, newUrls);
+                                        }
+                                      };
+                                      reader.readAsDataURL(file);
+                                    });
+                                  }
+                                }}
+                              />
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMediaTarget('slider');
+                                setSelectedMediaUrls([]);
+                                setShowMediaModal(true);
+                              }}
+                              className="py-2 px-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-[11px] font-bold rounded-xl border border-gray-200 border-dashed transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer text-center"
+                            >
+                              <Folder size={12} className="text-[#F26522] shrink-0" />
+                              <span className="truncate">Pustaka Media</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2824,7 +4220,9 @@ export default function AdminPageWorkspace() {
                   {(() => {
                     const allMedia = [
                       ...customMediaList,
-                      ...artworks.map((a) => a.imageUrl),
+                      ...artworks
+                        .filter((a: any) => a.authorId === 'superadmin_1' || a.author?.id === 'superadmin_1')
+                        .map((a) => a.imageUrl),
                     ].filter((url, index, self) => self.indexOf(url) === index); // unique
 
                     const filtered = searchMedia
@@ -2836,9 +4234,15 @@ export default function AdminPageWorkspace() {
                         Tidak ada gambar ditemukan di Pustaka Media.
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[380px] overflow-y-auto pr-1">
                         {filtered.map((url, idx) => {
-                          const isSelected = selectedBlockIndex !== null && blocks[selectedBlockIndex]?.imageUrl === url;
+                          const isMultiSelect = mediaTarget === 'gallery' || mediaTarget === 'slider';
+                          const isSelected = isMultiSelect
+                            ? selectedMediaUrls.includes(url)
+                            : mediaTarget === 'singleSlide'
+                            ? (selectedBlockIndex !== null && targetSlideIndex !== null && blocks[selectedBlockIndex]?.slides?.[targetSlideIndex]?.imageUrl === url)
+                            : (selectedBlockIndex !== null && blocks[selectedBlockIndex]?.imageUrl === url);
+                          
                           return (
                             <div
                               key={idx}
@@ -2846,12 +4250,25 @@ export default function AdminPageWorkspace() {
                                 if (selectedBlockIndex !== null) {
                                   if (mediaTarget === 'mainImage') {
                                     updateBlockField(selectedBlockIndex, 'imageUrl', url);
-                                  } else if (mediaTarget === 'gallery') {
-                                    const currentImgs = blocks[selectedBlockIndex].galleryImages || [];
-                                    updateBlockField(selectedBlockIndex, 'galleryImages', [...currentImgs, url]);
+                                    setShowMediaModal(false);
+                                  } else if (mediaTarget === 'singleSlide' && targetSlideIndex !== null) {
+                                    handleSetSlideImage(selectedBlockIndex, targetSlideIndex, url);
+                                    setShowMediaModal(false);
+                                    setTargetSlideIndex(null);
+                                  } else if (isMultiSelect) {
+                                    setSelectedMediaUrls((prev) => {
+                                      if (prev.includes(url)) {
+                                        return prev.filter(u => u !== url);
+                                      } else {
+                                        if (prev.length >= 20) {
+                                          alert('Maksimal hanya dapat memilih 20 gambar sekaligus.');
+                                          return prev;
+                                        }
+                                        return [...prev, url];
+                                      }
+                                    });
                                   }
                                 }
-                                setShowMediaModal(false);
                               }}
                               className={`group relative rounded-2xl overflow-hidden border-2 cursor-pointer aspect-square bg-gray-50 transition-all ${
                                 isSelected
@@ -2866,11 +4283,22 @@ export default function AdminPageWorkspace() {
                               />
                               {isSelected && (
                                 <div className="absolute top-2 right-2 bg-[#F26522] text-white p-1 rounded-full shadow">
-                                  <Check size={12} />
+                                  <Check size={12} className="stroke-[3]" />
                                 </div>
                               )}
+                              
+                              {/* Selection overlay badge numbers for multi select */}
+                              {isMultiSelect && selectedMediaUrls.includes(url) && (
+                                <div className="absolute bottom-2 left-2 bg-[#F26522] text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+                                  {selectedMediaUrls.indexOf(url) + 1}
+                                </div>
+                              )}
+
                               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-semibold">
-                                Pilih Gambar
+                                {isMultiSelect 
+                                  ? (selectedMediaUrls.includes(url) ? 'Batalkan Pilihan' : 'Pilih Gambar')
+                                  : 'Pilih Gambar'
+                                }
                               </div>
                             </div>
                           );
@@ -2885,21 +4313,50 @@ export default function AdminPageWorkspace() {
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          const dataUrl = event.target?.result as string;
-                          if (dataUrl) {
-                            setCustomMediaList((prev) => [dataUrl, ...prev]);
-                            if (selectedBlockIndex !== null) {
-                              updateBlockField(selectedBlockIndex, 'imageUrl', dataUrl);
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        const fileArray = Array.from(files);
+                        let processedCount = 0;
+                        const newUrls: string[] = [];
+
+                        fileArray.forEach((file) => {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const dataUrl = event.target?.result as string;
+                            if (dataUrl) {
+                              newUrls.push(dataUrl);
                             }
-                            setShowMediaModal(false);
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                            processedCount++;
+                            if (processedCount === fileArray.length) {
+                              setCustomMediaList((prev) => [...newUrls, ...prev]);
+                              if (mediaTarget === 'gallery' || mediaTarget === 'slider') {
+                                setSelectedMediaUrls((prev) => {
+                                  const combined = [...prev, ...newUrls];
+                                  if (combined.length > 20) {
+                                    alert('Maksimal hanya dapat memilih 20 gambar sekaligus. Gambar teratas telah dipilih.');
+                                    return combined.slice(0, 20);
+                                  }
+                                  return combined;
+                                });
+                                setMediaTab('library');
+                              } else if (mediaTarget === 'singleSlide' && targetSlideIndex !== null) {
+                                if (selectedBlockIndex !== null && newUrls[0]) {
+                                  handleSetSlideImage(selectedBlockIndex, targetSlideIndex, newUrls[0]);
+                                }
+                                setShowMediaModal(false);
+                                setTargetSlideIndex(null);
+                              } else {
+                                if (selectedBlockIndex !== null && newUrls[0]) {
+                                  updateBlockField(selectedBlockIndex, 'imageUrl', newUrls[0]);
+                                }
+                                setShowMediaModal(false);
+                              }
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        });
                       }
                     }}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
@@ -2908,7 +4365,7 @@ export default function AdminPageWorkspace() {
                     <Upload size={24} />
                   </div>
                   <h5 className="text-sm font-semibold text-gray-800">Klik atau Tarik File Gambar Ke Sini</h5>
-                  <p className="text-xs text-gray-400 mt-1">Mendukung format PNG, JPG, JPEG, WEBP, SVG</p>
+                  <p className="text-xs text-gray-400 mt-1">Mendukung format PNG, JPG, JPEG, WEBP, SVG (Bisa pilih beberapa sekaligus)</p>
                   <span className="mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-semibold rounded-xl shadow">
                     Pilih File Dari Komputer
                   </span>
@@ -2917,7 +4374,7 @@ export default function AdminPageWorkspace() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowMediaModal(false)}
@@ -2925,6 +4382,26 @@ export default function AdminPageWorkspace() {
               >
                 Tutup
               </button>
+              {(mediaTarget === 'gallery' || mediaTarget === 'slider') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedBlockIndex !== null) {
+                      if (mediaTarget === 'gallery') {
+                        const currentImgs = blocks[selectedBlockIndex].galleryImages || [];
+                        const combined = [...currentImgs, ...selectedMediaUrls];
+                        updateBlockField(selectedBlockIndex, 'galleryImages', combined);
+                      } else if (mediaTarget === 'slider') {
+                        handleAddBatchSlideImages(selectedBlockIndex, selectedMediaUrls);
+                      }
+                    }
+                    setShowMediaModal(false);
+                  }}
+                  className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Terapkan Pilihan ({selectedMediaUrls.length} Terpilih)
+                </button>
+              )}
             </div>
 
           </div>

@@ -1,13 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Bell, Heart, MessageCircle, AlertTriangle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { getNotifications, markAllAsRead } from '@/actions/notification';
 import { useEffect, useState } from 'react';
 
-export default function NotificationPage() {
+function NotificationContent() {
+  const searchParams = useSearchParams();
+  const fromParam = searchParams.get('from');
+  const backHref = fromParam === 'admin' ? '/admin' : '/';
+
   const { currentUser, refreshUnreadNotifications } = useData();
   const [dbNotifications, setDbNotifications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +50,7 @@ export default function NotificationPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link 
-              href="/" 
+              href={backHref} 
               className="p-2.5 bg-white text-gray-600 hover:text-gray-900 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-100"
             >
               <ArrowLeft size={20} />
@@ -146,5 +151,19 @@ export default function NotificationPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function NotificationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-[#F26522] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <NotificationContent />
+    </Suspense>
   );
 }

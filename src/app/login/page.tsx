@@ -9,7 +9,17 @@ import { useData } from '@/context/DataContext';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginUser } = useData();
+  const { loginUser, currentUser, isMounted } = useData();
+
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
+        router.replace('/admin');
+      } else {
+        router.replace('/');
+      }
+    }
+  }, [currentUser, router]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,9 +67,19 @@ export default function LoginPage() {
     }, 500);
   };
 
+  if (!isMounted || currentUser) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
+          <span className="text-sm font-semibold text-gray-500">Memeriksa sesi...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-3">

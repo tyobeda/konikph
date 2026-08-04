@@ -20,11 +20,13 @@ import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
 
+import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
+
 export default function TwibbonGalleryPage() {
+  const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded } = useData();
   const router = useRouter();
-  const { twibbons, addTwibbon, currentUser } = useData();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [isMounted, setIsMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'favorites'>('all');
 
   // Add Twibbon Template Modal States
@@ -38,28 +40,51 @@ export default function TwibbonGalleryPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   // Favorites state
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('pksart_favorite_twibbons');
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
 
   React.useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (currentUser?.id) {
+      getUserTwibbonFavorites(currentUser.id).then(res => {
+        if (res.success && res.data) setFavorites(res.data);
+      });
+    } else {
+      setFavorites([]);
+    }
+  }, [currentUser?.id]);
 
   const approvedTwibbons = twibbons.filter((t) => t.status === 'Disetujui');
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState<string | null>(null);
+
+  const toggleFavorite = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setFavorites((prev) => {
-      const next = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
-      localStorage.setItem('pksart_favorite_twibbons', JSON.stringify(next));
-      return next;
-    });
+
+    if (!currentUser) {
+      alert('Silakan login untuk menyimpan Twibbon favorit Anda!');
+      return;
+    }
+
+    if (isTogglingFavorite) return;
+    setIsTogglingFavorite(id);
+
+    // Optimistic UI Update
+    setFavorites((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+
+    const res = await toggleTwibbonFavorite(id, currentUser.id);
+    if (!res.success) {
+      // Revert if failed
+      alert('Gagal memperbarui status favorit.');
+      setFavorites((prev) =>
+        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      );
+    }
+    
+    setIsTogglingFavorite(null);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,25 +92,29 @@ export default function TwibbonGalleryPage() {
     if (file) {
       setIsUploadingFile(true);
       try {
-        const result = await compressImageFile(file, 2, 1920, 0.85);
-        setFilePreview(result.dataUrl);
-        setUploadFileUrl(result.dataUrl);
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Upload gagal');
+        setFilePreview(data.url);
+        setUploadFileUrl(data.url);
       } catch (err: any) {
-        alert(err.message || 'Gagal memproses file PNG.');
+        alert(err.message || 'Gagal upload file PNG.');
       } finally {
         setIsUploadingFile(false);
       }
     }
   };
 
-  const handleCreateTemplate = (e: React.FormEvent) => {
+  const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadFileUrl) {
       alert('Harap unggah berkas gambar bingkai PNG terlebih dahulu.');
       return;
     }
 
-    addTwibbon({
+    const res = await addTwibbon({
       title: uploadTitle,
       category: uploadCategory,
       region: uploadRegion || 'Nasional',
@@ -97,6 +126,11 @@ export default function TwibbonGalleryPage() {
       status: currentUser?.role === 'Super Admin' ? 'Disetujui' : 'Pending',
       isFeatured: false,
     });
+
+    if (res?.success === false) {
+      alert(res.message || 'Terjadi kesalahan saat menambahkan Twibbon.');
+      return;
+    }
 
     setUploadSuccess(true);
     setTimeout(() => {
@@ -179,7 +213,12 @@ export default function TwibbonGalleryPage() {
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            <span>Semua Bingkai ({approvedTwibbons.length})</span>
+            <span className="flex items-center gap-1.5">
+              Semua Bingkai
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${activeFilter === 'all' ? 'bg-orange-100 text-[#F26522]' : 'bg-gray-100 text-gray-600'}`}>
+                {approvedTwibbons.length}
+              </span>
+            </span>
           </button>
           <button
             onClick={() => setActiveFilter('favorites')}
@@ -190,12 +229,17 @@ export default function TwibbonGalleryPage() {
             }`}
           >
             <Heart size={14} className={activeFilter === 'favorites' ? 'fill-[#F26522]' : ''} />
-            <span>Favorit Saya ({favorites.length})</span>
+            <span className="flex items-center gap-1.5">
+              Favorit Saya
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${activeFilter === 'favorites' ? 'bg-orange-100 text-[#F26522]' : 'bg-gray-100 text-gray-600'}`}>
+                {isMounted ? approvedTwibbons.filter(t => favorites.includes(t.id)).length : 0}
+              </span>
+            </span>
           </button>
         </div>
 
         {/* Twibbons Grid list */}
-        {!isMounted ? (
+        {!isMounted || (!isTwibbonsLoaded && twibbons.length === 0) ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div 

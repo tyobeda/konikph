@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Artwork, User, Comment, ResetRequest, CustomPage, ArtworkReport, BrandKit } from '@/lib/types';
-import { getUsers, loginUser as dbLoginUser, registerUser as dbRegisterUser, updateUser as dbUpdateUser, deleteUser as dbDeleteUser } from '@/actions/user';
-import { getArtworks, addArtwork as dbAddArtwork, updateArtwork as dbUpdateArtwork, deleteArtwork as dbDeleteArtwork, toggleLikeArtwork as dbToggleLikeArtwork, addCommentToArtworkDB, editCommentDB, deleteCommentDB } from '@/actions/artwork';
+import { getUsers, loginUser as dbLoginUser, registerUser as dbRegisterUser, updateUser as dbUpdateUser, deleteUser as dbDeleteUser, deleteAllUsersDB } from '@/actions/user';
+import { getArtworks, addArtwork as dbAddArtwork, updateArtwork as dbUpdateArtwork, deleteArtwork as dbDeleteArtwork, toggleLikeArtwork as dbToggleLikeArtwork, addCommentToArtworkDB, editCommentDB, deleteCommentDB, incrementArtworkDownloadDB, deleteAllArtworksDB } from '@/actions/artwork';
 import { getUnreadNotificationCount } from '@/actions/notification';
 import { getTwibbons, addTwibbon as dbAddTwibbon, updateTwibbon as dbUpdateTwibbon, deleteTwibbon as dbDeleteTwibbon } from '@/actions/twibbon';
 import { getDpwList, addDpw as dbAddDpw, updateDpw as dbUpdateDpw, deleteDpw as dbDeleteDpw } from '@/actions/dpw';
@@ -11,7 +11,8 @@ import { getCustomPages, addCustomPage as dbAddPage, updateCustomPage as dbUpdat
 import { getArtworkReports, addArtworkReport as dbAddReport, resolveArtworkReport as dbResolveReport } from '@/actions/report';
 import { getBrandKits, addBrandKit as dbAddBrandKit, updateBrandKit as dbUpdateBrandKit, deleteBrandKit as dbDeleteBrandKit } from '@/actions/brandkit';
 import { getDBSiteSettings, updateDBSiteSettings } from '@/actions/settings';
-import { INITIAL_ARTWORKS, USERS } from '@/lib/data';
+import { getResetRequests, addResetRequest as dbAddResetRequest, completeResetRequest as dbCompleteResetRequest, deleteResetRequest as dbDeleteResetRequest } from '@/actions/resetRequest';
+import { getClientCookie, setClientCookie, deleteClientCookie } from '@/lib/cookies';
 
 export interface TwibbonFrame {
   id: string;
@@ -39,6 +40,7 @@ export interface DpwOffice {
   address: string;
   activeCreators: number;
   totalArtworks: number;
+  isActive?: boolean;
 }
 
 export interface DataContextType {
@@ -72,7 +74,7 @@ export interface DataContextType {
 
   // Twibbons
   twibbons: TwibbonFrame[];
-  addTwibbon: (tw: Omit<TwibbonFrame, 'id' | 'usedCount' | 'createdAt'>) => void;
+  addTwibbon: (tw: Omit<TwibbonFrame, 'id' | 'usedCount' | 'createdAt'>) => Promise<any> | void;
   updateTwibbon: (id: string, updated: Partial<TwibbonFrame>) => void;
   deleteTwibbon: (id: string) => void;
 
@@ -118,7 +120,7 @@ export interface DataContextType {
 
   // Reset Requests Management
   resetRequests: ResetRequest[];
-  addResetRequest: (name: string, email: string, phone: string) => void;
+  addResetRequest: (data: { name: string; email: string; phone: string }) => void;
   completeResetRequest: (id: string) => void;
   deleteResetRequest: (id: string) => void;
 
@@ -129,7 +131,10 @@ export interface DataContextType {
   brandKits: BrandKit[];
   addBrandKit: (kit: Omit<BrandKit, 'id' | 'createdAt'>) => void;
   updateBrandKit: (id: string, updated: Partial<BrandKit>) => void;
-  deleteBrandKit: (id: string) => void;
+  isSettingsLoaded: boolean;
+  isPagesLoaded: boolean;
+  isTwibbonsLoaded: boolean;
+  isBrandKitsLoaded: boolean;
 }
 
 export const SUPER_ADMIN_USER: User = {
@@ -153,10 +158,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 2. Users State
   const [users, setUsers] = useState<User[]>([]);
 
-  // Current Logged In User State (Nullable, Default to SUPER_ADMIN_USER if none stored)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('pksart_current_user');
+      const stored = getClientCookie('pksart_current_user');
       if (stored) {
         try { return JSON.parse(stored); } catch (e) {}
       }
@@ -164,46 +168,82 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return SUPER_ADMIN_USER;
   });
 
-  // Reports State
+  // Reports & Reset Requests State
   const [artworkReports, setArtworkReports] = useState<ArtworkReport[]>([]);
+  const [resetRequests, setResetRequests] = useState<ResetRequest[]>([]);
 
   const [twibbons, setTwibbons] = useState<TwibbonFrame[]>([]);
+  const [isTwibbonsLoaded, setIsTwibbonsLoaded] = useState(false);
 
   const [dpwList, setDpwList] = useState<DpwOffice[]>([]);
 
   const [customPages, setCustomPages] = useState<CustomPage[]>([]);
+  const [isPagesLoaded, setIsPagesLoaded] = useState(false);
   const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
+  const [isBrandKitsLoaded, setIsBrandKitsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const loadCache = (key: string, setter: (val: any) => void) => {
+        try {
+          const cached = localStorage.getItem(key);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setter(parsed);
+            }
+          }
+        } catch (e) {}
+      };
+      loadCache('pksart_artworks', setArtworks);
+      loadCache('pksart_users', setUsers);
+      loadCache('pksart_twibbons', (val) => { setTwibbons(val); setIsTwibbonsLoaded(true); });
+      loadCache('pksart_dpwlist', setDpwList);
+      loadCache('pksart_custompages', (val) => { setCustomPages(val); setIsPagesLoaded(true); });
+      loadCache('pksart_brandkits', (val) => { setBrandKits(val); setIsBrandKitsLoaded(true); });
+    }
+  }, []);
 
   // 5. Site Settings State
-  const [siteSettings, setSiteSettings] = useState({
-    siteName: 'PKSart - Galeri Desain & Foto PKS Official',
-    siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
-    logoUrl: '/favicon.ico',
-    logoAdminUrl: '/favicon.ico',
-    logoFooterUrl: '/favicon.ico',
-    faviconUrl: '/favicon.ico',
-    // CTA Banner Defaults
-    ctaTitle: 'Ayo Gabung Jadi Kreator PKSart!',
-    ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
-    ctaButtonText: 'Daftar Sekarang',
-    ctaButtonLink: '/register',
-    ctaLogoUrl: '',
-    ctaImageUrl: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22white%22 fill-opacity=%220.15%22/><path d=%22M35 30H65V70H35V30Z%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22/><path d=%22M35 55L48 45L58 52L65 47%22 stroke=%22white%22 stroke-width=%223%22 fill=%22none%22/><circle cx=%2242%22 cy=%2242%22 r=%223%22 fill=%22white%22/></svg>',
-    ctaBgUrl: '',
-    ctaEnabled: true,
-    ctaLinks: [
-      { label: 'Beranda', url: '/' },
-      { label: 'Tentang PKSART', url: '#' },
-      { label: 'PKS Bicara', url: '#' },
-      { label: 'Khidmat PKS', url: '#' },
-      { label: 'Galeri PKSART', url: '#' },
-      { label: 'Jejaring', url: '#' },
-      { label: 'Gabung', url: '/register' },
-      { label: 'Download', url: '#' },
-      { label: 'Login/Upload', url: '/login' }
-    ],
-    ctaSocialText: 'Follow @pksart',
-    ctaSocialUrl: '#'
+  const [siteSettings, setSiteSettings] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const cached = getClientCookie('pksart_site_settings');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return {
+      siteName: 'PKSart - Galeri Desain & Foto PKS Official',
+      siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
+      logoUrl: '',
+      logoAdminUrl: '',
+      logoFooterUrl: '',
+      faviconUrl: '/favicon.ico',
+      // CTA Banner Defaults
+      ctaTitle: 'Ayo Gabung Jadi Kreator PKSart!',
+      ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
+      ctaButtonText: 'Daftar Sekarang',
+      ctaButtonLink: '/register',
+      ctaLogoUrl: '',
+      ctaImageUrl: '',
+      ctaBgUrl: '',
+      ctaEnabled: true,
+      ctaLinks: [
+        { label: 'Beranda', url: '/' },
+        { label: 'Tentang PKSART', url: '#' },
+        { label: 'PKS Bicara', url: '#' },
+        { label: 'Khidmat PKS', url: '#' },
+        { label: 'Galeri PKSART', url: '#' },
+        { label: 'Jejaring', url: '#' },
+        { label: 'Gabung', url: '/register' },
+        { label: 'Download', url: '#' },
+        { label: 'Login/Upload', url: '/login' }
+      ],
+      ctaSocialText: 'Follow @pksart',
+      ctaSocialUrl: '#'
+    };
   });
 
   const [isMounted, setIsMounted] = useState(false);
@@ -225,12 +265,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser?.id]);
 
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
-  const [resetRequests, setResetRequests] = useState<ResetRequest[]>([]);
 
   // Load stored state safely after client mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('pksart_current_user');
+      const storedUser = getClientCookie('pksart_current_user');
       if (storedUser) {
         try {
           const parsed = JSON.parse(storedUser);
@@ -240,28 +279,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (e) {}
       }
 
-      // Fetch Site Settings from DB
+  // Fetch Site Settings from DB in background to sync
       getDBSiteSettings().then(res => {
         if (res.success && res.data) {
           setSiteSettings(res.data as any);
+          setClientCookie('pksart_site_settings', JSON.stringify(res.data), 365);
         }
+        setIsSettingsLoaded(true);
+      }).catch(() => {
+        setIsSettingsLoaded(true);
       });
 
-      const storedResets = localStorage.getItem('pksart_reset_requests');
-      if (storedResets) {
-        try {
-          setResetRequests(JSON.parse(storedResets));
-        } catch (e) {}
-      }
-
-      // Mark mounted early so UI can render with cached/default data
+      // Mark mounted early so UI can render
       setIsMounted(true);
-      setIsSettingsLoaded(true);
 
       // Fetch artworks FIRST independently (highest priority for homepage)
       getArtworks().then(res => {
         if (res.success && res.data) {
           setArtworks(res.data as any);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('pksart_artworks', JSON.stringify((res.data as any[]).slice(0, 50))); } catch (e) {}
+          }
         }
       });
 
@@ -269,25 +307,43 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getUsers().then(res => {
         if (res.success && res.data) {
           setUsers(res.data as any);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('pksart_users', JSON.stringify(res.data)); } catch (e) {}
+          }
         }
+      });
+
+      // Fetch custom pages independently for instant load
+      getCustomPages().then(pagesRes => {
+        if (pagesRes.success && pagesRes.data) {
+          setCustomPages(pagesRes.data as any);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('pksart_custompages', JSON.stringify(pagesRes.data)); } catch (e) {}
+          }
+        }
+        setIsPagesLoaded(true);
       });
 
       // Fetch secondary data in parallel (lower priority, not needed for homepage)
       Promise.all([
         getTwibbons(),
         getDpwList(),
-        getCustomPages(),
         getBrandKits(),
         getArtworkReports(),
-      ]).then(([twibbonsRes, dpwRes, pagesRes, brandKitsRes, reportsRes]) => {
+        getResetRequests(),
+      ]).then(([twibbonsRes, dpwRes, brandKitsRes, reportsRes, resetsRes]) => {
         if (twibbonsRes.success && twibbonsRes.data) {
           setTwibbons(twibbonsRes.data as any);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('pksart_twibbons', JSON.stringify(twibbonsRes.data)); } catch (e) {}
+          }
         }
+        setIsTwibbonsLoaded(true);
         if (dpwRes.success && dpwRes.data) {
           setDpwList(dpwRes.data as any);
-        }
-        if (pagesRes.success && pagesRes.data) {
-          setCustomPages(pagesRes.data as any);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('pksart_dpwlist', JSON.stringify(dpwRes.data)); } catch (e) {}
+          }
         }
         if (brandKitsRes.success && brandKitsRes.data) {
           const mapped = (brandKitsRes.data as any[]).map((b: any) => ({
@@ -295,7 +351,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdAt: typeof b.createdAt === 'string' ? b.createdAt : b.createdAt.toISOString(),
           }));
           setBrandKits(mapped);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('pksart_brandkits', JSON.stringify(mapped));
+            } catch (e) {}
+          }
         }
+        setIsBrandKitsLoaded(true);
         if (reportsRes.success && reportsRes.data) {
           const mapped = (reportsRes.data as any[]).map((r: any) => ({
             ...r,
@@ -304,14 +366,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
           setArtworkReports(mapped);
         }
+        if (resetsRes && resetsRes.success && resetsRes.data) {
+          setResetRequests(resetsRes.data as any);
+        }
+      }).catch(() => {
+        setIsTwibbonsLoaded(true);
+        setIsBrandKitsLoaded(true);
       });
     }
   }, []);
 
-  // LocalStorage Persist Synchronization (Guarded by isMounted & isSettingsLoaded)
+  // Settings synchronization
   useEffect(() => {
     if (!isMounted || !isSettingsLoaded) return;
-    localStorage.setItem('pksart_settings', JSON.stringify(siteSettings));
 
     // Dynamic head update
     if (typeof window !== 'undefined') {
@@ -319,9 +386,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         document.title = siteSettings.siteName;
       }
       if (siteSettings.faviconUrl) {
-        // Clear all previous favicon nodes to avoid duplicates/overrides
+        // Clear all previous favicon nodes to avoid duplicates/overrides safely
         const existingLinks = document.querySelectorAll("link[rel*='icon']");
-        existingLinks.forEach((el) => el.parentNode?.removeChild(el));
+        existingLinks.forEach((el) => {
+          if (el.parentNode) {
+            el.parentNode.removeChild(el);
+          }
+        });
 
         // Create a single clean link element
         const link = document.createElement('link');
@@ -346,67 +417,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('pksart_artworks', JSON.stringify(artworks));
-  }, [artworks, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted) return;
-    localStorage.setItem('pksart_users', JSON.stringify(users));
-  }, [users, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted) return;
     if (currentUser) {
-      localStorage.setItem('pksart_current_user', JSON.stringify(currentUser));
+      setClientCookie('pksart_current_user', JSON.stringify(currentUser), 30);
+    } else {
+      deleteClientCookie('pksart_current_user');
     }
   }, [currentUser, isMounted]);
 
-  useEffect(() => {
-    if (!isMounted) return;
-    localStorage.setItem('pksart_reports', JSON.stringify(artworkReports));
-  }, [artworkReports, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted || !isSettingsLoaded) return;
-    localStorage.setItem('pksart_twibbons', JSON.stringify(twibbons));
-  }, [twibbons, isMounted, isSettingsLoaded]);
-
-  useEffect(() => {
-    if (!isMounted || !isSettingsLoaded) return;
-    localStorage.setItem('pksart_dpw', JSON.stringify(dpwList));
-  }, [dpwList, isMounted, isSettingsLoaded]);
-
-  useEffect(() => {
-    if (!isMounted || !isSettingsLoaded) return;
-    localStorage.setItem('pksart_reset_requests', JSON.stringify(resetRequests));
-  }, [resetRequests, isMounted, isSettingsLoaded]);
-
-  useEffect(() => {
-    if (!isMounted || !isSettingsLoaded) return;
-    localStorage.setItem('pksart_custom_pages', JSON.stringify(customPages));
-  }, [customPages, isMounted, isSettingsLoaded]);
-
-  const addResetRequest = (name: string, email: string, phone: string) => {
-    const newReq: ResetRequest = {
-      id: 'req-' + Math.random().toString(36).substr(2, 9),
-      name,
-      email,
-      phone,
-      status: 'Pending',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setResetRequests((prev) => [newReq, ...prev]);
-  };
-
-  const completeResetRequest = (id: string) => {
-    setResetRequests((prev) =>
-      prev.map((req) => (req.id === id ? { ...req, status: 'Completed' } : req))
-    );
-  };
-
-  const deleteResetRequest = (id: string) => {
-    setResetRequests((prev) => prev.filter((req) => req.id !== id));
-  };
 
   // Report Functions
   const addArtworkReport = async (report: Omit<ArtworkReport, 'id' | 'createdAt' | 'status'>) => {
@@ -433,9 +450,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Actions
   const addArtwork = async (art: Omit<Artwork, 'id' | 'createdAt' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'>) => {
-    const res = await dbAddArtwork(art);
+    // Pass authorId explicitly to the server action
+    const payload = {
+      ...art,
+      authorId: art.author?.id || SUPER_ADMIN_USER.id
+    };
+    const res = await dbAddArtwork(payload);
     if (res && res.success && res.artwork) {
-      setArtworks((prev) => [JSON.parse(JSON.stringify(res.artwork)), ...prev]);
+      // Append the nested author object for local state rendering
+      const newArtwork = {
+        ...res.artwork,
+        author: art.author || SUPER_ADMIN_USER,
+        comments: []
+      };
+      setArtworks((prev) => [newArtwork, ...prev]);
     }
   };
 
@@ -476,10 +504,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const incrementDownloadCount = (id: string) => {
+  const incrementDownloadCount = async (id: string) => {
     setArtworks((prev) =>
       prev.map((a) => (a.id === id ? { ...a, downloadsCount: a.downloadsCount + 1 } : a))
     );
+    await incrementArtworkDownloadDB(id);
   };
 
   const addCommentToArtwork = async (id: string, content: string) => {
@@ -509,10 +538,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           return a;
         });
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('pksart_artworks', JSON.stringify(nextArtworks));
-        }
         return nextArtworks;
       });
     }
@@ -555,44 +580,50 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUser = (id: string, updated: Partial<User>) => {
+  const updateUser = async (id: string, updated: Partial<User>) => {
     setUsers((prev) => {
-      const nextUsers = prev.map((u) => (u.id === id ? { ...u, ...updated } : u));
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pksart_users', JSON.stringify(nextUsers));
-      }
-      return nextUsers;
+      const next = prev.map((u) => (u.id === id ? { ...u, ...updated } : u));
+      if (typeof window !== 'undefined') localStorage.setItem('pksart_users', JSON.stringify(next));
+      return next;
     });
 
     if (currentUser?.id === id) {
-      setCurrentUser((prev) => {
-        const nextUser = prev ? ({ ...prev, ...updated } as User) : null;
-        if (typeof window !== 'undefined' && nextUser) {
-          localStorage.setItem('pksart_current_user', JSON.stringify(nextUser));
-        }
-        return nextUser;
+      setCurrentUser((prev) => (prev ? ({ ...prev, ...updated } as User) : null));
+    }
+
+    const res = await dbUpdateUser(id, updated);
+    if (res.success && res.user) {
+      setUsers((prev) => {
+        const next = prev.map((u) => (u.id === id ? { ...u, ...res.user } : u));
+        if (typeof window !== 'undefined') localStorage.setItem('pksart_users', JSON.stringify(next));
+        return next;
       });
     }
   };
 
-  const toggleVerifyUser = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, isVerified: !(u as any).isVerified } : u))
-    );
+  const toggleVerifyUser = async (id: string) => {
+    const target = users.find((u) => u.id === id);
+    if (target) {
+      const updatedVerified = !target.isVerified;
+      await updateUser(id, { isVerified: updatedVerified });
+    }
   };
 
-  const toggleSuspendUser = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === id
-          ? { ...u, status: (u as any).status === 'Suspended' ? 'Active' : 'Suspended' }
-          : u
-      )
-    );
+  const toggleSuspendUser = async (id: string) => {
+    const target = users.find((u) => u.id === id);
+    if (target) {
+      const nextStatus = target.status === 'Aktif' || target.status === 'Active' ? 'Ditangguhkan' : 'Aktif';
+      await updateUser(id, { status: nextStatus as any });
+    }
   };
 
-  const deleteUser = (id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+  const deleteUser = async (id: string) => {
+    setUsers((prev) => {
+      const next = prev.filter((u) => u.id !== id);
+      if (typeof window !== 'undefined') localStorage.setItem('pksart_users', JSON.stringify(next));
+      return next;
+    });
+    await dbDeleteUser(id);
   };
 
   const loginUser = (emailInput: string, passwordInput: string) => {
@@ -604,9 +635,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (passwordInput === 'admin123' || passwordInput === 'pksart2026')
     ) {
       setCurrentUser(SUPER_ADMIN_USER);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pksart_current_user', JSON.stringify(SUPER_ADMIN_USER));
-      }
       return { success: true, message: 'Selamat datang Super Admin PKSart!', user: SUPER_ADMIN_USER };
     }
 
@@ -620,9 +648,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: 'Akun Anda dinonaktifkan/ditangguhkan oleh Administrator.' };
       }
       setCurrentUser(found);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pksart_current_user', JSON.stringify(found));
-      }
       return { success: true, message: `Selamat datang kembali, ${found.name}!`, user: found };
     }
 
@@ -639,40 +664,77 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       status: 'Active',
     };
     setCurrentUser(demoUser);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('pksart_current_user', JSON.stringify(demoUser));
-    }
     return { success: true, message: `Selamat datang, ${demoUser.name}!`, user: demoUser };
   };
 
   const logoutUser = () => {
     setCurrentUser(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('pksart_current_user');
+  };
+
+  const registerUser = async (user: Omit<User, 'id'>) => {
+    try {
+      const res = await dbRegisterUser({
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        address: user.address || '',
+        region: user.region || 'DPW Jawa Barat',
+        role: user.role || 'Kreator PKS',
+        avatar: user.avatar || '',
+      });
+
+      if (res && res.success && res.user) {
+        const newUser: User = {
+          ...res.user,
+          status: 'Pending',
+          isVerified: false,
+          totalArtworks: 0,
+          totalDownloads: 0,
+        };
+        setUsers((prev) => [newUser, ...prev]);
+        return { success: true, message: res.message || 'Pendaftaran berhasil!' };
+      }
+      return { success: false, message: res?.message || 'Gagal mendaftar ke server.' };
+    } catch (e: any) {
+      console.error('Error during registerUser:', e);
+      const newUser: User = {
+        ...user,
+        id: `u-${Date.now()}`,
+        avatar: user.avatar || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
+        status: 'Pending',
+        isVerified: false,
+        totalArtworks: 0,
+        totalDownloads: 0,
+      };
+      setUsers((prev) => [newUser, ...prev]);
+      return { success: true, message: 'Pendaftaran berhasil!' };
     }
   };
 
-  const registerUser = (user: Omit<User, 'id'>) => {
-    const newUser: User = {
-      ...user,
-      id: `u-${Date.now()}`,
-      avatar: user.avatar || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
-      status: 'Pending',
-      isVerified: false,
-      totalArtworks: 0,
-      totalDownloads: 0,
-    };
-    setUsers((prev) => [newUser, ...prev]);
-  };
 
-  const addTwibbon = (tw: Omit<TwibbonFrame, 'id' | 'usedCount' | 'createdAt'>) => {
-    const newTw: TwibbonFrame = {
-      ...tw,
-      id: `tw-${Date.now()}`,
-      usedCount: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setTwibbons((prev) => [newTw, ...prev]);
+  const addTwibbon = async (tw: Omit<TwibbonFrame, 'id' | 'usedCount' | 'createdAt'>) => {
+    try {
+      const payload = {
+        ...tw,
+        authorId: currentUser?.id || 'system-admin',
+      };
+      const res = await dbAddTwibbon(payload);
+      if (res && res.success && res.data) {
+        setTwibbons((prev) => [res.data, ...prev]);
+        return { success: true };
+      }
+      return { success: false, message: res?.error || 'Gagal menyimpan twibbon ke server.' };
+    } catch (e: any) {
+      console.error('Error in addTwibbon:', e);
+      const newTw: TwibbonFrame = {
+        ...tw,
+        id: `tw-${Date.now()}`,
+        usedCount: 0,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      setTwibbons((prev) => [newTw, ...prev]);
+      return { success: true };
+    }
   };
 
   const updateTwibbon = async (id: string, updated: Partial<TwibbonFrame>) => {
@@ -689,34 +751,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addDpw = (dpw: Omit<DpwOffice, 'id' | 'activeCreators' | 'totalArtworks'>) => {
+  const addDpw = async (dpw: Omit<DpwOffice, 'id' | 'activeCreators' | 'totalArtworks'>) => {
+    const tempId = `dpw-${Date.now()}`;
     const newDpw: DpwOffice = {
       ...dpw,
-      id: `dpw-${Date.now()}`,
-      activeCreators: 1,
+      id: tempId,
+      activeCreators: 0,
       totalArtworks: 0,
+      isActive: true,
     };
     setDpwList((prev) => [newDpw, ...prev]);
+    const res = await dbAddDpw(dpw);
+    if (res.success && res.data) {
+      setDpwList(prev => prev.map(d => d.id === tempId ? JSON.parse(JSON.stringify(res.data)) : d));
+    }
   };
 
   const updateDpw = async (id: string, updated: Partial<DpwOffice>) => {
+    setDpwList(prev => prev.map(d => d.id === id ? { ...d, ...updated } : d));
     const res = await dbUpdateDpw(id, updated);
     if (res.success && res.data) {
-      setDpwList(prev => prev.map(d => d.id === id ? JSON.parse(JSON.stringify(res.data)) : d).sort((a, b) => a.name.localeCompare(b.name)));
+      setDpwList(prev => prev.map(d => d.id === id ? JSON.parse(JSON.stringify(res.data)) : d));
     }
   };
 
   const deleteDpw = async (id: string) => {
-    const res = await dbDeleteDpw(id);
-    if (res.success) {
-      setDpwList(prev => prev.filter(d => d.id !== id));
-    }
+    setDpwList(prev => prev.filter(d => d.id !== id));
+    await dbDeleteDpw(id);
   };
 
-  const updateSiteSettings = async (settings: Partial<DataContextType['siteSettings']>) => {
-    const updated = { ...siteSettings, ...settings };
-    setSiteSettings(updated);
-    await updateDBSiteSettings(updated);
+  const updateSiteSettings = async (updated: Partial<DataContextType['siteSettings']>) => {
+    setSiteSettings((prev) => {
+      const newSettings = { ...prev, ...updated };
+      setClientCookie('pksart_site_settings', JSON.stringify(newSettings), 365);
+      return newSettings;
+    });
+
+    const res = await updateDBSiteSettings(updated);
+    if (res && res.success && res.data) {
+      setSiteSettings(res.data as any);
+      setClientCookie('pksart_site_settings', JSON.stringify(res.data), 365);
+    }
   };
 
   const addCustomPage = async (page: Omit<CustomPage, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -739,41 +814,112 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const massDeletePosts = () => {
-    setArtworks([]);
+  const addResetRequest = async (data: { name: string; email: string; phone: string }) => {
+    const tempId = 'req-' + Date.now();
+    const tempReq: ResetRequest = {
+      id: tempId,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      status: 'Pending',
+      createdAt: new Date().toISOString(),
+    };
+    setResetRequests((prev) => [tempReq, ...prev]);
+
+    const res = await dbAddResetRequest(data);
+    if (res.success && res.data) {
+      setResetRequests((prev) => prev.map((r) => (r.id === tempId ? (res.data as any) : r)));
+    }
   };
 
-  const massDeleteUsers = () => {
-    setUsers([]);
+  const completeResetRequest = async (id: string) => {
+    setResetRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Selesai' } : r)));
+    await dbCompleteResetRequest(id);
+  };
+
+  const deleteResetRequest = async (id: string) => {
+    setResetRequests((prev) => prev.filter((r) => r.id !== id));
+    await dbDeleteResetRequest(id);
+  };
+
+  const massDeletePosts = async () => {
+    setArtworks([]);
+    if (typeof window !== 'undefined') localStorage.removeItem('pksart_artworks');
+    await deleteAllArtworksDB();
+  };
+
+  const massDeleteUsers = async () => {
+    setUsers((prev) => prev.filter((u) => u.id === 'superadmin_1'));
+    if (typeof window !== 'undefined') localStorage.removeItem('pksart_users');
+    await deleteAllUsersDB();
   };
 
   const addBrandKit = async (kit: Omit<BrandKit, 'id' | 'createdAt'>) => {
+    const tempId = 'temp-' + Date.now();
+    const tempKit: BrandKit = {
+      id: tempId,
+      createdAt: new Date().toISOString(),
+      ...kit,
+    };
+    setBrandKits(prev => {
+      const next = [...prev, tempKit];
+      if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+      return next;
+    });
+
     const res = await dbAddBrandKit(kit);
     if (res.success && res.data) {
-      setBrandKits(prev => [...prev, { ...res.data, createdAt: res.data.createdAt.toISOString() }]);
+      const realCreatedAt = res.data.createdAt ? new Date(res.data.createdAt).toISOString() : tempKit.createdAt;
+      setBrandKits(prev => {
+        const next = prev.map(k => k.id === tempId ? { ...res.data, createdAt: realCreatedAt } : k);
+        if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+        return next;
+      });
     }
   };
 
   const updateBrandKit = async (id: string, updated: Partial<BrandKit>) => {
+    setBrandKits(prev => {
+      const next = prev.map(k => k.id === id ? { ...k, ...updated } : k);
+      if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+      return next;
+    });
+
     const res = await dbUpdateBrandKit(id, updated);
     if (res.success && res.data) {
-      setBrandKits(prev => prev.map(k => k.id === id ? { ...res.data, createdAt: res.data.createdAt.toISOString() } : k));
+      const realCreatedAt = res.data.createdAt ? new Date(res.data.createdAt).toISOString() : new Date().toISOString();
+      setBrandKits(prev => {
+        const next = prev.map(k => k.id === id ? { ...res.data, createdAt: realCreatedAt } : k);
+        if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+        return next;
+      });
     }
   };
 
   const deleteBrandKit = async (id: string) => {
-    const res = await dbDeleteBrandKit(id);
-    if (res.success) {
-      setBrandKits(prev => prev.filter(k => k.id !== id));
-    }
+    setBrandKits(prev => {
+      const next = prev.filter(k => k.id !== id);
+      if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+      return next;
+    });
+    await dbDeleteBrandKit(id);
   };
 
-  const massDeleteAll = () => {
+  const massDeleteAll = async () => {
     setArtworks([]);
-    setUsers([]);
+    setUsers((prev) => prev.filter((u) => u.id === 'superadmin_1'));
     setTwibbons([]);
     setDpwList([]);
     setCustomPages([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pksart_artworks');
+      localStorage.removeItem('pksart_users');
+      localStorage.removeItem('pksart_twibbons');
+      localStorage.removeItem('pksart_dpwlist');
+      localStorage.removeItem('pksart_custompages');
+    }
+    await deleteAllArtworksDB();
+    await deleteAllUsersDB();
   };
 
   return (
@@ -822,6 +968,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         siteSettings,
         updateSiteSettings,
         isMounted,
+        isSettingsLoaded,
+        isPagesLoaded,
+        isTwibbonsLoaded,
         unreadNotificationCount,
         refreshUnreadNotifications,
 
@@ -837,6 +986,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addBrandKit,
         updateBrandKit,
         deleteBrandKit,
+        isBrandKitsLoaded,
       }}
     >
       {children}

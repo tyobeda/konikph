@@ -27,6 +27,7 @@ export async function addDpw(data: any) {
         address: data.address,
         activeCreators: data.activeCreators || 0,
         totalArtworks: data.totalArtworks || 0,
+        isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
       },
     });
     revalidatePath('/admin/dpw');
