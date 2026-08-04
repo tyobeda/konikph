@@ -193,11 +193,19 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const url = await uploadFile(file);
+        triggerToast('Mengompres dan mengunggah gambar thumbnail...');
+        const compressedFile = await compressImageFile(file, 1200, 0.85);
+        const url = await uploadFile(compressedFile);
         setOgImagePreview(url);
-        triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan" untuk menerapkan.');
+        triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan Perubahan Identitas" untuk menerapkan.');
       } catch (err: any) {
-        alert(err.message || 'Gagal upload thumbnail.');
+        try {
+          const url = await uploadFile(file);
+          setOgImagePreview(url);
+          triggerToast('Thumbnail Social Share berhasil diupload! Klik "Simpan Perubahan Identitas" untuk menerapkan.');
+        } catch (uploadErr: any) {
+          alert(uploadErr.message || 'Gagal upload thumbnail.');
+        }
       }
     }
   };
@@ -599,7 +607,15 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="w-full h-40 bg-white rounded-lg border flex items-center justify-center p-2 shadow-inner overflow-hidden shrink-0">
                     {ogImagePreview ? (
-                      <img key={`og-${ogImagePreview}`} src={ogImagePreview} alt="Social Share Thumbnail" className="max-w-full max-h-full object-contain" />
+                      <img
+                        key={`og-${ogImagePreview}`}
+                        src={ogImagePreview}
+                        alt="Social Share Thumbnail"
+                        className="max-w-full max-h-full object-contain"
+                        onError={(e) => {
+                          console.error("Error loading OG Image preview:", ogImagePreview);
+                        }}
+                      />
                     ) : (
                       <div className="text-center p-4">
                         <ImageIcon size={32} className="mx-auto text-gray-300 mb-1" />
