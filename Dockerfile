@@ -41,8 +41,21 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 
+# Copy Prisma CLI & client for migrations
+COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+# Startup script: migrate then start
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'echo "Running Prisma migrations..."' >> /app/start.sh && \
+    echo './node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma' >> /app/start.sh && \
+    echo 'echo "Starting Next.js server..."' >> /app/start.sh && \
+    echo 'exec node server.js' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["/app/start.sh"]
