@@ -156,6 +156,10 @@ export default function AssetsPage() {
                             }}
                           />
                         </div>
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border ${item.color}`}>
+                          <Icon size={20} />
+                        </div>
                       )}
                     <span className="text-[10px] font-extrabold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                       {item.category}
