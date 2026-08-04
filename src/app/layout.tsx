@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://pks.art'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site'),
   title: {
     default: "PKSart - Galeri Desain & Foto PKS Official",
     template: "%s | PKSart",
@@ -30,8 +30,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PKSart - Galeri Desain & Foto PKS Official",
     description: "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.",
-    url: 'https://pks.art',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site',
     siteName: 'PKSart',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop',
+        width: 1200,
+        height: 630,
+        alt: 'PKSart - Galeri Desain & Foto PKS Official',
+      },
+    ],
     locale: 'id_ID',
     type: 'website',
   },
@@ -39,6 +47,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "PKSart - Galeri Desain & Foto PKS Official",
     description: "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.",
+    images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop'],
   },
 };
 
