@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
@@ -21,7 +22,8 @@ import {
 } from 'lucide-react';
 
 export default function AssetsPage() {
-  const { artworks, brandKits, isBrandKitsLoaded } = useData();
+  const router = useRouter();
+  const { artworks, brandKits, isBrandKitsLoaded, currentUser } = useData();
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMounted, setIsMounted] = useState(false);
@@ -29,6 +31,12 @@ export default function AssetsPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isMounted && !currentUser) {
+      router.replace('/login');
+    }
+  }, [isMounted, currentUser, router]);
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
 

@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const navLinks = [
     { label: 'Beranda', href: '/', id: 'beranda' },
     { label: 'Eksplorasi', href: '/explore', id: 'explore' },
-    { label: 'Aset Desain', href: '/assets', id: 'assets' },
+    ...(currentUser ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
     { label: 'Kreator', href: '/creators', id: 'creators' },
   ];
 
@@ -233,13 +233,15 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               <span>Buat Twibbon</span>
             </Link>
 
-            {/* Upload Button */}
-            <Link
-              href="/upload"
-              className="inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
-            >
-              <span>Unggah Karya</span>
-            </Link>
+            {/* Upload Button - Logged in users only */}
+            {currentUser && (
+              <Link
+                href="/upload"
+                className="inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+              >
+                <span>Unggah Karya</span>
+              </Link>
+            )}
 
             {/* Notification Icon */}
             {currentUser && (

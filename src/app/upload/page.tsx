@@ -20,7 +20,13 @@ import { useData, SUPER_ADMIN_USER } from '@/context/DataContext';
 
 export default function UploadPage() {
   const router = useRouter();
-  const { addArtwork, currentUser } = useData();
+  const { addArtwork, currentUser, isMounted } = useData();
+
+  React.useEffect(() => {
+    if (isMounted && !currentUser) {
+      router.replace('/login');
+    }
+  }, [isMounted, currentUser, router]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
