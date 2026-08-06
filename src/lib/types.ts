@@ -8,7 +8,7 @@ export interface User {
   region: string;
   role?: string | null;
   isVerified?: boolean;
-  status?: string;
+  status?: string | null;
   totalArtworks?: number;
   totalDownloads?: number;
   gender?: string;

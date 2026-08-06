@@ -7,6 +7,27 @@ import { ArrowLeft, Sparkles, AlertCircle, ChevronDown, HelpCircle, Quote, X, Ed
 import { useData } from '@/context/DataContext';
 import SliderWidget, { SlideItem, SliderEffect } from '@/components/SliderWidget';
 
+/**
+ * Lightweight HTML sanitizer — strips dangerous XSS vectors:
+ * - <script> tags and content
+ * - Inline event handlers (onclick, onerror, onload, etc.)
+ * - javascript: and data: URI schemes in href/src attributes
+ */
+function sanitizeHtml(html: string): string {
+  if (!html) return '';
+  // Remove <script> ... </script> blocks
+  let safe = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove <iframe>, <object>, <embed>, <form>, <base> tags entirely
+  safe = safe.replace(/<\s*(iframe|object|embed|form|base|meta|link)\b[^>]*>[\s\S]*?<\/\s*\1\s*>/gi, '');
+  safe = safe.replace(/<\s*(iframe|object|embed|form|base|meta|link)\b[^>]*/gi, '');
+  // Remove dangerous event handlers (on*)
+  safe = safe.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+  safe = safe.replace(/\s+on\w+\s*=\s*[^\s>]*/gi, '');
+  // Remove javascript: and data: URIs in href/src/action attributes
+  safe = safe.replace(/(href|src|action)\s*=\s*["']\s*(javascript|data|vbscript):[^"']*/gi, '$1="#"');
+  return safe;
+}
+
 const parseMarkdownToHtml = (text: string) => {
   if (!text) return '';
   
@@ -37,14 +58,18 @@ const parseMarkdownToHtml = (text: string) => {
   
   // Wrap paragraphs
   const paragraphs = html.split(/\n{2,}/);
-  return paragraphs.map(p => {
+  const result = paragraphs.map(p => {
     const trimmed = p.trim();
     if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<div') || trimmed.startsWith('<p') || trimmed.startsWith('<span')) {
       return trimmed;
     }
     return `<p class="mb-4 leading-relaxed text-slate-650 text-sm sm:text-base">${trimmed.replace(/\n/g, '<br />')}</p>`;
   }).join('\n');
+
+  // Sanitize output before returning to prevent XSS
+  return sanitizeHtml(result);
 };
+
 
 interface PageBlock {
   type: 'hero' | 'text' | 'cta' | 'faq' | 'image' | 'quote' | 'separator' | 'heading' | 'gallery' | 'slider';

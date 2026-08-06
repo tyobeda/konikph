@@ -271,15 +271,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load stored state safely after client mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedUser = getClientCookie('pksart_current_user');
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser);
-          if (parsed && parsed.avatar) {
-            setCurrentUser(parsed);
+      // ── Restore session from server (HttpOnly cookie validated server-side) ──
+      fetch('/api/auth/session')
+        .then(r => r.json())
+        .then(data => {
+          if (data.authenticated && data.user) {
+            setCurrentUser(data.user as User);
+          } else {
+            // Clear any stale client cookie
+            deleteClientCookie('pksart_current_user');
           }
-        } catch (e) {}
-      }
+        })
+        .catch(() => {});
 
   // Fetch Site Settings from DB in background to sync
       getDBSiteSettings().then(res => {
@@ -628,48 +631,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await dbDeleteUser(id);
   };
 
-  const loginUser = (emailInput: string, passwordInput: string) => {
-    const cleanEmail = emailInput.trim().toLowerCase();
-    
-    // Check Super Admin credentials
-    if (
-      (cleanEmail === 'admin@pks.art' || cleanEmail === 'admin') &&
-      (passwordInput === 'admin123' || passwordInput === 'pksart2026')
-    ) {
-      setCurrentUser(SUPER_ADMIN_USER);
-      return { success: true, message: 'Selamat datang Super Admin PKSart!', user: SUPER_ADMIN_USER };
-    }
-
-    // Check registered users in users list
-    const found = users.find((u) => u.email.toLowerCase() === cleanEmail || u.id === cleanEmail);
-    if (found) {
-      if (found.status === 'Pending') {
-        return { success: false, message: 'Akun Anda sedang ditinjau dan menunggu persetujuan dari Administrator PKSart.' };
+  const loginUser = async (emailInput: string, passwordInput: string): Promise<{ success: boolean; message: string; user?: User }> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.trim().toLowerCase(), password: passwordInput }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setCurrentUser(data.user as User);
       }
-      if (found.status === 'Suspended') {
-        return { success: false, message: 'Akun Anda dinonaktifkan/ditangguhkan oleh Administrator.' };
-      }
-      setCurrentUser(found);
-      return { success: true, message: `Selamat datang kembali, ${found.name}!`, user: found };
+      return { success: data.success, message: data.message, user: data.user };
+    } catch (error) {
+      return { success: false, message: 'Gagal menghubungi server. Periksa koneksi Anda.' };
     }
-
-    // Auto-create demo user for login testing
-    const demoUser: User = {
-      id: `user_${Date.now()}`,
-      name: cleanEmail.split('@')[0] || 'Kreator PKS',
-      email: cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@pks.art`,
-      phone: '081234567890',
-      address: 'DKI Jakarta',
-      region: 'DKI Jakarta',
-      avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
-      role: 'Kreator',
-      status: 'Active',
-    };
-    setCurrentUser(demoUser);
-    return { success: true, message: `Selamat datang, ${demoUser.name}!`, user: demoUser };
   };
 
-  const logoutUser = () => {
+  const logoutUser = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (_) {}
     setCurrentUser(null);
   };
 

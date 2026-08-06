@@ -47,26 +47,6 @@ export default function LoginPage() {
     }, 500);
   };
 
-  const handleQuickSuperAdmin = async () => {
-    setEmail('admin@pks.art');
-    setPassword('admin123');
-    setIsSubmitting(true);
-
-    const result = await loginUser('admin@pks.art', 'admin123');
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setToastMessage(result.message);
-
-      setTimeout(() => {
-        if (result.user?.role === 'Super Admin') {
-          router.push('/admin');
-        } else {
-          router.push('/');
-        }
-      }, 600);
-    }, 500);
-  };
-
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
@@ -103,25 +83,6 @@ export default function LoginPage() {
 
       <div className="max-w-md w-full mx-auto bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-8">
         
-        {/* Quick Super Admin Card Notice */}
-        <div className="mb-6 p-4 bg-orange-50/80 border border-orange-200 rounded-2xl">
-          <div className="flex items-center gap-2 text-[#F26522] font-black text-xs uppercase tracking-wider mb-1">
-            <ShieldCheck size={16} />
-            <span>Kredensial Super Admin</span>
-          </div>
-          <div className="text-xs text-gray-700 space-y-0.5 font-mono bg-white p-2.5 rounded-xl border border-orange-100 mt-2">
-            <p><span className="font-bold text-gray-500">Email:</span> admin@pks.art</p>
-            <p><span className="font-bold text-gray-500">Sandi:</span> admin123</p>
-          </div>
-          <button
-            type="button"
-            onClick={handleQuickSuperAdmin}
-            className="w-full mt-2.5 py-2 px-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
-          >
-            ⚡ Masuk Otomatis sebagai Super Admin
-          </button>
-        </div>
-
         <div className="text-center mb-6">
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">
             Masuk ke PKSart

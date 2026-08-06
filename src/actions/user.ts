@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { requireAdminSession } from '@/lib/serverAuth';
 
 export async function getUsers() {
   noStore();
@@ -30,12 +31,24 @@ export async function loginUser(email: string, phone: string) {
       };
     }
 
-    // Basic mock login: just find a user by email
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
     
     if (user) {
+      // Check user status approval
+      if (user.status === 'Pending' || user.status === 'Pending Approval') {
+        return { 
+          success: false, 
+          message: 'Akun Anda sedang dalam proses persetujuan (Approval) oleh Admin PKSart. Silakan tunggu konfirmasi Admin.' 
+        };
+      }
+      if (user.status === 'Suspended') {
+        return { 
+          success: false, 
+          message: 'Akun Anda saat ini ditangguhkan. Silakan hubungi pengurus Admin PKSart.' 
+        };
+      }
       return { success: true, user, message: 'Login berhasil!' };
     }
     return { success: false, message: 'Email tidak ditemukan.' };
@@ -53,6 +66,7 @@ export async function registerUser(data: {
   region?: string;
   role?: string;
   avatar?: string;
+  gender?: string;
 }) {
   try {
     const cleanEmail = data.email.trim().toLowerCase();
@@ -64,7 +78,7 @@ export async function registerUser(data: {
       };
     }
     const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: cleanEmail },
     });
 
     if (existingUser) {
@@ -74,16 +88,21 @@ export async function registerUser(data: {
     const user = await prisma.user.create({
       data: {
         name: data.name,
-        email: data.email,
+        email: cleanEmail,
         phone: data.phone,
         address: data.address || '',
         region: data.region || '',
-        role: data.role || 'Kreator',
+        role: data.role || 'Kreator PKS',
+        status: 'Pending', // Memerlukan approval admin
         avatar: data.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200',
       }
     });
 
-    return { success: true, user, message: 'Pendaftaran berhasil!' };
+    return { 
+      success: true, 
+      user, 
+      message: 'Pendaftaran berhasil! Akun Anda sedang menunggu persetujuan (Approval) dari Admin.' 
+    };
   } catch (error) {
     console.error('Register error:', error);
     return { success: false, message: 'Gagal mendaftar.' };
@@ -114,23 +133,25 @@ export async function updateUser(id: string, data: any) {
 
 export async function deleteUser(id: string) {
   try {
+    await requireAdminSession();
     await prisma.user.delete({ where: { id } });
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete user error:', error);
-    return { success: false, error: 'Gagal menghapus user' };
+    return { success: false, error: error.message || 'Gagal menghapus user' };
   }
 }
 
 export async function deleteAllUsersDB() {
   try {
+    await requireAdminSession();
     await prisma.user.deleteMany({
       where: { id: { not: 'superadmin_1' } },
     });
     revalidatePath('/admin/creators');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting all users:', error);
-    return { success: false, error: 'Failed to delete all users' };
+    return { success: false, error: error.message || 'Failed to delete all users' };
   }
 }

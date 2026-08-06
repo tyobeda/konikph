@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSession } from '@/lib/serverAuth';
 
 // In-memory cache for IP Geolocation
 const geoCache = new Map<string, { country: string; countryCode: string; region: string; city: string }>();
@@ -267,6 +268,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'track';
+
+    if (action === 'seed' || action === 'clear') {
+      // These destructive actions require Admin authentication
+      const session = await getSession();
+      if (!session || session.role !== 'Super Admin') {
+        return NextResponse.json({ success: false, error: 'Forbidden: Admin only.' }, { status: 403 });
+      }
+    }
 
     if (action === 'seed') {
       const freshCount = body.count || 25;

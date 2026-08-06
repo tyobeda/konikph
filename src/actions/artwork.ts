@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
+import { requireAdminSession } from '@/lib/serverAuth';
 
 export async function getArtworks() {
   noStore();
@@ -225,13 +226,14 @@ export async function incrementArtworkDownloadDB(id: string) {
 
 export async function deleteAllArtworksDB() {
   try {
+    await requireAdminSession();
     await prisma.artwork.deleteMany({});
     revalidatePath('/explore');
     revalidatePath('/');
     revalidatePath('/admin');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting all artworks:', error);
-    return { success: false, error: 'Failed to delete all artworks' };
+    return { success: false, error: error.message || 'Failed to delete all artworks' };
   }
 }

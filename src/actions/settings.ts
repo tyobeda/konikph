@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
+import { requireAdminSession } from '@/lib/serverAuth';
 
 const DEFAULT_SETTINGS = {
   id: 'settings',
@@ -56,6 +57,7 @@ export async function getDBSiteSettings() {
 
 export async function updateDBSiteSettings(data: any) {
   try {
+    await requireAdminSession();
     console.log("updateDBSiteSettings called with keys:", Object.keys(data));
     const updateData: any = {};
     if (data.siteName !== undefined) updateData.siteName = data.siteName;
