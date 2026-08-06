@@ -9,8 +9,11 @@ import { useData } from '@/context/DataContext';
 
 export default function PendingApprovalPage() {
   const router = useRouter();
-  const { currentUser, logoutUser, isMounted } = useData();
+  const { currentUser, logoutUser, isMounted, siteSettings } = useData();
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const adminWa = (siteSettings?.adminWhatsapp || '6281199887766').replace(/[^0-9]/g, '');
+  const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20PKSart,%20saya%20sudah%20mendaftar%20akun%20baru%20(${encodeURIComponent(currentUser?.name || '')}%20-%20${encodeURIComponent(currentUser?.email || '')}).%20Mohon%20bantuannya%20untuk%20persetujuan%20(approval).`;
 
   const handleCheckStatus = async () => {
     setIsRefreshing(true);
@@ -120,7 +123,7 @@ export default function PendingApprovalPage() {
           </button>
 
           <a
-            href="https://wa.me/?text=Halo%20Admin%20PKSart,%20saya%20sudah%20mendaftar%20akun%20baru.%20Mohon%20bantuannya%20untuk%20persetujuan%20(approval)."
+            href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2"

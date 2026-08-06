@@ -111,6 +111,7 @@ export interface DataContextType {
     ctaLinks?: { label: string; url: string }[];
     ctaSocialText?: string;
     ctaSocialUrl?: string;
+    adminWhatsapp?: string;
   };
   updateSiteSettings: (settings: Partial<DataContextType['siteSettings']>) => void;
 

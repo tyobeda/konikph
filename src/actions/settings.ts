@@ -78,6 +78,7 @@ export async function updateDBSiteSettings(data: any) {
     if (data.ctaLinks !== undefined) updateData.ctaLinks = JSON.stringify(data.ctaLinks);
     if (data.ctaSocialText !== undefined) updateData.ctaSocialText = data.ctaSocialText;
     if (data.ctaSocialUrl !== undefined) updateData.ctaSocialUrl = data.ctaSocialUrl;
+    if (data.adminWhatsapp !== undefined) updateData.adminWhatsapp = data.adminWhatsapp;
 
     const settings = await (prisma as any).siteSettings.upsert({
       where: { id: 'settings' },
@@ -102,6 +103,7 @@ export async function updateDBSiteSettings(data: any) {
         ctaLinks: data.ctaLinks ? JSON.stringify(data.ctaLinks) : DEFAULT_SETTINGS.ctaLinks,
         ctaSocialText: data.ctaSocialText || DEFAULT_SETTINGS.ctaSocialText,
         ctaSocialUrl: data.ctaSocialUrl || DEFAULT_SETTINGS.ctaSocialUrl,
+        adminWhatsapp: data.adminWhatsapp || '6281199887766',
       }
     });
     revalidatePath('/');

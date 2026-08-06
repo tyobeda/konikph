@@ -57,6 +57,8 @@ export default function AdminSettingsPage() {
   const [ctaLinks, setCtaLinks] = useState<{ label: string; url: string }[]>(siteSettings.ctaLinks || []);
   const [ctaSocialText, setCtaSocialText] = useState(siteSettings.ctaSocialText || '');
   const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
+  const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
+
   useEffect(() => {
     if (siteSettings) {
       setSiteName(siteSettings.siteName || '');
@@ -77,6 +79,7 @@ export default function AdminSettingsPage() {
       setCtaLinks(siteSettings.ctaLinks || []);
       setCtaSocialText(siteSettings.ctaSocialText || '');
       setCtaSocialUrl(siteSettings.ctaSocialUrl || '');
+      setAdminWhatsapp(siteSettings.adminWhatsapp || '6281199887766');
     }
   }, [siteSettings]);
   // Welcome Popup Configuration State
@@ -230,6 +233,7 @@ export default function AdminSettingsPage() {
         logoFooterUrl: logoFooterPreview,
         faviconUrl: faviconPreview,
         ogImageUrl: ogImagePreview,
+        adminWhatsapp,
       });
       setIsSaved(true);
       triggerToast('Pengaturan identitas situs berhasil disimpan permanen!');
@@ -488,6 +492,22 @@ export default function AdminSettingsPage() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522]"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Nomor WhatsApp Admin Konfirmasi
+                  </label>
+                  <input
+                    type="text"
+                    value={adminWhatsapp}
+                    onChange={(e) => setAdminWhatsapp(e.target.value)}
+                    placeholder="6281199887766"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522]"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Nomor WhatsApp ini akan digunakan pada tombol "Hubungi Admin via WhatsApp" untuk pendaftar yang menunggu approval (Gunakan kode negara, contoh: 628123456789).
+                  </p>
                 </div>
               </div>
 

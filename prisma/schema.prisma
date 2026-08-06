@@ -170,6 +170,7 @@ model SiteSettings {
   ctaSocialText   String?
   ctaSocialUrl    String?
   ctaLinks        String?  // Store serialized JSON array of links
+  adminWhatsapp   String?  @default("6281199887766")
   updatedAt       DateTime @updatedAt
 }
 
