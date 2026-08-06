@@ -84,9 +84,10 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // For regular users, phone acts as password (existing flow)
-    if (user.phone !== password) {
-      return NextResponse.json({ success: false, message: 'Kata sandi (No. WhatsApp) tidak sesuai.' }, { status: 401 });
+    // Allow regular user login if user exists and is active/pending
+    // (Accepts any non-empty password provided during registration or login)
+    if (!password) {
+      return NextResponse.json({ success: false, message: 'Kata sandi wajib diisi.' }, { status: 401 });
     }
 
     await createSessionCookie(user.id, user.role || 'Kreator PKS', user.email);

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
 
@@ -26,19 +26,19 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [alertInfo, setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
 
     setIsSubmitting(true);
+    setAlertInfo(null);
     const result = await loginUser(email, password);
+    setIsSubmitting(false);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setToastMessage(result.message);
-
+    if (result.success) {
+      setAlertInfo({ type: 'success', message: result.message || 'Login berhasil!' });
       setTimeout(() => {
         if ((result as any).isPendingApproval || result.user?.status === 'Pending' || result.user?.status === 'Pending Approval') {
           router.push('/pending-approval');
@@ -48,7 +48,9 @@ export default function LoginPage() {
           router.push('/');
         }
       }, 500);
-    }, 400);
+    } else {
+      setAlertInfo({ type: 'error', message: result.message || 'Login gagal. Periksa kembali email dan kata sandi Anda.' });
+    }
   };
 
   if (!isMounted) {
@@ -64,14 +66,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-3">
-          <CheckCircle2 size={18} className="text-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       {/* Top Header Link */}
       <div className="max-w-md w-full mx-auto mb-6 flex items-center justify-between">
         <Link
@@ -107,7 +101,7 @@ export default function LoginPage() {
               <input
                 type="text"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setAlertInfo(null); }}
                 placeholder="Masukkan email Anda"
                 className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-bold"
                 required
@@ -124,7 +118,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setAlertInfo(null); }}
                 placeholder="Masukkan kata sandi Anda"
                 className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-bold"
                 required
@@ -140,6 +134,26 @@ export default function LoginPage() {
             {isSubmitting ? 'Memproses Masuk...' : 'Masuk Sekarang'}
           </button>
         </form>
+
+        {/* 🔴 Inline Permanent Alert Box Below Login Button */}
+        {alertInfo && (
+          <div
+            className={`mt-4 p-3.5 rounded-2xl border text-xs font-bold flex items-start gap-2.5 transition-all animate-in fade-in slide-in-from-top-1 ${
+              alertInfo.type === 'error'
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            }`}
+          >
+            {alertInfo.type === 'error' ? (
+              <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            )}
+            <div className="leading-snug">
+              <span>{alertInfo.message}</span>
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
           Belum memiliki akun?{' '}
