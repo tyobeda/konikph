@@ -40,6 +40,7 @@ export default function AdminCreatorsPage() {
   } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'creators' | 'resets'>('creators');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'suspended'>('all');
   const [editingCreator, setEditingCreator] = useState<User | null>(null);
   const [suspendingUser, setSuspendingUser] = useState<User | null>(null);
 
@@ -48,7 +49,7 @@ export default function AdminCreatorsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, statusFilter]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -57,6 +58,10 @@ export default function AdminCreatorsPage() {
     region: '',
     role: 'Kreator',
   });
+
+  const handleApproveUser = (id: string) => {
+    updateUser(id, { status: 'Active' });
+  };
 
   const handleToggleVerified = (id: string) => {
     toggleVerifyUser(id);
@@ -112,12 +117,21 @@ export default function AdminCreatorsPage() {
     return clean;
   };
 
-  const filteredCreators = users.filter(
-    (c) =>
+  const pendingCreatorsCount = users.filter(u => u.status === 'Pending' || u.status === 'Pending Approval').length;
+
+  const filteredCreators = users.filter((c) => {
+    const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      c.email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (statusFilter === 'pending') return c.status === 'Pending' || c.status === 'Pending Approval';
+    if (statusFilter === 'active') return c.status === 'Active' || !c.status || c.status === 'Aktif';
+    if (statusFilter === 'suspended') return c.status === 'Suspended';
+    return true;
+  });
 
   const filteredResets = resetRequests.filter(
     (r) =>
@@ -158,13 +172,18 @@ export default function AdminCreatorsPage() {
       <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold">
         <button
           onClick={() => setActiveTab('creators')}
-          className={`pb-3 relative transition-all ${
+          className={`pb-3 relative transition-all flex items-center gap-1.5 ${
             activeTab === 'creators'
               ? 'text-[#F26522] border-b-2 border-[#F26522]'
               : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          <span>Kreator Terdaftar ({filteredCreators.length})</span>
+          <span>Kreator Terdaftar ({users.length})</span>
+          {pendingCreatorsCount > 0 && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+              {pendingCreatorsCount} Pendaftar Baru
+            </span>
+          )}
         </button>
         <button
           onClick={() => setActiveTab('resets')}
@@ -182,6 +201,60 @@ export default function AdminCreatorsPage() {
           )}
         </button>
       </div>
+
+      {/* Creator Status Filters (If on Creators tab) */}
+      {activeTab === 'creators' && (
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              statusFilter === 'all'
+                ? 'bg-[#F26522] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            Semua ({users.length})
+          </button>
+
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              statusFilter === 'pending'
+                ? 'bg-amber-500 text-white shadow-sm'
+                : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
+            }`}
+          >
+            <span>⏳ Menunggu Approval</span>
+            {pendingCreatorsCount > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'pending' ? 'bg-white text-amber-600' : 'bg-amber-500 text-white'}`}>
+                {pendingCreatorsCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setStatusFilter('active')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              statusFilter === 'active'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
+            }`}
+          >
+            ✅ Disutujui / Aktif
+          </button>
+
+          <button
+            onClick={() => setStatusFilter('suspended')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              statusFilter === 'suspended'
+                ? 'bg-red-600 text-white shadow-sm'
+                : 'bg-white text-red-700 border border-red-200 hover:bg-red-50'
+            }`}
+          >
+            🚫 Ditangguhkan
+          </button>
+        </div>
+      )}
 
       {/* Table Container */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -334,14 +407,30 @@ export default function AdminCreatorsPage() {
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                             creator.status === 'Suspended'
                               ? 'bg-red-50 text-red-600 border border-red-200'
+                              : (creator.status === 'Pending' || creator.status === 'Pending Approval')
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
                               : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                           }`}
                         >
-                          {creator.status === 'Suspended' ? 'Suspended' : 'Aktif'}
+                          {creator.status === 'Suspended' 
+                            ? 'Suspended' 
+                            : (creator.status === 'Pending' || creator.status === 'Pending Approval')
+                            ? '⏳ Menunggu Approval'
+                            : 'Aktif'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {(creator.status === 'Pending' || creator.status === 'Pending Approval') && (
+                            <button
+                              onClick={() => handleApproveUser(creator.id)}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-1"
+                              title="Setujui Pendaftaran Akun"
+                            >
+                              <CheckCircle size={14} />
+                              <span>Setujui</span>
+                            </button>
+                          )}
                           <button
                             onClick={() => handleToggleVerified(creator.id)}
                             className={`p-1.5 rounded-lg transition-colors ${
