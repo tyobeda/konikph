@@ -53,7 +53,7 @@ export default function LoginPage() {
     }
   };
 
-  if (!isMounted) {
+  if (!isMounted || currentUser) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
         <div className="animate-pulse flex flex-col items-center gap-3">
