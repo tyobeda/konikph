@@ -20,6 +20,7 @@ import {
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
+import { ARTWORK_CATEGORIES } from '@/lib/data';
 
 export default function MyArtworksPage() {
   const router = useRouter();
@@ -285,11 +286,9 @@ export default function MyArtworksPage() {
                     onChange={(e) => setEditCategory(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522]"
                   >
-                    <option value="Poster">Poster</option>
-                    <option value="Spanduk">Spanduk</option>
-                    <option value="Social Media">Social Media</option>
-                    <option value="Infografis">Infografis</option>
-                    <option value="Templat">Templat</option>
+                    {ARTWORK_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
 

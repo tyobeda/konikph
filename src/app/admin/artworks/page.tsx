@@ -25,6 +25,7 @@ import {
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
+import { ARTWORK_CATEGORIES } from '@/lib/data';
 
 export default function AdminArtworksPage() {
   const { artworks, updateArtwork, deleteArtwork, artworkReports, resolveArtworkReport } = useData();
@@ -193,11 +194,9 @@ export default function AdminArtworksPage() {
                 className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
               >
                 <option value="all">Semua Kategori</option>
-                <option value="Poster">Poster</option>
-                <option value="Spanduk">Spanduk</option>
-                <option value="Social Media">Social Media</option>
-                <option value="Infografis">Infografis</option>
-                <option value="Templat">Templat</option>
+                {ARTWORK_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
 
               {/* Status Filter */}
@@ -567,11 +566,9 @@ export default function AdminArtworksPage() {
                     onChange={(e) => setEditCategory(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
                   >
-                    <option value="Poster">Poster</option>
-                    <option value="Spanduk">Spanduk</option>
-                    <option value="Social Media">Social Media</option>
-                    <option value="Infografis">Infografis</option>
-                    <option value="Templat">Templat</option>
+                    {ARTWORK_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
 

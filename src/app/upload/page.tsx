@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
-import { CATEGORIES, REGIONS } from '@/lib/data';
+import { CATEGORIES, REGIONS, ARTWORK_CATEGORIES } from '@/lib/data';
 import { useData, SUPER_ADMIN_USER } from '@/context/DataContext';
 
 export default function UploadPage() {
@@ -24,7 +24,7 @@ export default function UploadPage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState(CATEGORIES[0] || 'Poster');
+  const [category, setCategory] = useState(ARTWORK_CATEGORIES[0] || 'Logo');
   const [region, setRegion] = useState(REGIONS[1] || 'DPW Jawa Barat');
   const [fileFormat, setFileFormat] = useState('PSD');
   const [downloadUrl, setDownloadUrl] = useState('');
@@ -187,7 +187,7 @@ export default function UploadPage() {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
                   >
-                    {CATEGORIES.filter((c) => c !== 'Semua Karya').map((c) => (
+                    {ARTWORK_CATEGORIES.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>

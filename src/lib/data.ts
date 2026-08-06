@@ -407,13 +407,24 @@ export const INITIAL_ARTWORKS: Artwork[] = [
   },
 ];
 
+export const ARTWORK_CATEGORIES = [
+  'Logo',
+  'Hikmah-Motivasi',
+  'Mereka Bicara PKS',
+  'Kegiatan-Event PKS',
+  'Pemilu-Pemilukada',
+  'Tokoh PKS Bicara',
+  'Freehand-Komik-Karikatur',
+  'Kaligrafi-Kufi Design',
+  'Infografis-InfoPKS',
+  'Ucapan Selamat-Selebrasi-Duka Cita',
+  'Ragam Indonesia',
+  'Serba Serbi',
+];
+
 export const CATEGORIES = [
   'Semua Karya',
-  'Poster',
-  'Spanduk',
-  'Social Media',
-  'Infografis',
-  'Templat',
+  ...ARTWORK_CATEGORIES,
 ];
 
 export const REGIONS = [
