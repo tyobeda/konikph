@@ -167,7 +167,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try { return JSON.parse(stored); } catch (e) {}
       }
     }
-    return SUPER_ADMIN_USER;
+    return null;
   });
 
   // Reports & Reset Requests State

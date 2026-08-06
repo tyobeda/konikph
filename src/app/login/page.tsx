@@ -67,9 +67,9 @@ export default function LoginPage() {
     }, 500);
   };
 
-  if (!isMounted || currentUser) {
+  if (!isMounted) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
         <div className="animate-pulse flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
           <span className="text-sm font-semibold text-gray-500">Memeriksa sesi...</span>
