@@ -89,14 +89,23 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  // Leaderboard Data: Top Creators
-  const topCreators = users.slice(0, 4).map((user, idx) => ({
-    user,
-    totalArtworks: artworks.filter((a) => a.author.name === user.name).length || 8,
-    totalDownloads: (artworks.filter((a) => a.author.name === user.name).reduce((acc, c) => acc + c.downloadsCount, 0) || 1240).toLocaleString(),
-    totalLikes: artworks.filter((a) => a.author.name === user.name).reduce((acc, c) => acc + c.likesCount, 0) || 350,
-    rank: idx + 1,
-  }));
+  // Leaderboard Data: Top Creators (calculated dynamically)
+  const topCreators = users.map((user) => {
+    const userArtworks = artworks.filter((a) => a.author?.name === user.name || a.author?.email === user.email || a.author?.id === user.id);
+    const userArtworksCount = userArtworks.length;
+    const userDownloads = userArtworks.reduce((acc, c) => acc + (c.downloadsCount || 0), 0);
+    const userLikes = userArtworks.reduce((acc, c) => acc + (c.likesCount || 0), 0);
+    return {
+      user,
+      totalArtworks: userArtworksCount,
+      totalDownloads: userDownloads.toLocaleString(),
+      rawDownloads: userDownloads,
+      totalLikes: userLikes,
+    };
+  })
+  .sort((a, b) => b.rawDownloads - a.rawDownloads || b.totalArtworks - a.totalArtworks)
+  .slice(0, 4)
+  .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
   // Leaderboard Data: Most Liked
   const mostLikedArtworks = [...artworks]

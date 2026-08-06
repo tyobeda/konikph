@@ -29,6 +29,7 @@ import { User } from '@/lib/types';
 export default function AdminCreatorsPage() {
   const { 
     users, 
+    artworks,
     dpwList,
     toggleVerifyUser, 
     toggleSuspendUser, 
@@ -400,7 +401,7 @@ export default function AdminCreatorsPage() {
                         {creator.region}
                       </td>
                       <td className="py-3.5 px-4 font-semibold text-gray-700">
-                        {creator.totalArtworks} Karya
+                        {artworks.filter(a => a.author?.name === creator.name || a.author?.email === creator.email || a.author?.id === creator.id).length} Karya
                       </td>
                       <td className="py-3.5 px-4">
                         <span

@@ -114,14 +114,12 @@ export default function CreatorsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredUsers.map((user) => {
               const userArtworksCount = artworks.filter(
-                (a) => a.author.name === user.name || a.author.email === user.email
-              ).length || 6;
+                (a) => a.author?.name === user.name || a.author?.email === user.email || a.author?.id === user.id
+              ).length;
 
-              const totalDownloads = (
-                artworks
-                  .filter((a) => a.author.name === user.name)
-                  .reduce((acc, c) => acc + c.downloadsCount, 0) || 480
-              ).toLocaleString();
+              const totalDownloads = artworks
+                .filter((a) => a.author?.name === user.name || a.author?.email === user.email || a.author?.id === user.id)
+                .reduce((acc, c) => acc + (c.downloadsCount || 0), 0).toLocaleString();
 
               return (
                 <div
