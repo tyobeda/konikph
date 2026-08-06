@@ -13,7 +13,9 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     if (currentUser) {
-      if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
+      if (currentUser.status === 'Pending' || currentUser.status === 'Pending Approval') {
+        router.replace('/pending-approval');
+      } else if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
         router.replace('/admin');
       } else {
         router.replace('/');
@@ -38,13 +40,15 @@ export default function LoginPage() {
       setToastMessage(result.message);
 
       setTimeout(() => {
-        if (result.user?.role === 'Super Admin') {
+        if ((result as any).isPendingApproval || result.user?.status === 'Pending' || result.user?.status === 'Pending Approval') {
+          router.push('/pending-approval');
+        } else if (result.user?.role === 'Super Admin') {
           router.push('/admin');
         } else {
           router.push('/');
         }
-      }, 600);
-    }, 500);
+      }, 500);
+    }, 400);
   };
 
   if (!isMounted) {

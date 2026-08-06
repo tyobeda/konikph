@@ -57,10 +57,24 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.status === 'Pending' || user.status === 'Pending Approval') {
+      await createSessionCookie(user.id, user.role || 'Kreator PKS', user.email);
       return NextResponse.json({
-        success: false,
-        message: 'Akun Anda sedang dalam proses persetujuan (Approval) oleh Admin PKSart. Silakan tunggu konfirmasi Admin.',
-      }, { status: 403 });
+        success: true,
+        isPendingApproval: true,
+        message: 'Akun Anda sedang menunggu persetujuan (Approval) oleh Admin PKSart.',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          region: user.region,
+          role: user.role,
+          avatar: user.avatar,
+          isVerified: (user as any).isVerified,
+          status: user.status,
+        },
+      });
     }
 
     if (user.status === 'Suspended') {

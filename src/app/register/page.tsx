@@ -22,11 +22,13 @@ import { useData } from '@/context/DataContext';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { registerUser, users, currentUser, isMounted } = useData();
+  const { registerUser, loginUser, users, currentUser, isMounted } = useData();
 
   React.useEffect(() => {
     if (currentUser) {
-      if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
+      if (currentUser.status === 'Pending' || currentUser.status === 'Pending Approval') {
+        router.replace('/pending-approval');
+      } else if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
         router.replace('/admin');
       } else {
         router.replace('/');
@@ -140,6 +142,11 @@ export default function RegisterPage() {
     
     if (res?.success) {
       setIsSuccess(true);
+      // Automatically attempt login for the newly registered account
+      await loginUser(sanitizedEmail, formData.password);
+      setTimeout(() => {
+        router.push('/pending-approval');
+      }, 1000);
     } else {
       setErrorMessage(res?.message || 'Gagal mendaftar ke server.');
     }
