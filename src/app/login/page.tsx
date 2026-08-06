@@ -94,7 +94,7 @@ export default function LoginPage() {
           
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-              Email / Username
+              Email
             </label>
             <div className="relative">
               <Mail size={18} className="absolute left-3.5 top-3 text-gray-400" />
