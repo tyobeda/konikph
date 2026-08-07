@@ -66,18 +66,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch site settings on the server so DataProvider starts with real data (zero logo flash)
+  const settingsRes = await getDBSiteSettings();
+  const initialSettings = settingsRes?.success ? settingsRes.data : undefined;
+
   return (
     <html
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] text-gray-900" suppressHydrationWarning>
-        <DataProvider>
+        <DataProvider initialSettings={initialSettings}>
           <Suspense fallback={null}>
             <AnalyticsTracker />
           </Suspense>

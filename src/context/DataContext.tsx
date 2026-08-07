@@ -172,7 +172,7 @@ export const SUPER_ADMIN_USER: User = {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings?: any }> = ({ children, initialSettings }) => {
   // 1. Artworks State
   const [artworks, setArtworks] = useState<Artwork[]>([]);
 
@@ -225,46 +225,49 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // 5. Site Settings State
+  // 5. Site Settings State — use server-injected initialSettings to prevent logo flash
+  const DEFAULT_SETTINGS = {
+    siteName: 'PKSart - Galeri Desain & Foto PKS Official',
+    siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
+    logoUrl: '',
+    logoAdminUrl: '',
+    logoFooterUrl: '',
+    faviconUrl: '/favicon.ico',
+    ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
+    ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
+    ctaButtonText: 'Daftar Sekarang',
+    ctaButtonLink: '/register',
+    ctaLogoUrl: '',
+    ctaImageUrl: '',
+    ctaBgUrl: '',
+    ctaEnabled: true,
+    ctaLinks: [
+      { label: 'Beranda', url: '/' },
+      { label: 'Tentang PKSART', url: '#' },
+      { label: 'PKS Bicara', url: '#' },
+      { label: 'Khidmat PKS', url: '#' },
+      { label: 'Galeri PKSART', url: '#' },
+      { label: 'Jejaring', url: '#' },
+      { label: 'Gabung', url: '/register' },
+      { label: 'Download', url: '#' },
+      { label: 'Login/Upload', url: '/login' }
+    ],
+    ctaSocialText: 'Follow @pksart',
+    ctaSocialUrl: '#'
+  };
+
   const [siteSettings, setSiteSettings] = useState(() => {
+    // Priority 1: Server-injected initialSettings (zero flash)
+    if (initialSettings) return initialSettings;
+    // Priority 2: Cookie cache (returning visitors)
     if (typeof window !== 'undefined') {
       const cached = getClientCookie('pksart_site_settings');
       if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch (e) {}
+        try { return JSON.parse(cached); } catch (e) {}
       }
     }
-    return {
-      siteName: 'PKSart - Galeri Desain & Foto PKS Official',
-      siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
-      logoUrl: '',
-      logoAdminUrl: '',
-      logoFooterUrl: '',
-      faviconUrl: '/favicon.ico',
-      // CTA Banner Defaults
-      ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
-      ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
-      ctaButtonText: 'Daftar Sekarang',
-      ctaButtonLink: '/register',
-      ctaLogoUrl: '',
-      ctaImageUrl: '',
-      ctaBgUrl: '',
-      ctaEnabled: true,
-      ctaLinks: [
-        { label: 'Beranda', url: '/' },
-        { label: 'Tentang PKSART', url: '#' },
-        { label: 'PKS Bicara', url: '#' },
-        { label: 'Khidmat PKS', url: '#' },
-        { label: 'Galeri PKSART', url: '#' },
-        { label: 'Jejaring', url: '#' },
-        { label: 'Gabung', url: '/register' },
-        { label: 'Download', url: '#' },
-        { label: 'Login/Upload', url: '/login' }
-      ],
-      ctaSocialText: 'Follow @pksart',
-      ctaSocialUrl: '#'
-    };
+    // Priority 3: Hardcoded defaults
+    return DEFAULT_SETTINGS;
   });
 
   const [isMounted, setIsMounted] = useState(false);
@@ -304,6 +307,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch(() => {});
 
   // Fetch Site Settings from DB in background to sync
+  // If initialSettings was provided from server, mark as loaded immediately
+      if (initialSettings) {
+        setIsSettingsLoaded(true);
+        setClientCookie('pksart_site_settings', JSON.stringify(initialSettings), 365);
+      }
       getDBSiteSettings().then(res => {
         if (res.success && res.data) {
           setSiteSettings(res.data as any);
