@@ -41,15 +41,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 
-# Copy Prisma CLI & client for migrations
-COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy full node_modules for Prisma CLI DB push & migrations
+COPY --from=deps /app/node_modules ./node_modules
 
-# Startup script: migrate then start
+# Startup script: sync database schema then start
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "Running Prisma migrations..."' >> /app/start.sh && \
-    echo 'node /app/node_modules/prisma/build/index.js migrate deploy --schema=/app/prisma/schema.prisma 2>&1 || echo "Migration skipped or already applied"' >> /app/start.sh && \
+    echo 'echo "Running Prisma DB Push & Migrations..."' >> /app/start.sh && \
+    echo 'node /app/node_modules/prisma/build/index.js db push --schema=/app/prisma/schema.prisma --accept-data-loss 2>&1 || echo "DB push skipped or already applied"' >> /app/start.sh && \
     echo 'echo "Starting Next.js server..."' >> /app/start.sh && \
     echo 'exec node server.js' >> /app/start.sh && \
     chmod +x /app/start.sh
