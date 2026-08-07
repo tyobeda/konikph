@@ -37,8 +37,6 @@ export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md' })
             maxWidth: '180px'
           }}
         />
-      ) : !isReady ? (
-        <div className="bg-gray-200 animate-pulse rounded" style={{ width: iconSize, height: iconSize }} />
       ) : (
         <>
           {/* PKS Emblem Circle */}

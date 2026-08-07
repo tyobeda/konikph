@@ -294,7 +294,7 @@ export default function HomePage() {
       </main>
 
       {/* Dynamic CTA Banner Section - Full Width, No Rounded Corners */}
-      {isMounted && siteSettings.ctaEnabled && (
+      {siteSettings?.ctaEnabled !== false && (
         <section 
           className="w-full relative py-12 px-6 sm:px-12 md:py-16 md:px-16 flex flex-col md:flex-row items-center justify-between gap-8 bg-cover bg-center text-white mt-16 bg-[#141517] border-t border-gray-800"
           style={{ 
