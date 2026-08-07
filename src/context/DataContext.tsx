@@ -17,6 +17,7 @@ import { getClientCookie, setClientCookie, deleteClientCookie } from '@/lib/cook
 export interface TwibbonFrame {
   id: string;
   title: string;
+  slug?: string | null;
   imageUrl: string;
   category: string;
   region: string;
@@ -112,8 +113,25 @@ export interface DataContextType {
     ctaSocialText?: string;
     ctaSocialUrl?: string;
     adminWhatsapp?: string;
+    autoApproveArtworks?: boolean;
+    maintenanceConfig?: {
+      globalEnabled: boolean;
+      modules: {
+        explore?: boolean;
+        assets?: boolean;
+        creators?: boolean;
+        twibbon?: boolean;
+        upload?: boolean;
+        auth?: boolean;
+      };
+      title?: string;
+      description?: string;
+      estimatedTime?: string;
+      allowAdminBypass?: boolean;
+    };
   };
   updateSiteSettings: (settings: Partial<DataContextType['siteSettings']>) => void;
+  isModuleUnderMaintenance: (moduleKey?: 'explore' | 'assets' | 'creators' | 'twibbon' | 'upload' | 'auth') => boolean;
 
   // Hydration Mount State Indicator
   isMounted: boolean;
@@ -225,7 +243,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logoFooterUrl: '',
       faviconUrl: '/favicon.ico',
       // CTA Banner Defaults
-      ctaTitle: 'Ayo Gabung Jadi Kreator PKSart!',
+      ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
       ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
       ctaButtonText: 'Daftar Sekarang',
       ctaButtonLink: '/register',
@@ -476,7 +494,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateArtwork = async (id: string, updated: Partial<Artwork>) => {
     const res = await dbUpdateArtwork(id, updated);
     if (res && res.success && res.artwork) {
-      setArtworks((prev) => prev.map((a) => (a.id === id ? JSON.parse(JSON.stringify(res.artwork)) : a)));
+      const serverArt = JSON.parse(JSON.stringify(res.artwork));
+      setArtworks((prev) =>
+        prev.map((a) => {
+          if (a.id === id) {
+            return {
+              ...a,
+              ...serverArt,
+              author: serverArt.author || a.author || SUPER_ADMIN_USER,
+              comments: serverArt.comments || a.comments || [],
+            };
+          }
+          return a;
+        })
+      );
     } else {
       setArtworks((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a)));
     }
@@ -664,7 +695,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: user.phone || '',
         address: user.address || '',
         region: user.region || 'DPW Jawa Barat',
-        role: user.role || 'Kreator PKS',
+        role: user.role || 'Desainer PKS',
         avatar: user.avatar || '',
       });
 
@@ -777,6 +808,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSiteSettings(res.data as any);
       setClientCookie('pksart_site_settings', JSON.stringify(res.data), 365);
     }
+  };
+
+  const isModuleUnderMaintenance = (moduleKey?: 'explore' | 'assets' | 'creators' | 'twibbon' | 'upload' | 'auth'): boolean => {
+    const config = siteSettings?.maintenanceConfig;
+    if (!config) return false;
+    if (currentUser?.role === 'Super Admin' && config.allowAdminBypass !== false) {
+      return false;
+    }
+    if (config.globalEnabled) return true;
+    if (moduleKey && config.modules && config.modules[moduleKey]) {
+      return true;
+    }
+    return false;
   };
 
   const addCustomPage = async (page: Omit<CustomPage, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -952,6 +996,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         siteSettings,
         updateSiteSettings,
+        isModuleUnderMaintenance,
         isMounted,
         isSettingsLoaded,
         isPagesLoaded,

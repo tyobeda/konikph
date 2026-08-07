@@ -1135,7 +1135,7 @@ export default function AdminPageWorkspace() {
                   type="text"
                   value={pageTitle}
                   onChange={(e) => setPageTitle(e.target.value)}
-                  placeholder="Contoh: Panduan Kreator"
+                  placeholder="Contoh: Panduan Desainer"
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                 />
               </div>
@@ -1148,7 +1148,7 @@ export default function AdminPageWorkspace() {
                   type="text"
                   value={pageSlug}
                   onChange={(e) => setPageSlug(e.target.value)}
-                  placeholder="contoh: panduan-kreator"
+                  placeholder="contoh: panduan-desainer"
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                 />
               </div>
@@ -3081,7 +3081,7 @@ export default function AdminPageWorkspace() {
                       type="text"
                       value={pageTitle}
                       onChange={(e) => setPageTitle(e.target.value)}
-                      placeholder="Contoh: Panduan Kreator"
+                      placeholder="Contoh: Panduan Desainer"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                     />
                   </div>
@@ -3094,7 +3094,7 @@ export default function AdminPageWorkspace() {
                       type="text"
                       value={pageSlug}
                       onChange={(e) => setPageSlug(e.target.value)}
-                      placeholder="contoh: panduan-kreator"
+                      placeholder="contoh: panduan-desainer"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                     />
                   </div>

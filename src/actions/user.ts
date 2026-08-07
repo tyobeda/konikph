@@ -92,7 +92,7 @@ export async function registerUser(data: {
         phone: data.phone,
         address: data.address || '',
         region: data.region || '',
-        role: data.role || 'Kreator PKS',
+        role: data.role || 'Desainer PKS',
         status: 'Pending', // Memerlukan approval admin
         avatar: data.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200',
       }

@@ -28,8 +28,8 @@ export const ConfirmSuspendModal: React.FC<ConfirmSuspendModalProps> = ({
 
   const defaultTitle = isSuspending ? 'Konfirmasi Suspend' : 'Konfirmasi Aktifkan';
   const defaultMessage = isSuspending 
-    ? 'Apakah Anda yakin ingin men-suspend kreator ini? Mereka tidak akan dapat mengunggah karya baru sampai diaktifkan kembali.'
-    : 'Apakah Anda yakin ingin mengaktifkan kembali kreator ini? Mereka akan dapat beraktivitas seperti semula.';
+    ? 'Apakah Anda yakin ingin men-suspend desainer ini? Mereka tidak akan dapat mengunggah karya baru sampai diaktifkan kembali.'
+    : 'Apakah Anda yakin ingin mengaktifkan kembali desainer ini? Mereka akan dapat beraktivitas seperti semula.';
   const defaultConfirmLabel = isSuspending ? 'Ya, Suspend' : 'Ya, Aktifkan';
 
   return (

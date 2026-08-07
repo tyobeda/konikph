@@ -19,11 +19,20 @@ import {
   Rss,
   Compass,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 
 export default function HomePage() {
-  const { artworks, users, dpwList, siteSettings, isMounted } = useData();
-  const [activeCategory, setActiveCategory] = useState('Semua Karya');
+  const router = useRouter();
+  const { artworks, users, dpwList, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
+
+  useEffect(() => {
+    if (isMounted && isModuleUnderMaintenance()) {
+      router.replace('/maintenance');
+    }
+  }, [isMounted, isModuleUnderMaintenance, router]);
+
+  const [activeCategory, setActiveCategory] = useState('Hikmah-Motivasi');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -51,11 +60,14 @@ export default function HomePage() {
         art.author.region.toLowerCase().includes(selectedRegion.toLowerCase());
 
       // Search term filter
+      const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
-        !searchQuery ||
-        art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        art.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        art.author.region.toLowerCase().includes(selectedRegion.toLowerCase());
+        !q ||
+        art.title.toLowerCase().includes(q) ||
+        art.category.toLowerCase().includes(q) ||
+        art.author.name.toLowerCase().includes(q) ||
+        art.author.region.toLowerCase().includes(q) ||
+        (art.tags && art.tags.some(tag => tag.toLowerCase().includes(q)));
 
       return matchesCategory && matchesRegion && matchesSearch;
     });
@@ -182,7 +194,7 @@ export default function HomePage() {
                 {/* CTA Action Buttons (1 Row 2 Columns on Mobile) */}
                 <div className="mt-5 grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
                   <Link
-                    href={`/artwork/${heroFeaturedArtwork.id}`}
+                    href={`/artwork/${heroFeaturedArtwork.slug || heroFeaturedArtwork.id}`}
                     className="py-2.5 px-3 sm:px-5 bg-[#F26522] hover:bg-[#d85417] text-white text-[11px] sm:text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 text-center truncate"
                   >
                     <span className="truncate">Lihat & Unduh</span>
@@ -208,7 +220,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <Rss size={20} className="text-[#F26522]" />
             <h2 className="text-lg font-extrabold text-gray-900">
-              Feed Timeline Terbaru PKSart
+              Feed Timeline
             </h2>
           </div>
 
@@ -216,7 +228,7 @@ export default function HomePage() {
             href="/explore"
             className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
           >
-            <span>Buka Mode Eksplorasi</span>
+            <span>Eksplorasi</span>
             <ArrowRight size={14} />
           </Link>
         </div>

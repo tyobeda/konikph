@@ -3,9 +3,14 @@ import { Metadata } from 'next';
 import TwibbonDetailContent from './TwibbonDetailContent';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const { id } = await params;
-  const twibbon = await prisma.twibbonFrame.findUnique({
-    where: { id },
+  const { id: slugOrId } = await params;
+  const twibbon = await prisma.twibbonFrame.findFirst({
+    where: {
+      OR: [
+        { slug: slugOrId },
+        { id: slugOrId },
+      ],
+    },
   });
 
   const settings = await prisma.siteSettings.findFirst();
@@ -28,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     openGraph: {
       title,
       description,
-      url: `${baseUrl}/twibbon/${twibbon.id}`,
+      url: `${baseUrl}/twibbon/${twibbon.slug || twibbon.id}`,
       siteName: 'PKSart',
       images: [
         {

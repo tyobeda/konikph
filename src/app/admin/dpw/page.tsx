@@ -234,7 +234,7 @@ export default function AdminDpwPage() {
                       <td className="py-3.5 px-4">
                         <div className="text-xs space-y-0.5">
                           <p className="font-extrabold text-gray-900">{totalArtworksCount} Karya Terpublikasi</p>
-                          <p className="text-gray-500 font-medium">{activeCreatorsCount} Kreator Aktif Terhubung</p>
+                          <p className="text-gray-500 font-medium">{activeCreatorsCount} Desainer Aktif Terhubung</p>
                         </div>
                       </td>
 

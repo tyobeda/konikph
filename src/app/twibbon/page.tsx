@@ -23,8 +23,14 @@ import { compressImageFile } from '@/lib/imageCompressor';
 import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
 
 export default function TwibbonGalleryPage() {
-  const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded } = useData();
+  const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance } = useData();
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (isModuleUnderMaintenance('twibbon')) {
+      router.replace('/maintenance');
+    }
+  }, [isModuleUnderMaintenance, router]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'favorites'>('all');
@@ -120,7 +126,7 @@ export default function TwibbonGalleryPage() {
       region: uploadRegion || 'Nasional',
       imageUrl: uploadFileUrl,
       author: {
-        name: currentUser?.name || 'Kreator PKSart',
+        name: currentUser?.name || 'Desainer PKSart',
         avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
       },
       status: currentUser?.role === 'Super Admin' ? 'Disetujui' : 'Pending',
@@ -343,8 +349,8 @@ export default function TwibbonGalleryPage() {
                   </div>
 
                   <Link
-                    href={`/twibbon/${tw.id}`}
-                    className="w-full mt-4 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-center text-xs font-bold rounded-xl shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-1.5"
+                    href={`/twibbon/${tw.slug || tw.id}`}
+                    className="mt-3 w-full py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-extrabold rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
                   >
                     <Sparkles size={13} />
                     <span>Gunakan Bingkai</span>

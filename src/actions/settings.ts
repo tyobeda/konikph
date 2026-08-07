@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
   logoAdminUrl: '',
   logoFooterUrl: '',
   faviconUrl: '/favicon.ico',
-  ctaTitle: 'Ayo Gabung Jadi Kreator PKSart!',
+  ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
   ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
   ctaButtonText: 'Daftar Sekarang',
   ctaButtonLink: '/register',
@@ -46,9 +46,15 @@ export async function getDBSiteSettings() {
         data: DEFAULT_SETTINGS
       });
     }
-    // Parse ctaLinks JSON string back into array object for frontend consumption
+    // Parse ctaLinks & maintenanceConfig JSON strings back into objects
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
-    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed } };
+    let maintenanceConfigParsed = null;
+    if (settings.maintenanceConfig) {
+      try {
+        maintenanceConfigParsed = JSON.parse(settings.maintenanceConfig);
+      } catch (e) {}
+    }
+    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
   } catch (error) {
     console.error('Error fetching site settings:', error);
     return { success: false, error: 'Failed to fetch settings' };
@@ -79,6 +85,12 @@ export async function updateDBSiteSettings(data: any) {
     if (data.ctaSocialText !== undefined) updateData.ctaSocialText = data.ctaSocialText;
     if (data.ctaSocialUrl !== undefined) updateData.ctaSocialUrl = data.ctaSocialUrl;
     if (data.adminWhatsapp !== undefined) updateData.adminWhatsapp = data.adminWhatsapp;
+    if (data.autoApproveArtworks !== undefined) updateData.autoApproveArtworks = Boolean(data.autoApproveArtworks);
+    if (data.maintenanceConfig !== undefined) {
+      updateData.maintenanceConfig = typeof data.maintenanceConfig === 'string' 
+        ? data.maintenanceConfig 
+        : JSON.stringify(data.maintenanceConfig);
+    }
 
     const settings = await (prisma as any).siteSettings.upsert({
       where: { id: 'settings' },
@@ -104,11 +116,19 @@ export async function updateDBSiteSettings(data: any) {
         ctaSocialText: data.ctaSocialText || DEFAULT_SETTINGS.ctaSocialText,
         ctaSocialUrl: data.ctaSocialUrl || DEFAULT_SETTINGS.ctaSocialUrl,
         adminWhatsapp: data.adminWhatsapp || '6281199887766',
+        autoApproveArtworks: data.autoApproveArtworks !== undefined ? Boolean(data.autoApproveArtworks) : true,
+        maintenanceConfig: data.maintenanceConfig ? (typeof data.maintenanceConfig === 'string' ? data.maintenanceConfig : JSON.stringify(data.maintenanceConfig)) : null,
       }
     });
     revalidatePath('/');
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
-    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed } };
+    let maintenanceConfigParsed = null;
+    if (settings.maintenanceConfig) {
+      try {
+        maintenanceConfigParsed = JSON.parse(settings.maintenanceConfig);
+      } catch (e) {}
+    }
+    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
   } catch (error) {
     console.error('Error updating site settings:', error);
     return { success: false, error: 'Failed to update settings' };

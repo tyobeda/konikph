@@ -32,12 +32,14 @@ model User {
 model Artwork {
   id             String    @id @default(uuid())
   title          String
+  slug           String?   @unique
   description    String?
   imageUrl       String
   downloadUrl    String?
   category       String // e.g. "Poster", "Spanduk", "Social Media", "Infografis", "Templat"
   region         String // e.g. "DPW Jabar", "DKI", "DIY", "Sumut", "Nasional"
-  format         String?   @default("PSD/AI/CDR")
+  format         String?   @default("Hanya gambar")
+  tags           String[]  @default([])
   likesCount     Int       @default(0)
   commentsCount  Int       @default(0)
   downloadsCount Int       @default(0)
@@ -100,6 +102,7 @@ model Notification {
 model TwibbonFrame {
   id         String   @id @default(uuid())
   title      String
+  slug       String?  @unique
   imageUrl   String
   category   String
   region     String
@@ -171,6 +174,8 @@ model SiteSettings {
   ctaSocialUrl    String?
   ctaLinks        String?  // Store serialized JSON array of links
   adminWhatsapp   String?  @default("6281199887766")
+  maintenanceConfig String? // JSON string storing maintenance mode toggles and custom message
+  autoApproveArtworks Boolean @default(true) // Whether uploaded artworks are automatically approved or require moderation
   updatedAt       DateTime @updatedAt
 }
 

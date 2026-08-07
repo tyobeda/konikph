@@ -19,7 +19,7 @@ export const USERS: Record<string, User> = {
     address: 'Jl. Merdeka No. 12, Bandung, Jawa Barat',
     region: 'Jabar',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-    role: 'Kreator',
+    role: 'Desainer',
   },
   lita_diy: {
     id: 'user_3',
@@ -29,7 +29,7 @@ export const USERS: Record<string, User> = {
     address: 'Jl. Malioboro No. 88, Yogyakarta',
     region: 'DIY',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
-    role: 'Kreator',
+    role: 'Desainer',
   },
   roni_sumut: {
     id: 'user_4',
@@ -39,7 +39,7 @@ export const USERS: Record<string, User> = {
     address: 'Jl. Gatot Subroto No. 34, Medan, Sumut',
     region: 'Sumut',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
-    role: 'Kreator',
+    role: 'Desainer',
   },
   roni_diy: {
     id: 'user_5',
@@ -49,7 +49,7 @@ export const USERS: Record<string, User> = {
     address: 'Jl. Gejayan No. 15, Sleman, DIY',
     region: 'DIY',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200',
-    role: 'Kreator',
+    role: 'Desainer',
   },
   ahmasinan: {
     id: 'user_6',
@@ -59,7 +59,7 @@ export const USERS: Record<string, User> = {
     address: 'Jl. Sudirman No. 101, Jakarta Selatan',
     region: 'DKI Jakarta',
     avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200',
-    role: 'Kreator',
+    role: 'Desainer',
   },
 };
 
@@ -408,8 +408,8 @@ export const INITIAL_ARTWORKS: Artwork[] = [
 ];
 
 export const ARTWORK_CATEGORIES = [
-  'Logo',
   'Hikmah-Motivasi',
+  'Logo',
   'Mereka Bicara PKS',
   'Kegiatan-Event PKS',
   'Pemilu-Pemilukada',
@@ -423,8 +423,9 @@ export const ARTWORK_CATEGORIES = [
 ];
 
 export const CATEGORIES = [
+  'Hikmah-Motivasi',
   'Semua Karya',
-  ...ARTWORK_CATEGORIES,
+  ...ARTWORK_CATEGORIES.filter((c) => c !== 'Hikmah-Motivasi'),
 ];
 
 export const REGIONS = [

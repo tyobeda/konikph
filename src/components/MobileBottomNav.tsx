@@ -4,9 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Compass, PlusCircle, Layers, Users, User } from 'lucide-react';
+import { useData } from '@/context/DataContext';
 
 export const MobileBottomNav: React.FC = () => {
   const pathname = usePathname();
+  const { currentUser } = useData();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -22,6 +24,9 @@ export const MobileBottomNav: React.FC = () => {
 
   if (!mounted) return null;
 
+  // Hide bottom navbar if user is NOT logged in
+  if (!currentUser) return null;
+
   // Hide on full-screen page builder editor
   if (pathname?.startsWith('/admin/pages/')) return null;
 
@@ -30,7 +35,7 @@ export const MobileBottomNav: React.FC = () => {
     { label: 'Eksplorasi', href: '/explore', icon: Compass },
     { label: 'Unggah', href: '#', icon: PlusCircle, isHighlight: true },
     { label: 'Aset', href: '/assets', icon: Layers },
-    { label: 'Kreator', href: '/creators', icon: Users },
+    { label: 'Desainer', href: '/creators', icon: Users },
   ];
 
   return (

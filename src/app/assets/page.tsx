@@ -23,20 +23,21 @@ import {
 
 export default function AssetsPage() {
   const router = useRouter();
-  const { artworks, brandKits, isBrandKitsLoaded, currentUser } = useData();
+  const { artworks, brandKits, isBrandKitsLoaded, currentUser, isModuleUnderMaintenance } = useData();
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && !currentUser) {
+    if (isModuleUnderMaintenance('assets')) {
+      router.replace('/maintenance');
+      return;
+    }
+    if (!currentUser) {
       router.replace('/login');
     }
-  }, [isMounted, currentUser, router]);
+  }, [currentUser, router, isModuleUnderMaintenance]);
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
 

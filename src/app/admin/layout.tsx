@@ -44,7 +44,7 @@ export default function AdminLayout({
     { label: 'Dashboard Overview', href: '/admin', icon: LayoutDashboard },
     { label: 'Analisis Pengunjung', href: '/admin/analytics', icon: BarChart3 },
     { label: 'Kelola Karya', href: '/admin/artworks', icon: ImageIcon },
-    { label: 'Kelola Kreator', href: '/admin/creators', icon: Users },
+    { label: 'Kelola Desainer', href: '/admin/creators', icon: Users },
     { label: 'Kelola DPW', href: '/admin/dpw', icon: Building },
     { label: 'Kelola Twibbon', href: '/admin/twibbon', icon: Sparkles },
     { label: 'Brand Kit', href: '/admin/brandkit', icon: LayoutDashboard },

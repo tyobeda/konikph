@@ -20,25 +20,32 @@ import { useData, SUPER_ADMIN_USER } from '@/context/DataContext';
 
 export default function UploadPage() {
   const router = useRouter();
-  const { addArtwork, currentUser, isMounted } = useData();
+  const { addArtwork, currentUser, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
 
   React.useEffect(() => {
-    if (isMounted && !currentUser) {
-      router.replace('/login');
+    if (isMounted) {
+      if (isModuleUnderMaintenance('upload')) {
+        router.replace('/maintenance');
+        return;
+      }
+      if (!currentUser) {
+        router.replace('/login');
+      }
     }
-  }, [isMounted, currentUser, router]);
+  }, [isMounted, currentUser, router, isModuleUnderMaintenance]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState(ARTWORK_CATEGORIES[0] || 'Logo');
+  const [category, setCategory] = useState('Hikmah-Motivasi');
   const [region, setRegion] = useState(REGIONS[1] || 'DPW Jawa Barat');
-  const [fileFormat, setFileFormat] = useState('PSD');
+  const [fileFormat, setFileFormat] = useState('Hanya gambar');
   const [downloadUrl, setDownloadUrl] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [compressionInfo, setCompressionInfo] = useState<CompressionResult | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isPendingModeration, setIsPendingModeration] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,9 +66,26 @@ export default function UploadPage() {
     }
   };
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setDownloadUrl('');
+    setPreviewUrl(null);
+    setFileFormat('Hanya gambar');
+    setIsSuccess(false);
+    setIsPendingModeration(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    const requiresModeration = siteSettings?.autoApproveArtworks === false && currentUser?.role !== 'Super Admin';
+    const status = requiresModeration ? 'Pending' : 'Disetujui';
+
+    // Auto extract hashtags from description field (words starting with #)
+    const hashtagsFromDesc = (description.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
+    const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
     setTimeout(() => {
       addArtwork({
@@ -72,14 +96,20 @@ export default function UploadPage() {
         category,
         region,
         format: fileFormat,
+        tags: parsedTags,
         author: currentUser || SUPER_ADMIN_USER,
+        status: status as any,
       });
 
       setIsSubmitting(false);
+      setIsPendingModeration(requiresModeration);
       setIsSuccess(true);
-      setTimeout(() => {
-        router.push('/');
-      }, 1200);
+
+      if (!requiresModeration) {
+        setTimeout(() => {
+          router.push('/');
+        }, 1200);
+      }
     }, 800);
   };
 
@@ -111,12 +141,41 @@ export default function UploadPage() {
           </div>
 
           {isSuccess ? (
-            <div className="py-12 flex flex-col items-center text-center">
+            <div className="py-10 flex flex-col items-center text-center animate-in zoom-in-95">
               <CheckCircle size={56} className="text-emerald-500 mb-3 animate-bounce" />
-              <h3 className="text-xl font-bold text-gray-900">Karya Berhasil Diunggah!</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Mengalihkan kembali ke galeri utama...
+              
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">
+                {isPendingModeration ? 'Karya Berhasil Diunggah & Menunggu Moderasi' : 'Karya Berhasil Diunggah!'}
+              </h3>
+
+              <p className="text-xs sm:text-sm text-gray-500 max-w-md mb-6 leading-relaxed">
+                {isPendingModeration ? (
+                  <span>
+                    Karya Anda saat ini berstatus <strong className="text-amber-600">Pending</strong> dan sedang menunggu peninjauan serta persetujuan oleh Administrator PKSart sebelum dipublikasikan ke galeri umum.
+                  </span>
+                ) : (
+                  <span>Karya Anda telah disetujui dan kini siap diakses publik di galeri utama PKSart. Mengalihkan kembali...</span>
+                )}
               </p>
+
+              {isPendingModeration ? (
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs">
+                  <button
+                    onClick={() => router.push('/')}
+                    className="w-full py-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all text-center"
+                  >
+                    Kembali ke Beranda
+                  </button>
+                  <button
+                    onClick={resetForm}
+                    className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all text-center"
+                  >
+                    Unggah Karya Lainnya
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs font-bold text-[#F26522] animate-pulse">Mengalihkan ke beranda...</span>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -222,31 +281,31 @@ export default function UploadPage() {
               {/* Source Format */}
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Format File Master (Opsional)
+                  Format File Master
                 </label>
                 <div className="space-y-3">
                   <select
-                    value={fileFormat === '' ? 'NONE' : ['PSD', 'AI', 'CDR'].includes(fileFormat) ? fileFormat : 'CUSTOM'}
+                    value={fileFormat === 'Hanya gambar' ? 'HANYA_GAMBAR' : ['PSD', 'AI', 'CDR'].includes(fileFormat) ? fileFormat : 'CUSTOM'}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === 'CUSTOM') {
                         setFileFormat('CUSTOM_VAL');
-                      } else if (val === 'NONE') {
-                        setFileFormat('');
+                      } else if (val === 'HANYA_GAMBAR') {
+                        setFileFormat('Hanya gambar');
                       } else {
                         setFileFormat(val);
                       }
                     }}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
                   >
-                    <option value="NONE">Hanya Gambar (JPG/PNG - Tanpa File Master)</option>
+                    <option value="HANYA_GAMBAR">Hanya gambar (Tanpa File Master)</option>
                     <option value="PSD">PSD (Photoshop)</option>
                     <option value="AI">AI (Illustrator)</option>
                     <option value="CDR">CDR (CorelDraw)</option>
                     <option value="CUSTOM">Format Kustom / Lainnya...</option>
                   </select>
 
-                  {!['', 'PSD', 'AI', 'CDR'].includes(fileFormat) && (
+                  {!['Hanya gambar', 'PSD', 'AI', 'CDR'].includes(fileFormat) && (
                     <div className="flex gap-2 animate-fadeIn">
                       <input
                         type="text"
@@ -258,7 +317,7 @@ export default function UploadPage() {
                       />
                       <button
                         type="button"
-                        onClick={() => setFileFormat('')}
+                        onClick={() => setFileFormat('Hanya gambar')}
                         className="px-3 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                       >
                         Batal
@@ -270,8 +329,9 @@ export default function UploadPage() {
 
               {/* Download URL Input (Link Download) */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Tautan File Master / Tautan Berbagi <span className="text-gray-400 font-normal">(Misal: Link Canva, Google Drive, dll.)</span>
+                <label className="block text-sm font-bold text-gray-800 mb-2 flex flex-col gap-0.5">
+                  <span>Tautan File Master / Tautan Berbagi</span>
+                  <span className="text-[11px] font-normal text-gray-500">(Misal: Link Canva, Google Drive, dll.)</span>
                 </label>
                 <input
                   type="url"
@@ -284,14 +344,15 @@ export default function UploadPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Deskripsi Karya
+                <label className="block text-sm font-bold text-gray-800 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                  <span>Deskripsi Karya</span>
+                  <span className="text-xs font-normal text-[#F26522]">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
                 </label>
                 <textarea
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Jelaskan mengenai tema desain, peruntukan publikasi, atau instruksi pengeditan..."
+                  placeholder="Jelaskan mengenai tema desain, peruntukan publikasi, atau sertakan hashtag (contoh: #PKS #PosterPKS #DPWJabar)..."
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                 />
               </div>

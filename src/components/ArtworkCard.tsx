@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag } from 'lucide-react';
+import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag, Edit } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { ShareModal } from './ShareModal';
@@ -13,7 +13,7 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { addArtworkReport, toggleLikeArtwork } = useData();
+  const { currentUser, addArtworkReport, toggleLikeArtwork } = useData();
   const [likes, setLikes] = useState(artwork.likesCount);
   const [isLiked, setIsLiked] = useState(false);
   const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
@@ -21,7 +21,18 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/artwork/${artwork.id}` : '';
+  const isOwner = Boolean(
+    currentUser &&
+    (
+      (artwork.author?.id && artwork.author.id === currentUser.id) ||
+      (artwork.author?.email && artwork.author.email.toLowerCase() === currentUser.email?.toLowerCase()) ||
+      (artwork.author?.name && artwork.author.name === currentUser.name) ||
+      currentUser.role === 'Super Admin'
+    )
+  );
+
+  const artworkPath = `/artwork/${artwork.slug || artwork.id}`;
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${artworkPath}` : '';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,7 +70,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   return (
     <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
-      <Link href={`/artwork/${artwork.id}`} className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
+      <Link href={artworkPath} className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
         <div className="relative w-full overflow-hidden">
           {/* Subtle loading placeholder background that matches masonry height */}
           {!isImgLoaded && (
@@ -81,9 +92,16 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           
-          {/* Category Badge overlay */}
-          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
-            {artwork.category}
+          {/* Category & Tags Badge overlay */}
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1 max-w-[85%] z-10">
+            <div className="bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
+              {artwork.category}
+            </div>
+            {artwork.tags && artwork.tags.length > 0 && (
+              <span className="bg-[#F26522]/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                {artwork.tags[0]}
+              </span>
+            )}
           </div>
         </div>
       </Link>
@@ -108,6 +126,21 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
             >
               {artwork.author.name} - {artwork.author.region}
             </Link>
+
+            {/* Hashtags list */}
+            {artwork.tags && artwork.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {artwork.tags.slice(0, 3).map((tag, idx) => (
+                  <Link
+                    key={idx}
+                    href={`/explore?q=${encodeURIComponent(tag)}`}
+                    className="text-[10px] font-bold text-[#F26522] hover:underline bg-orange-50 px-1.5 py-0.5 rounded"
+                  >
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Like & Comment Stats */}
             <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-0.5">
@@ -157,26 +190,36 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               >
                 <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
               </button>
-              <button
-                onClick={(e) => { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  setShowDropdown(false); 
-                  const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
-                  if (reason) {
-                    addArtworkReport({
-                      artworkId: artwork.id,
-                      artworkTitle: artwork.title,
-                      artworkImageUrl: artwork.imageUrl,
-                      reason
-                    });
-                    alert('Terima kasih. Laporan Anda berhasil dikirim dan akan segera ditinjau oleh Admin.');
-                  }
-                }}
-                className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
-              >
-                <Flag size={15} /> <span className="text-xs">Laporkan Postingan</span>
-              </button>
+              {isOwner ? (
+                <Link
+                  href={artworkPath}
+                  onClick={(e) => { e.stopPropagation(); setShowDropdown(false); }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center gap-2.5 text-blue-600 font-bold transition-colors"
+                >
+                  <Edit size={15} /> <span className="text-xs">Edit Artwork</span>
+                </Link>
+              ) : (
+                <button
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    setShowDropdown(false); 
+                    const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
+                    if (reason) {
+                      addArtworkReport({
+                        artworkId: artwork.id,
+                        artworkTitle: artwork.title,
+                        artworkImageUrl: artwork.imageUrl,
+                        reason
+                      });
+                      alert('Terima kasih. Laporan Anda berhasil dikirim dan akan segera ditinjau oleh Admin.');
+                    }
+                  }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+                >
+                  <Flag size={15} /> <span className="text-xs">Laporkan Postingan</span>
+                </button>
+              )}
             </div>
           )}
         </div>

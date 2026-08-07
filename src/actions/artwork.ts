@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
 import { requireAdminSession } from '@/lib/serverAuth';
+import { generateUniqueArtworkSlug, slugify } from '@/lib/slug';
 
 export async function getArtworks() {
   noStore();
@@ -12,6 +13,19 @@ export async function getArtworks() {
       include: { author: true, comments: { include: { user: true }, orderBy: { createdAt: 'desc' } } },
       orderBy: [ { createdAt: 'desc' }, { id: 'asc' } ],
     });
+
+    // Auto-migrate legacy artworks without slug
+    for (const a of artworks) {
+      if (!a.slug && a.title) {
+        const generatedSlug = await generateUniqueArtworkSlug(a.title, a.id);
+        await prisma.artwork.update({
+          where: { id: a.id },
+          data: { slug: generatedSlug },
+        }).catch(() => {});
+        a.slug = generatedSlug;
+      }
+    }
+
     const mapped = artworks.map(a => ({
       ...a,
       comments: a.comments.map((c: any) => ({ ...c, author: c.user }))
@@ -20,6 +34,48 @@ export async function getArtworks() {
   } catch (error) {
     console.error('Error fetching artworks:', error);
     return { success: false, error: 'Failed to fetch artworks' };
+  }
+}
+
+export async function getArtworkBySlugOrId(slugOrId: string) {
+  noStore();
+  try {
+    let artwork = await prisma.artwork.findFirst({
+      where: {
+        OR: [
+          { slug: slugOrId },
+          { id: slugOrId },
+        ],
+      },
+      include: {
+        author: true,
+        comments: { include: { user: true }, orderBy: { createdAt: 'desc' } },
+      },
+    });
+
+    if (artwork) {
+      if (!artwork.slug && artwork.title) {
+        const generatedSlug = await generateUniqueArtworkSlug(artwork.title, artwork.id);
+        artwork = await prisma.artwork.update({
+          where: { id: artwork.id },
+          data: { slug: generatedSlug },
+          include: {
+            author: true,
+            comments: { include: { user: true }, orderBy: { createdAt: 'desc' } },
+          },
+        });
+      }
+      const mapped = {
+        ...artwork,
+        comments: artwork.comments.map((c: any) => ({ ...c, author: c.user })),
+      };
+      return { success: true, data: mapped };
+    }
+
+    return { success: false, error: 'Artwork not found' };
+  } catch (error) {
+    console.error('Error fetching artwork by slug/id:', error);
+    return { success: false, error: 'Failed to fetch artwork' };
   }
 }
 
@@ -48,15 +104,19 @@ export async function addArtwork(data: any) {
       authorId = newUser.id;
     }
 
+    const slug = data.slug || (await generateUniqueArtworkSlug(data.title));
+
     const artwork = await prisma.artwork.create({
       data: {
         title: data.title,
+        slug: slug,
         description: data.description || '',
         imageUrl: data.imageUrl,
         downloadUrl: data.downloadUrl,
         category: data.category,
         region: data.region,
-        format: data.format,
+        format: data.format || 'Hanya gambar',
+        tags: Array.isArray(data.tags) ? data.tags : [],
         authorId: authorId,
       },
       include: { author: true }
@@ -72,12 +132,26 @@ export async function addArtwork(data: any) {
 
 export async function updateArtwork(id: string, data: any) {
   try {
+    const updateData: any = { ...data };
+    if (data.title) {
+      updateData.slug = await generateUniqueArtworkSlug(data.title, id);
+    }
+
     const artwork = await prisma.artwork.update({
       where: { id },
-      data,
+      data: updateData,
+      include: {
+        author: true,
+        comments: { include: { user: true }, orderBy: { createdAt: 'desc' } },
+      },
     });
+
+    if (artwork.slug) {
+      revalidatePath(`/artwork/${artwork.slug}`);
+    }
     revalidatePath(`/artwork/${id}`);
     revalidatePath('/explore');
+    revalidatePath('/');
     return { success: true, artwork };
   } catch (error) {
     console.error('Error updating artwork:', error);

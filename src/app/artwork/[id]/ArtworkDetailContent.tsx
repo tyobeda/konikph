@@ -18,6 +18,7 @@ import {
   X,
   MoreVertical,
   Flag,
+  Edit,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -25,16 +26,17 @@ import { ArtworkCard } from '@/components/ArtworkCard';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 import { ShareModal } from '@/components/ShareModal';
 import { useData } from '@/context/DataContext';
+import { ARTWORK_CATEGORIES, REGIONS } from '@/lib/data';
 
 export default function ArtworkDetailContent() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { currentUser, artworks, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport } = useData();
+  const { currentUser, artworks, updateArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport } = useData();
 
   const [isMounted, setIsMounted] = useState(false);
 
-  const artwork = artworks.find((item) => item.id === id);
+  const artwork = artworks.find((item) => item.id === id || item.slug === id);
 
   const [likesCount, setLikesCount] = useState(artwork?.likesCount || 0);
   const [isLiked, setIsLiked] = useState(false);
@@ -47,6 +49,16 @@ export default function ArtworkDetailContent() {
   const [editContent, setEditContent] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  
+  // Edit Artwork Modal States for owner
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTitleInput, setEditTitleInput] = useState('');
+  const [editDescInput, setEditDescInput] = useState('');
+  const [editCategoryInput, setEditCategoryInput] = useState('');
+  const [editRegionInput, setEditRegionInput] = useState('');
+  const [editFormatInput, setEditFormatInput] = useState('');
+  const [editTagsInput, setEditTagsInput] = useState('');
+  
   const optionsRef = useRef<HTMLDivElement>(null);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -241,22 +253,75 @@ export default function ArtworkDetailContent() {
 
   const relatedArtworks = artworks.filter((item) => item.id !== artwork.id).slice(0, 4);
 
+  const isOwner = Boolean(
+    currentUser &&
+    artwork &&
+    (
+      (artwork.author?.id && artwork.author.id === currentUser.id) ||
+      (artwork.author?.email && artwork.author.email.toLowerCase() === currentUser.email?.toLowerCase()) ||
+      (artwork.author?.name && artwork.author.name === currentUser.name) ||
+      currentUser.role === 'Super Admin'
+    )
+  );
+
+  const handleOpenEditModal = () => {
+    if (!artwork) return;
+    setEditTitleInput(artwork.title);
+    setEditDescInput(artwork.description || '');
+    setEditCategoryInput(artwork.category);
+    setEditRegionInput(artwork.region);
+    setEditFormatInput(artwork.format || 'Hanya gambar');
+    setEditTagsInput(artwork.tags ? artwork.tags.join(' ') : '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveArtworkEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!artwork) return;
+
+    const parsedTags = editTagsInput
+      .split(/[\s,]+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0)
+      .map((t) => (t.startsWith('#') ? t : `#${t}`));
+
+    await updateArtwork(artwork.id, {
+      title: editTitleInput,
+      description: editDescInput,
+      category: editCategoryInput,
+      region: editRegionInput,
+      format: editFormatInput,
+      tags: parsedTags,
+    });
+
+    setIsEditModalOpen(false);
+    triggerToast('Karya berhasil diperbarui!');
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
+      {/* 🌟 Premium Top-Right Toast Alert */}
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <CheckCircle size={16} className="text-emerald-400" />
-          <span>{showToast}</span>
+        <div className="fixed top-20 right-6 z-[200] bg-white/95 backdrop-blur-md border border-emerald-200 text-gray-900 text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+            <CheckCircle size={18} className="stroke-[2.5]" />
+          </div>
+          <div>
+            <p className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wider">Berhasil</p>
+            <p className="text-gray-800 font-bold">{showToast}</p>
+          </div>
         </div>
       )}
 
       <Header />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-5">
-        <div className="mb-3">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        
+        {/* Back button */}
+        <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-600 hover:text-[#F26522] transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-[#F26522] transition-colors"
           >
             <ArrowLeft size={16} />
             <span>Kembali ke Galeri</span>
@@ -279,21 +344,21 @@ export default function ArtworkDetailContent() {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Link href={`/creators/${artwork.author.id || 'admin'}`}>
+                  <Link href={`/creators/${artwork.author?.id || 'admin'}`}>
                     <img
-                      src={artwork.author.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
-                      alt={artwork.author.name}
+                      src={artwork.author?.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
+                      alt={artwork.author?.name || 'Desainer PKS'}
                       className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
                     />
                   </Link>
                   <div>
-                    <Link href={`/creators/${artwork.author.id || 'admin'}`}>
+                    <Link href={`/creators/${artwork.author?.id || 'admin'}`}>
                       <h2 className="text-sm font-extrabold text-gray-900 leading-snug hover:text-[#F26522] transition-colors">
-                        {artwork.author.name}
+                        {artwork.author?.name || 'Desainer PKS'}
                       </h2>
                     </Link>
                     <p className="text-xs text-gray-500 font-medium">
-                      {artwork.author.region} • Format {artwork.format || 'PSD/AI'}
+                      {artwork.author?.region || artwork.region} • Format {artwork.format || 'PSD/AI'}
                     </p>
                   </div>
                 </div>
@@ -314,36 +379,67 @@ export default function ArtworkDetailContent() {
                       >
                         <Share2 size={16} /> <span className="text-xs">Bagikan ke Sosial Media</span>
                       </button>
-                      <button
-                        onClick={() => { 
-                          setShowOptions(false); 
-                          const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
-                          if (reason) {
-                            addArtworkReport({
-                              artworkId: artwork.id,
-                              artworkTitle: artwork.title,
-                              artworkImageUrl: artwork.imageUrl,
-                              reason
-                            });
-                            triggerToast('Laporan berhasil dikirim ke Admin'); 
-                          }
-                        }}
-                        className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
-                      >
-                        <Flag size={16} /> <span className="text-xs">Laporkan Postingan</span>
-                      </button>
+
+                      {isOwner ? (
+                        <button
+                          onClick={() => {
+                            setShowOptions(false);
+                            handleOpenEditModal();
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center gap-2.5 text-blue-600 font-bold transition-colors"
+                        >
+                          <Edit size={16} /> <span className="text-xs">Edit Artwork</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { 
+                            setShowOptions(false); 
+                            const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
+                            if (reason) {
+                              addArtworkReport({
+                                artworkId: artwork.id,
+                                artworkTitle: artwork.title,
+                                artworkImageUrl: artwork.imageUrl,
+                                reason
+                              });
+                              triggerToast('Laporan berhasil dikirim ke Admin'); 
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+                        >
+                          <Flag size={16} /> <span className="text-xs">Laporkan Postingan</span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="py-4 border-b border-gray-100">
-                <h1 className="text-lg font-black text-gray-900 leading-tight mb-2">
+              <div className="py-4 border-b border-gray-100 space-y-2.5">
+                <h1 className="text-lg font-black text-gray-900 leading-tight">
                   {artwork.title}
                 </h1>
-                <p className="text-xs text-gray-600 leading-relaxed font-normal bg-gray-50 p-3 rounded-xl border border-gray-100">
-                  {artwork.description}
-                </p>
+                {artwork.description && (
+                  <p className="text-xs text-gray-600 leading-relaxed font-normal bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    {artwork.description}
+                  </p>
+                )}
+
+                {/* Hashtags Section */}
+                {artwork.tags && artwork.tags.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-xs font-bold text-gray-400 mr-1">Hashtags:</span>
+                    {artwork.tags.map((tag: string, idx: number) => (
+                      <Link
+                        key={idx}
+                        href={`/explore?q=${encodeURIComponent(tag)}`}
+                        className="text-xs font-bold text-[#F26522] bg-orange-50 border border-orange-100 hover:bg-[#F26522] hover:text-white px-2.5 py-1 rounded-full transition-all shadow-2xs"
+                      >
+                        {tag}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -567,6 +663,150 @@ export default function ArtworkDetailContent() {
         url={shareUrl} 
         title={artwork.title} 
       />
+
+      {/* Edit Artwork Modal for Owner / Super Admin */}
+      {isEditModalOpen && (
+        <div
+          onClick={() => setIsEditModalOpen(false)}
+          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer overflow-y-auto"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-gray-100 cursor-default animate-in zoom-in-95 my-8 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                <Edit className="text-[#F26522]" size={18} />
+                <span>Edit Informasi Artwork</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* 🖼️ PRATINJAU KARYA (FULL WIDTH & NATURAL HEIGHT IMAGE PREVIEW) */}
+            <div className="mb-5 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <img
+                src={artwork.imageUrl}
+                alt={artwork.title}
+                className="w-full h-auto block rounded-2xl"
+              />
+            </div>
+
+            <form onSubmit={handleSaveArtworkEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Judul Karya
+                </label>
+                <input
+                  type="text"
+                  value={editTitleInput}
+                  onChange={(e) => setEditTitleInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Deskripsi Karya
+                </label>
+                <textarea
+                  rows={3}
+                  value={editDescInput}
+                  onChange={(e) => setEditDescInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={editCategoryInput}
+                    onChange={(e) => setEditCategoryInput(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  >
+                    {ARTWORK_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Wilayah DPW
+                  </label>
+                  <select
+                    value={editRegionInput}
+                    onChange={(e) => setEditRegionInput(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  >
+                    {REGIONS.filter((r) => r !== 'Semua Daerah').map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Format File Master
+                </label>
+                <select
+                  value={editFormatInput}
+                  onChange={(e) => setEditFormatInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                >
+                  <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
+                  <option value="PSD">PSD (Photoshop)</option>
+                  <option value="AI">AI (Illustrator)</option>
+                  <option value="CDR">CDR (CorelDraw)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Hashtags / Tag (Dipisah spasi atau koma)
+                </label>
+                <input
+                  type="text"
+                  value={editTagsInput}
+                  onChange={(e) => setEditTagsInput(e.target.value)}
+                  placeholder="Contoh: #PKS #PosterPKS #JawaBarat"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

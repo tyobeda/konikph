@@ -71,15 +71,15 @@ export default function CreatorPublicProfilePage() {
           <div className="w-16 h-16 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
             <LayoutGrid size={30} />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Kreator Tidak Ditemukan</h3>
+          <h3 className="text-base font-bold text-gray-900">Desainer Tidak Ditemukan</h3>
           <p className="text-xs text-gray-500 mt-1 mb-6">
-            Profil kreator yang Anda tuju tidak terdaftar atau telah dinonaktifkan dari sistem PKSart.
+            Profil desainer yang Anda tuju tidak terdaftar atau telah dinonaktifkan dari sistem PKSart.
           </p>
           <button
             onClick={() => router.push('/creators')}
             className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all"
           >
-            Lihat Semua Kreator
+            Lihat Semua Desainer
           </button>
         </main>
       </div>
@@ -130,14 +130,14 @@ export default function CreatorPublicProfilePage() {
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">{creator.name}</h1>
                   {creator.isVerified && (
-                    <span title="Verified Kreator PKS">
+                    <span title="Verified Desainer PKS">
                       <BadgeCheck size={20} className="text-[#F26522] fill-orange-50" />
                     </span>
                   )}
                 </div>
 
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  {creator.role || 'Kreator PKSart'}
+                  {creator.role || 'Desainer PKSart'}
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3.5 text-xs text-gray-500 font-semibold pt-1">
@@ -191,7 +191,7 @@ export default function CreatorPublicProfilePage() {
         <div className="space-y-6">
           <h2 className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
             <Layers size={18} className="text-[#F26522]" />
-            <span>Koleksi Karya Kreator ({creatorArtworks.length})</span>
+            <span>Koleksi Karya Desainer ({creatorArtworks.length})</span>
           </h2>
 
           {creatorArtworks.length === 0 ? (
@@ -201,7 +201,7 @@ export default function CreatorPublicProfilePage() {
               </div>
               <h3 className="text-base font-bold text-gray-900">Belum Ada Karya</h3>
               <p className="text-xs text-gray-500 max-w-sm mt-1">
-                Kreator ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.
+                Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.
               </p>
             </div>
           ) : (

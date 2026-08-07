@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
@@ -19,7 +20,15 @@ import {
 } from 'lucide-react';
 
 export default function CreatorsPage() {
-  const { users, artworks, dpwList } = useData();
+  const router = useRouter();
+  const { users, artworks, dpwList, isModuleUnderMaintenance } = useData();
+
+  React.useEffect(() => {
+    if (isModuleUnderMaintenance('creators')) {
+      router.replace('/maintenance');
+    }
+  }, [isModuleUnderMaintenance, router]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'creators' | 'dpw'>('creators');
 
@@ -52,7 +61,7 @@ export default function CreatorsPage() {
               <span>Komunitas & Struktur Official</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Direktori Kreator Desain & DPW PKS
+              Direktori Desainer Grafis & DPW PKS
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
               Jelajahi para perancang grafis, desainer visual, serta koordinator sekretariat DPW PKS se-Indonesia yang aktif berkontribusi menyediakan aset publikasi resmi.
@@ -76,7 +85,7 @@ export default function CreatorsPage() {
               }`}
             >
               <Users size={16} />
-              <span>Kreator Terdaftar ({users.length})</span>
+              <span>Desainer Terdaftar ({users.length})</span>
             </button>
 
             <button
@@ -101,7 +110,7 @@ export default function CreatorsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
                 activeTab === 'creators'
-                  ? 'Cari nama kreator atau wilayah...'
+                  ? 'Cari nama desainer atau wilayah...'
                   : 'Cari nama DPW atau koordinator...'
               }
               className="w-full bg-white text-sm rounded-2xl pl-10 pr-4 py-2.5 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] shadow-sm"
@@ -152,7 +161,7 @@ export default function CreatorsPage() {
                           <span>{user.region}</span>
                         </p>
                         <span className="inline-block text-[10px] font-extrabold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5">
-                          {user.role || 'Kreator Official'}
+                          {user.role || 'Desainer Official'}
                         </span>
                       </div>
                     </div>

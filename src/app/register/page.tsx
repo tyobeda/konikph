@@ -22,19 +22,25 @@ import { useData } from '@/context/DataContext';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { registerUser, loginUser, users, currentUser, isMounted } = useData();
+  const { registerUser, loginUser, users, currentUser, isMounted, isModuleUnderMaintenance } = useData();
 
   React.useEffect(() => {
-    if (currentUser) {
-      if (currentUser.status === 'Pending' || currentUser.status === 'Pending Approval') {
-        router.replace('/pending-approval');
-      } else if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
-        router.replace('/admin');
-      } else {
-        router.replace('/');
+    if (isMounted) {
+      if (isModuleUnderMaintenance('auth')) {
+        router.replace('/maintenance');
+        return;
+      }
+      if (currentUser) {
+        if (currentUser.status === 'Pending' || currentUser.status === 'Pending Approval') {
+          router.replace('/pending-approval');
+        } else if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
+          router.replace('/admin');
+        } else {
+          router.replace('/');
+        }
       }
     }
-  }, [currentUser, router]);
+  }, [currentUser, router, isMounted, isModuleUnderMaintenance]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -135,7 +141,7 @@ export default function RegisterPage() {
       region: sanitizedRegion,
       gender: sanitizedGender,
       avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
-      role: 'Kreator PKS',
+      role: 'Desainer PKS',
     });
 
     setIsSubmitting(false);
@@ -187,7 +193,7 @@ export default function RegisterPage() {
             Daftar Akun PKSart
           </h2>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Bergabunglah bersama komunitas kreator & pengurus daerah PKS seluruh Indonesia.
+            Bergabunglah bersama komunitas desainer & pengurus daerah PKS seluruh Indonesia.
           </p>
         </div>
 
@@ -202,7 +208,7 @@ export default function RegisterPage() {
             <CheckCircle2 size={56} className="text-emerald-500 mx-auto animate-bounce" />
             <h3 className="text-lg font-black text-gray-900">Pendaftaran Berhasil!</h3>
             <p className="text-xs text-gray-600 leading-relaxed font-semibold px-2">
-              Akun Anda telah diajukan ke sistem. Untuk alasan keamanan, akun kreator baru harus disetujui oleh Administrator PKSart terlebih dahulu sebelum dapat digunakan untuk masuk.
+              Akun Anda telah diajukan ke sistem. Untuk alasan keamanan, akun desainer baru harus disetujui oleh Administrator PKSart terlebih dahulu sebelum dapat digunakan untuk masuk.
             </p>
             <div className="bg-orange-50 border border-orange-100 text-[#F26522] text-xs font-bold py-2.5 px-4 rounded-xl max-w-xs mx-auto">
               Status: Menunggu Persetujuan Admin

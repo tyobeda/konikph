@@ -17,12 +17,14 @@ export interface User {
 export interface Artwork {
   id: string;
   title: string;
+  slug?: string | null;
   description?: string | null;
   imageUrl: string;
   downloadUrl?: string | null;
   category: string;
   region: string;
   format?: string | null;
+  tags?: string[];
   likesCount: number;
   commentsCount: number;
   downloadsCount: number;

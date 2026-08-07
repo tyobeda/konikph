@@ -9,19 +9,25 @@ import { useData } from '@/context/DataContext';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginUser, currentUser, isMounted } = useData();
+  const { loginUser, currentUser, isMounted, isModuleUnderMaintenance } = useData();
 
   React.useEffect(() => {
-    if (currentUser) {
-      if (currentUser.status === 'Pending' || currentUser.status === 'Pending Approval') {
-        router.replace('/pending-approval');
-      } else if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
-        router.replace('/admin');
-      } else {
-        router.replace('/');
+    if (isMounted) {
+      if (isModuleUnderMaintenance('auth')) {
+        router.replace('/maintenance');
+        return;
+      }
+      if (currentUser) {
+        if (currentUser.status === 'Pending' || currentUser.status === 'Pending Approval') {
+          router.replace('/pending-approval');
+        } else if (currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) {
+          router.replace('/admin');
+        } else {
+          router.replace('/');
+        }
       }
     }
-  }, [currentUser, router]);
+  }, [currentUser, router, isMounted, isModuleUnderMaintenance]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

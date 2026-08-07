@@ -3,9 +3,14 @@ import { Metadata } from 'next';
 import ArtworkDetailContent from './ArtworkDetailContent';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const { id } = await params;
-  const artwork = await prisma.artwork.findUnique({
-    where: { id },
+  const { id: slugOrId } = await params;
+  const artwork = await prisma.artwork.findFirst({
+    where: {
+      OR: [
+        { slug: slugOrId },
+        { id: slugOrId },
+      ],
+    },
   });
 
   const settings = await prisma.siteSettings.findFirst();
@@ -28,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     openGraph: {
       title,
       description,
-      url: `${baseUrl}/artwork/${artwork.id}`,
+      url: `${baseUrl}/artwork/${artwork.slug || artwork.id}`,
       siteName: 'PKSart',
       images: [
         {

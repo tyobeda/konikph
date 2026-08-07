@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.status === 'Pending' || user.status === 'Pending Approval') {
-      await createSessionCookie(user.id, user.role || 'Kreator PKS', user.email);
+      await createSessionCookie(user.id, user.role || 'Desainer PKS', user.email);
       return NextResponse.json({
         success: true,
         isPendingApproval: true,
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Kata sandi wajib diisi.' }, { status: 401 });
     }
 
-    await createSessionCookie(user.id, user.role || 'Kreator PKS', user.email);
+    await createSessionCookie(user.id, user.role || 'Desainer PKS', user.email);
 
     return NextResponse.json({
       success: true,

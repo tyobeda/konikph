@@ -48,8 +48,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const navLinks = [
     { label: 'Beranda', href: '/', id: 'beranda' },
     { label: 'Eksplorasi', href: '/explore', id: 'explore' },
-    ...(currentUser ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
-    { label: 'Kreator', href: '/creators', id: 'creators' },
+    { label: 'Aset Desain', href: '/assets', id: 'assets' },
+    { label: 'Desainer', href: '/creators', id: 'creators' },
   ];
 
   // Helper to determine active link ID
@@ -181,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 type="text"
                 value={internalSearch}
                 onChange={handleSearchInput}
-                placeholder="Cari desain, kreator, atau daerah..."
+                placeholder="Cari karya, desainer, atau daerah..."
                 className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none transition-all"
               />
             </form>
@@ -234,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             </Link>
 
             {/* Upload Button - Logged in users only */}
-            {currentUser && (
+            {isMounted && currentUser && (
               <Link
                 href="/upload"
                 className="inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
@@ -244,14 +244,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             )}
 
             {/* Notification Icon */}
-            {currentUser && (
+            {isMounted && currentUser && (
               <Link href="/notifikasi" className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
                 {unreadNotificationCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />}
               </Link>
             )}
             
-            {currentUser ? (
+            {isMounted && currentUser ? (
               <div suppressHydrationWarning className="relative">
                 <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -353,7 +353,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               type="text"
               value={internalSearch}
               onChange={handleSearchInput}
-              placeholder="Cari desain, kreator, atau daerah..."
+              placeholder="Cari karya, desainer, atau daerah..."
               className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none"
             />
           </form>

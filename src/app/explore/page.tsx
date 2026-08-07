@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
@@ -23,9 +24,17 @@ import {
 } from 'lucide-react';
 
 export default function ExplorePage() {
-  const { artworks } = useData();
+  const router = useRouter();
+  const { artworks, isModuleUnderMaintenance } = useData();
+
+  React.useEffect(() => {
+    if (isModuleUnderMaintenance('explore')) {
+      router.replace('/maintenance');
+    }
+  }, [isModuleUnderMaintenance, router]);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Semua Karya');
+  const [activeCategory, setActiveCategory] = useState('Hikmah-Motivasi');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [sortBy, setSortBy] = useState<'trending' | 'newest' | 'downloads'>('trending');
@@ -52,12 +61,14 @@ export default function ExplorePage() {
         (art.format && art.format.toUpperCase().includes(selectedFormat.toUpperCase()));
 
       // Search Query Filter
+      const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
-        !searchQuery ||
-        art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        art.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        art.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        art.author.region.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        art.title.toLowerCase().includes(q) ||
+        art.category.toLowerCase().includes(q) ||
+        art.author.name.toLowerCase().includes(q) ||
+        art.author.region.toLowerCase().includes(q) ||
+        (art.tags && art.tags.some(tag => tag.toLowerCase().includes(q)));
 
       return matchesCategory && matchesRegion && matchesFormat && matchesSearch;
     });

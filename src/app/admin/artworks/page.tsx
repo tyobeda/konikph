@@ -29,7 +29,7 @@ import { ARTWORK_CATEGORIES } from '@/lib/data';
 
 export default function AdminArtworksPage() {
   const { artworks, updateArtwork, deleteArtwork, artworkReports, resolveArtworkReport } = useData();
-  const [activeTab, setActiveTab] = useState<'artworks' | 'reports'>('artworks');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'reports'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -38,6 +38,9 @@ export default function AdminArtworksPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editRegion, setEditRegion] = useState('');
+
+  const pendingArtworksCount = artworks.filter((a) => (a as any).status === 'Pending').length;
+  const pendingReportsCount = artworkReports.filter((r) => r.status === 'Pending').length;
 
   const handleApprove = (id: string) => {
     updateArtwork(id, { status: 'Disetujui' } as any);
@@ -77,7 +80,13 @@ export default function AdminArtworksPage() {
       art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       art.author.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || art.category === filterCategory;
-    const matchesStatus = filterStatus === 'all' || (art as any).status === filterStatus;
+    
+    let matchesStatus = true;
+    if (activeTab === 'pending') {
+      matchesStatus = (art as any).status === 'Pending';
+    } else if (filterStatus !== 'all') {
+      matchesStatus = (art as any).status === filterStatus;
+    }
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
@@ -114,10 +123,10 @@ export default function AdminArtworksPage() {
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
               <ImageIcon className="text-[#F26522]" />
-              <span>Kelola Seluruh Karya & Desain Poster</span>
+              <span>Kelola & Moderasi Karya</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Moderasi, edit metadata karya, jadikan pilihan utama (featured), atau hapus karya yang diunggah.
+              Moderasi unggahan karya desainer, edit metadata, jadikan pilihan utama (featured), atau hapus karya.
             </p>
           </div>
 
@@ -131,29 +140,46 @@ export default function AdminArtworksPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold">
+        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold overflow-x-auto">
           <button
-            onClick={() => setActiveTab('artworks')}
-            className={`pb-3 relative transition-all ${
-              activeTab === 'artworks'
+            onClick={() => { setActiveTab('all'); setFilterStatus('all'); }}
+            className={`pb-3 relative transition-all whitespace-nowrap ${
+              activeTab === 'all'
                 ? 'text-[#F26522] border-b-2 border-[#F26522]'
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            <span>Karya Terpublikasi ({filteredArtworks.length})</span>
+            <span>Semua Karya ({artworks.length})</span>
           </button>
+
+          <button
+            onClick={() => { setActiveTab('pending'); setFilterStatus('Pending'); }}
+            className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'pending'
+                ? 'text-[#F26522] border-b-2 border-[#F26522]'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <span>⏳ Menunggu Approval</span>
+            {pendingArtworksCount > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 animate-pulse">
+                {pendingArtworksCount} Karya Baru
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => setActiveTab('reports')}
-            className={`pb-3 relative transition-all flex items-center gap-1.5 ${
+            className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'reports'
                 ? 'text-[#F26522] border-b-2 border-[#F26522]'
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            <span>Laporan Masuk ({artworkReports.filter((r) => r.status === 'Pending').length})</span>
-            {artworkReports.filter((r) => r.status === 'Pending').length > 0 && (
-              <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-                {artworkReports.filter((r) => r.status === 'Pending').length}
+            <span>🚩 Laporan Masuk</span>
+            {pendingReportsCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                {pendingReportsCount}
               </span>
             )}
           </button>
@@ -185,7 +211,7 @@ export default function AdminArtworksPage() {
                 />
               </div>
 
-              {activeTab === 'artworks' && (
+              {activeTab !== 'reports' && (
                 <>
                   {/* Category Filter */}
               <select
@@ -231,7 +257,7 @@ export default function AdminArtworksPage() {
                   <tr>
                     <th className="py-3.5 px-4">Artwork & Title</th>
                     <th className="py-3.5 px-4">Kategori & DPW</th>
-                    <th className="py-3.5 px-4">Uploader / Kreator</th>
+                    <th className="py-3.5 px-4">Uploader / Desainer</th>
                     <th className="py-3.5 px-4">Format File</th>
                     <th className="py-3.5 px-4">Unduhan</th>
                     <th className="py-3.5 px-4">Status</th>
@@ -395,6 +421,27 @@ export default function AdminArtworksPage() {
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {art.status === 'Pending' && (
+                          <div className="flex items-center gap-1 mr-1">
+                            <button
+                              onClick={() => handleApprove(art.id)}
+                              className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                              title="Setujui Karya (Publikasikan)"
+                            >
+                              <CheckCircle size={13} />
+                              <span>Setujui</span>
+                            </button>
+                            <button
+                              onClick={() => handleReject(art.id)}
+                              className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                              title="Tolak Karya"
+                            >
+                              <XCircle size={13} />
+                              <span>Tolak</span>
+                            </button>
+                          </div>
+                        )}
+
                         <button
                           onClick={() => handleToggleFeatured(art.id, art.isFeatured)}
                           className={`p-1.5 rounded-lg transition-colors ${
@@ -408,7 +455,7 @@ export default function AdminArtworksPage() {
                         </button>
 
                         <Link
-                          href={`/artwork/${art.id}`}
+                          href={`/artwork/${art.slug || art.id}`}
                           className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors"
                           title="Lihat Detail Halaman"
                         >

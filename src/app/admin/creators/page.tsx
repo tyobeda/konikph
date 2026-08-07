@@ -57,7 +57,7 @@ export default function AdminCreatorsPage() {
     email: '',
     phone: '',
     region: '',
-    role: 'Kreator',
+    role: 'Desainer',
   });
 
   const handleApproveUser = (id: string) => {
@@ -80,7 +80,7 @@ export default function AdminCreatorsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus akun kreator ini dari sistem?')) {
+    if (confirm('Apakah Anda yakin ingin menghapus akun desainer ini dari sistem?')) {
       deleteUser(id);
     }
   };
@@ -92,7 +92,7 @@ export default function AdminCreatorsPage() {
       email: creator.email,
       phone: creator.phone || '',
       region: creator.region,
-      role: creator.role || 'Kreator',
+      role: creator.role || 'Desainer',
     });
   };
 
@@ -161,10 +161,10 @@ export default function AdminCreatorsPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
             <Users className="text-[#F26522]" />
-            <span>Kelola Kreator & Member PKSart</span>
+            <span>Kelola Desainer & Member PKSart</span>
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Verifikasi lencana Kreator PKS Official, kelola kontak WhatsApp/Email, dan kontrol status akun.
+            Verifikasi lencana Desainer PKS Official, kelola kontak WhatsApp/Email, dan kontrol status akun.
           </p>
         </div>
       </div>
@@ -179,7 +179,7 @@ export default function AdminCreatorsPage() {
               : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          <span>Kreator Terdaftar ({users.length})</span>
+          <span>Desainer Terdaftar ({users.length})</span>
           {pendingCreatorsCount > 0 && (
             <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
               {pendingCreatorsCount} Pendaftar Baru
@@ -263,7 +263,7 @@ export default function AdminCreatorsPage() {
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-extrabold text-gray-900">
-              {activeTab === 'resets' ? 'Permintaan Reset Kata Sandi' : 'Daftar Kreator Terdaftar'}
+              {activeTab === 'resets' ? 'Permintaan Reset Kata Sandi' : 'Daftar Desainer Terdaftar'}
             </h2>
             <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
               {activeTab === 'resets' ? filteredResets.length : filteredCreators.length} {activeTab === 'resets' ? 'Permintaan' : 'Akun'}
@@ -296,7 +296,7 @@ export default function AdminCreatorsPage() {
                 </tr>
               ) : (
                 <tr>
-                  <th className="py-3.5 px-4">Kreator & Lencana</th>
+                  <th className="py-3.5 px-4">Desainer & Lencana</th>
                   <th className="py-3.5 px-4">Kontak WhatsApp & Email</th>
                   <th className="py-3.5 px-4">Wilayah DPW</th>
                   <th className="py-3.5 px-4">Total Karya</th>
@@ -376,12 +376,12 @@ export default function AdminCreatorsPage() {
                             <div className="flex items-center gap-1.5">
                               <span className="font-bold text-gray-900">{creator.name}</span>
                               {creator.isVerified && (
-                                <span title="Verified Kreator PKS">
+                                <span title="Verified Desainer PKS">
                                   <BadgeCheck size={16} className="text-[#F26522] fill-orange-50" />
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-gray-400 font-medium">{creator.role || 'Kreator'}</span>
+                            <span className="text-xs text-gray-400 font-medium">{creator.role || 'Desainer'}</span>
                           </div>
                         </div>
                       </td>
@@ -446,7 +446,7 @@ export default function AdminCreatorsPage() {
                           <button
                             onClick={() => openEditModal(creator)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Data Kreator"
+                            title="Edit Data Desainer"
                           >
                             <Edit size={16} />
                           </button>
@@ -475,7 +475,7 @@ export default function AdminCreatorsPage() {
                 ) : (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
-                      Tidak ada data akun kreator yang sesuai dengan pencarian.
+                      Tidak ada data akun desainer yang sesuai dengan pencarian.
                     </td>
                   </tr>
                 )
@@ -487,7 +487,7 @@ export default function AdminCreatorsPage() {
         {/* Pagination Controls */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
           <div className="text-gray-500 font-medium">
-            Menampilkan <span className="font-bold text-gray-800">{totalItems > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-800">{totalItems}</span> data {activeTab === 'resets' ? 'pengajuan reset' : 'kreator'}
+            Menampilkan <span className="font-bold text-gray-800">{totalItems > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-800">{totalItems}</span> data {activeTab === 'resets' ? 'pengajuan reset' : 'desainer'}
           </div>
 
           <div className="flex items-center gap-1.5 font-bold">
@@ -541,7 +541,7 @@ export default function AdminCreatorsPage() {
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
           >
             <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Edit Data Kreator (Admin)
+              Edit Data Desainer (Admin)
             </h3>
 
             <form onSubmit={handleSaveEdit} className="space-y-3.5">

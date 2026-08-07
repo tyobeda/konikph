@@ -39,7 +39,7 @@ export default function TwibbonDetailContent() {
     }
   }, [userId]);
 
-  const activeTwibbon = twibbons.find((t) => t.id === id);
+  const activeTwibbon = twibbons.find((t) => t.id === id || t.slug === id);
 
   const [isTogglingFavorite, setIsTogglingFavorite] = useState<string | null>(null);
 
@@ -388,7 +388,7 @@ export default function TwibbonDetailContent() {
               {otherTwibbons.map((tw) => (
                 <Link
                   key={tw.id}
-                  href={`/twibbon/${tw.id}`}
+                  href={`/twibbon/${tw.slug || tw.id}`}
                   className="group bg-white rounded-2xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                 >
                   <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-2 relative">

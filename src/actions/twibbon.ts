@@ -1,14 +1,28 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
+import { generateUniqueTwibbonSlug } from '@/lib/slug';
 
 export async function getTwibbons() {
+  noStore();
   try {
     const twibbons = await prisma.twibbonFrame.findMany({
       include: { author: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Auto-migrate legacy twibbons without slug
+    for (const t of twibbons) {
+      if (!t.slug && t.title) {
+        const generatedSlug = await generateUniqueTwibbonSlug(t.title, t.id);
+        await prisma.twibbonFrame.update({
+          where: { id: t.id },
+          data: { slug: generatedSlug },
+        }).catch(() => {});
+        t.slug = generatedSlug;
+      }
+    }
     
     // Map to include author.name and author.avatar as expected by frontend
     const mapped = twibbons.map(t => ({
@@ -24,6 +38,47 @@ export async function getTwibbons() {
   } catch (error) {
     console.error('Error fetching twibbons:', error);
     return { success: false, error: 'Failed to fetch twibbons' };
+  }
+}
+
+export async function getTwibbonBySlugOrId(slugOrId: string) {
+  noStore();
+  try {
+    let twibbon = await prisma.twibbonFrame.findFirst({
+      where: {
+        OR: [
+          { slug: slugOrId },
+          { id: slugOrId },
+        ],
+      },
+      include: { author: true },
+    });
+
+    if (twibbon) {
+      if (!twibbon.slug && twibbon.title) {
+        const generatedSlug = await generateUniqueTwibbonSlug(twibbon.title, twibbon.id);
+        twibbon = await prisma.twibbonFrame.update({
+          where: { id: twibbon.id },
+          data: { slug: generatedSlug },
+          include: { author: true },
+        });
+      }
+      const mapped = {
+        ...twibbon,
+        status: twibbon.status as 'Disetujui' | 'Pending' | 'Ditolak',
+        createdAt: twibbon.createdAt.toISOString(),
+        author: {
+          name: twibbon.author.name,
+          avatar: twibbon.author.avatar,
+        },
+      };
+      return { success: true, data: mapped };
+    }
+
+    return { success: false, error: 'Twibbon not found' };
+  } catch (error) {
+    console.error('Error fetching twibbon by slug/id:', error);
+    return { success: false, error: 'Failed to fetch twibbon' };
   }
 }
 
@@ -51,9 +106,12 @@ export async function addTwibbon(data: any) {
       authorId = newUser.id;
     }
     
+    const slug = rest.slug || (await generateUniqueTwibbonSlug(rest.title));
+
     const twibbon = await prisma.twibbonFrame.create({
       data: {
         title: rest.title,
+        slug: slug,
         imageUrl: rest.imageUrl,
         category: rest.category,
         region: rest.region,

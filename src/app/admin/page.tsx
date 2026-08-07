@@ -74,9 +74,9 @@ export default function AdminDashboardPage() {
       color: 'bg-[#1e293b] text-white',
     },
     {
-      title: 'Kreator Terdaftar',
+      title: 'Desainer Terdaftar',
       value: users.length.toString(),
-      change: '+8 kreator baru',
+      change: '+8 desainer baru',
       icon: Users,
       color: 'bg-emerald-50 text-emerald-600',
     },
@@ -152,7 +152,7 @@ export default function AdminDashboardPage() {
             Super Admin Dashboard
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Pemantauan statistik platform, peringkat kreator terpopuler, karya paling banyak diunduh & twibbon terfavorit.
+            Pemantauan statistik platform, peringkat desainer terpopuler, karya paling banyak diunduh & twibbon terfavorit.
           </p>
         </div>
 
@@ -210,7 +210,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
                 <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                   <Trophy size={18} className="text-amber-500" />
-                  <span>Top Creators (Kreator Paling Populer)</span>
+                  <span>Top Designers (Desainer Paling Populer)</span>
                 </h3>
                 <Link href="/admin/creators" className="text-xs font-bold text-[#F26522] hover:underline">
                   Lihat Semua

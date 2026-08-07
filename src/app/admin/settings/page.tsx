@@ -25,6 +25,9 @@ import {
   AlertCircle,
   X,
   Upload,
+  Wrench,
+  Eye,
+  Layers,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
@@ -34,7 +37,7 @@ import { getCustomPageBySlug, addCustomPage, updateCustomPage } from '@/actions/
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
-  const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'resource' | 'backup' | 'danger'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'danger'>('identity');
 
   const [siteName, setSiteName] = useState(siteSettings.siteName || '');
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription || '');
@@ -44,6 +47,23 @@ export default function AdminSettingsPage() {
   const [faviconPreview, setFaviconPreview] = useState(siteSettings.faviconUrl || '/favicon.ico');
   const [ogImagePreview, setOgImagePreview] = useState(siteSettings.ogImageUrl || '');
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
+
+  // Maintenance Mode States
+  const [maintenanceState, setMaintenanceState] = useState(siteSettings.maintenanceConfig || {
+    globalEnabled: false,
+    modules: {
+      explore: false,
+      assets: false,
+      creators: false,
+      twibbon: false,
+      upload: false,
+      auth: false,
+    },
+    title: 'Mode Pemeliharaan Sistem',
+    description: 'Kami sedang melakukan pemeliharaan & perawatan sistem rutin untuk meningkatkan kualitas layanan platform PKSart. Terima kasih atas kesabaran Anda.',
+    estimatedTime: 'Estimasi Selesai: 1 - 2 Jam',
+    allowAdminBypass: true,
+  });
 
   // CTA States
   const [ctaTitle, setCtaTitle] = useState(siteSettings.ctaTitle || '');
@@ -58,6 +78,7 @@ export default function AdminSettingsPage() {
   const [ctaSocialText, setCtaSocialText] = useState(siteSettings.ctaSocialText || '');
   const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
   const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
+  const [autoApproveArtworks, setAutoApproveArtworks] = useState(siteSettings.autoApproveArtworks !== false);
 
   useEffect(() => {
     if (siteSettings) {
@@ -80,6 +101,10 @@ export default function AdminSettingsPage() {
       setCtaSocialText(siteSettings.ctaSocialText || '');
       setCtaSocialUrl(siteSettings.ctaSocialUrl || '');
       setAdminWhatsapp(siteSettings.adminWhatsapp || '6281199887766');
+      setAutoApproveArtworks(siteSettings.autoApproveArtworks !== false);
+      if (siteSettings.maintenanceConfig) {
+        setMaintenanceState(siteSettings.maintenanceConfig as any);
+      }
     }
   }, [siteSettings]);
   // Welcome Popup Configuration State
@@ -221,6 +246,18 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleSaveMaintenance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateSiteSettings({
+        maintenanceConfig: maintenanceState,
+      });
+      triggerToast('Pengaturan Mode Pemeliharaan (Maintenance) berhasil disimpan!');
+    } catch (err: any) {
+      alert('Gagal menyimpan pengaturan maintenance: ' + err.message);
+    }
+  };
+
   const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingGeneral(true);
@@ -234,6 +271,7 @@ export default function AdminSettingsPage() {
         faviconUrl: faviconPreview,
         ogImageUrl: ogImagePreview,
         adminWhatsapp,
+        autoApproveArtworks,
       });
       setIsSaved(true);
       triggerToast('Pengaturan identitas situs berhasil disimpan permanen!');
@@ -390,7 +428,7 @@ export default function AdminSettingsPage() {
         isOpen: true,
         type: 'users',
         title: 'Hapus Massal Semua Pengguna / Member',
-        description: 'Tindakan ini akan menghapus SELURUH akun kreator dan member terdaftar (kecuali Super Admin).',
+        description: 'Tindakan ini akan menghapus SELURUH akun desainer dan member terdaftar (kecuali Super Admin).',
       });
     } else if (type === 'all') {
       setConfirmModal({
@@ -450,6 +488,12 @@ export default function AdminSettingsPage() {
           <button onClick={() => setActiveTab('identity')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'identity' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Identitas Web</button>
           <button onClick={() => setActiveTab('cta')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'cta' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Banner CTA</button>
           <button onClick={() => setActiveTab('popup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'popup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Pop-up Pengumuman</button>
+          <button onClick={() => setActiveTab('maintenance')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'maintenance' ? 'text-amber-600 border-b-2 border-amber-600 font-bold' : 'text-gray-500 hover:text-amber-600'}`}>
+            <span>Mode Pemeliharaan</span>
+            {maintenanceState.globalEnabled && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            )}
+          </button>
           <button onClick={() => setActiveTab('resource')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'resource' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Storage & Server</button>
           <button onClick={() => setActiveTab('backup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'backup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Backup Data</button>
           <button onClick={() => setActiveTab('danger')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'danger' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-red-600'}`}><ShieldAlert size={14} /> Danger Zone</button>
@@ -508,6 +552,52 @@ export default function AdminSettingsPage() {
                   <p className="text-[10px] text-gray-400 mt-1">
                     Nomor WhatsApp ini akan digunakan pada tombol "Hubungi Admin via WhatsApp" untuk pendaftar yang menunggu approval (Gunakan kode negara, contoh: 628123456789).
                   </p>
+                </div>
+
+                {/* Mode Moderasi Upload Karya Desainer */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                    Sistem Moderasi Unggah Karya Desainer
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                      autoApproveArtworks ? 'bg-orange-50/80 border-[#F26522] ring-2 ring-orange-500/10' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/70'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="moderationMode"
+                        checked={autoApproveArtworks === true}
+                        onChange={() => setAutoApproveArtworks(true)}
+                        className="mt-1 accent-[#F26522]"
+                      />
+                      <div>
+                        <p className="text-xs font-extrabold text-gray-900">⚡ Otomatis Disetujui (Auto Approve)</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                          Karya baru yang diunggah desainer langsung terpublikasi secara otomatis ke publik.
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                      !autoApproveArtworks ? 'bg-[#1e293b]/5 border-[#1e293b] ring-2 ring-slate-500/10' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/70'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="moderationMode"
+                        checked={autoApproveArtworks === false}
+                        onChange={() => setAutoApproveArtworks(false)}
+                        className="mt-1 accent-[#1e293b]"
+                      />
+                      <div>
+                        <p className="text-xs font-extrabold text-gray-900">🛡️ Moderasi Admin (Menunggu Review)</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                          Karya berstatus `Pending`. Desainer melihat layar konfirmasi & menunggu persetujuan Admin di `/admin/artworks`.
+                        </p>
+                      </div>
+                    </label>
+
+                  </div>
                 </div>
               </div>
 
@@ -1228,6 +1318,267 @@ export default function AdminSettingsPage() {
           </>
           )}
 
+          {activeTab === 'maintenance' && (
+            <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-sm space-y-6">
+              
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <Wrench className="text-amber-500" size={20} />
+                    <span>Pengaturan Mode Pemeliharaan Sistem (Maintenance)</span>
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Aktifkan mode pemeliharaan untuk seluruh website sekaligus atau pilih modul tertentu secara spesifik.
+                  </p>
+                </div>
+
+                <a
+                  href="/maintenance"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <Eye size={14} />
+                  <span>Preview Halaman Maintenance</span>
+                </a>
+              </div>
+
+              <form onSubmit={handleSaveMaintenance} className="space-y-6">
+                
+                {/* 1. Master Toggle (Global Maintenance) */}
+                <div className={`p-5 rounded-2xl border transition-all ${
+                  maintenanceState.globalEnabled
+                    ? 'bg-amber-50/80 border-amber-300 ring-2 ring-amber-400/20'
+                    : 'bg-gray-50 border-gray-200'
+                }`}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        maintenanceState.globalEnabled ? 'bg-amber-500 text-white shadow-md' : 'bg-gray-200 text-gray-500'
+                      }`}>
+                        <AlertTriangle size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-sm text-gray-900">Mode Pemeliharaan Global (Seluruh Situs)</h4>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Aktifkan saklar ini untuk mengunci SELURUH halaman utama website secara bersamaan.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={maintenanceState.globalEnabled}
+                        onChange={(e) => setMaintenanceState({ ...maintenanceState, globalEnabled: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-12 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 2. Per-Module Maintenance Toggles */}
+                <div>
+                  <h4 className="font-bold text-xs uppercase text-gray-700 tracking-wider mb-3 flex items-center gap-1.5">
+                    <Layers size={14} className="text-[#F26522]" />
+                    <span>Pemeliharaan Spesifik Per-Modul / Halaman</span>
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    
+                    {/* Module 1: Karya & Eksplorasi */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.explore ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Karya & Eksplorasi</p>
+                        <p className="text-[10px] text-gray-500">`/explore`, `/artwork/*`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.explore}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, explore: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
+
+                    {/* Module 2: Aset Desain */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.assets ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Aset Desain</p>
+                        <p className="text-[10px] text-gray-500">`/assets`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.assets}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, assets: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
+
+                    {/* Module 3: Direktori Desainer */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.creators ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Direktori Desainer</p>
+                        <p className="text-[10px] text-gray-500">`/creators`, `/creators/*`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.creators}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, creators: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
+
+                    {/* Module 4: Buat Twibbon */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.twibbon ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Buat Twibbon</p>
+                        <p className="text-[10px] text-gray-500">`/twibbon`, `/twibbon/*`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.twibbon}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, twibbon: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
+
+                    {/* Module 5: Unggah Karya */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.upload ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Unggah Karya</p>
+                        <p className="text-[10px] text-gray-500">`/upload`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.upload}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, upload: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
+
+                    {/* Module 6: Login & Registrasi */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.auth ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Login & Registrasi</p>
+                        <p className="text-[10px] text-gray-500">`/login`, `/register`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.auth}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, auth: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
+
+                  </div>
+                </div>
+
+                {/* 3. Custom Maintenance Message & Settings */}
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Judul Pesan Pemeliharaan
+                    </label>
+                    <input
+                      type="text"
+                      value={maintenanceState.title || ''}
+                      onChange={(e) => setMaintenanceState({ ...maintenanceState, title: e.target.value })}
+                      placeholder="Mode Pemeliharaan Sistem"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Deskripsi / Penjelasan Pemeliharaan
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={maintenanceState.description || ''}
+                      onChange={(e) => setMaintenanceState({ ...maintenanceState, description: e.target.value })}
+                      placeholder="Tuliskan penjelasan pemeliharaan..."
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl p-3 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                        Estimasi Selesai (Teks Bebas)
+                      </label>
+                      <input
+                        type="text"
+                        value={maintenanceState.estimatedTime || ''}
+                        onChange={(e) => setMaintenanceState({ ...maintenanceState, estimatedTime: e.target.value })}
+                        placeholder="Contoh: Estimasi selesai: 1-2 Jam"
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                      />
+                    </div>
+
+                    <div className="flex items-center">
+                      <label className="p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3 cursor-pointer w-full mt-5">
+                        <input
+                          type="checkbox"
+                          checked={maintenanceState.allowAdminBypass !== false}
+                          onChange={(e) => setMaintenanceState({ ...maintenanceState, allowAdminBypass: e.target.checked })}
+                          className="w-4 h-4 accent-[#F26522]"
+                        />
+                        <div>
+                          <p className="text-xs font-extrabold text-gray-900">Bypass Akses Super Admin</p>
+                          <p className="text-[10px] text-gray-500">Super Admin tetap bisa membuka web saat maintenance aktif.</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="pt-4 border-t border-gray-100 flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+                  >
+                    <Save size={16} />
+                    <span>Simpan Pengaturan Maintenance</span>
+                  </button>
+                </div>
+
+              </form>
+
+            </div>
+          )}
+
           {activeTab === 'resource' && (
             <>
           {/* Section 3: Storage Usage & Server Resource Usage */}
@@ -1397,7 +1748,7 @@ export default function AdminSettingsPage() {
                     <span>Hapus Semua User / Member</span>
                   </h3>
                   <p className="text-[11px] text-gray-500 mt-1">
-                    Menghapus seluruh akun kreator & member terdaftar (kecuali Super Admin).
+                    Menghapus seluruh akun desainer & member terdaftar (kecuali Super Admin).
                   </p>
                 </div>
                 <button

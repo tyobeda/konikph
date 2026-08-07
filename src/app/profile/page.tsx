@@ -33,7 +33,7 @@ export default function ProfilePage() {
     address: currentUser?.address || '',
     region: currentUser?.region || '',
     avatar: currentUser?.avatar || '',
-    role: currentUser?.role || 'Kreator',
+    role: currentUser?.role || 'Desainer',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -71,7 +71,7 @@ export default function ProfilePage() {
         address: currentUser.address || '',
         region: currentUser.region || '',
         avatar: currentUser.avatar || '',
-        role: currentUser.role || 'Kreator',
+        role: currentUser.role || 'Desainer',
       });
       setAvatarPreview(currentUser.avatar || '');
     }

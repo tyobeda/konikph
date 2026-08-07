@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s | PKSart",
     },
     description: siteDesc,
-    keywords: ["PKS", "Desain PKS", "Poster PKS", "Twibbon PKS", "Brand Kit PKS", "Aset Desain", "Kreator PKS"],
+    keywords: ["PKS", "Desain PKS", "Poster PKS", "Twibbon PKS", "Brand Kit PKS", "Aset Desain", "Desainer PKS"],
     icons: {
       icon: settings?.faviconUrl || '/favicon.ico',
     },
