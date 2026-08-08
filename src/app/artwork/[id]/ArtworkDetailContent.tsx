@@ -329,8 +329,14 @@ export default function ArtworkDetailContent() {
         {/* Back button */}
         <div className="mb-6 flex items-center justify-between">
           <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-[#F26522] transition-colors"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
+            className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-[#F26522] transition-colors cursor-pointer"
           >
             <ArrowLeft size={16} />
             <span>Kembali ke Galeri</span>

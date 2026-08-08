@@ -45,14 +45,10 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
     };
   }, []);
 
-  const navLinks = [
-    { label: 'Beranda', href: '/', id: 'beranda' },
-    { label: 'Eksplorasi', href: '/explore', id: 'explore' },
-    ...(currentUser ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
-    { label: 'Desainer', href: '/creators', id: 'creators' },
-  ];
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
+  const [isMounted, setIsMounted] = useState(false);
+  const [isTransitionActive, setIsTransitionActive] = useState(false);
 
-  // Helper to determine active link ID
   const getActiveLinkId = () => {
     if (pathname === '/explore') return 'explore';
     if (pathname === '/assets') return 'assets';
@@ -65,7 +61,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const navItemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
@@ -81,9 +76,12 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
     };
   }, [isProfileDropdownOpen]);
 
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
-  const [isMounted, setIsMounted] = useState(false);
-  const [isTransitionActive, setIsTransitionActive] = useState(false);
+  const navLinks = [
+    { label: 'Beranda', href: '/', id: 'beranda' },
+    { label: 'Eksplorasi', href: '/explore', id: 'explore' },
+    ...((isMounted && currentUser) ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
+    { label: 'Desainer', href: '/creators', id: 'creators' },
+  ];
 
   const updateIndicatorPos = (enableTransition = true) => {
     const activeEl = navItemRefs.current[activeLinkId];
