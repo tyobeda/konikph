@@ -180,15 +180,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   // 2. Users State
   const [users, setUsers] = useState<User[]>([]);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = getClientCookie('pksart_current_user');
-      if (stored && stored !== 'null' && stored !== 'undefined') {
-        try { return JSON.parse(stored); } catch (e) {}
-      }
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   // Reports & Reset Requests State
   const [artworkReports, setArtworkReports] = useState<ArtworkReport[]>([]);
