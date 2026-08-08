@@ -339,113 +339,71 @@ export default function AdminDpwPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
+            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 cursor-default"
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              {editingDpw ? 'Edit Data DPW' : 'Tambah Wilayah DPW Baru'}
+            <h3 className="text-xl font-extrabold text-gray-900 mb-6">
+              {editingDpw ? 'Edit Wilayah / Chapter' : 'Tambah Wilayah / Chapter Baru'}
             </h3>
 
-            <form onSubmit={handleSaveDpw} className="space-y-3">
+            <form onSubmit={handleSaveDpw} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nama Wilayah DPW
+                <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">
+                  NAMA WILAYAH / CHAPTER
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Contoh: DPW PKS Jawa Barat"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  placeholder="Contoh: Sumatera Barat"
+                  className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Kode Wilayah
-                </label>
-                <input
-                  type="text"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="Contoh: DPW-JABAR"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nama Koordinator Daerah
+                <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">
+                  NAMA KOORDINATOR DAERAH
                 </label>
                 <input
                   type="text"
                   value={formData.coordinator}
                   onChange={(e) => setFormData({ ...formData, coordinator: e.target.value })}
-                  placeholder="Nama Penanggung Jawab DPW"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  placeholder="Contoh: Abri Maijon"
+                  className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nomor WhatsApp Koordinator
+                <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">
+                  NOMOR WHATSAPP KOORDINATOR
                 </label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="081234567890"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  placeholder="+62 813-7419-6152"
+                  className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Email Sekretariat DPW
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="sekretariat@dpw.pks.id"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Alamat Sekretariat DPW
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Alamat Kantor DPW"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
                     setIsAddModalOpen(false);
                     setEditingDpw(null);
                   }}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                  className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
+                  className="px-6 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all"
                 >
-                  Simpan DPW
+                  Simpan
                 </button>
               </div>
             </form>

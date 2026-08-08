@@ -32,7 +32,8 @@ const DEFAULT_SETTINGS = {
     { label: 'Login/Upload', url: '/login' }
   ]),
   ctaSocialText: 'Follow @pksart',
-  ctaSocialUrl: '#'
+  ctaSocialUrl: '#',
+  forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu'
 };
 
 export async function getDBSiteSettings() {

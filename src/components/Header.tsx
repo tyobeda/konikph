@@ -63,6 +63,23 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
 
   const activeLinkId = getActiveLinkId();
   const navItemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    if (isProfileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileDropdownOpen]);
 
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
   const [isMounted, setIsMounted] = useState(false);
@@ -252,7 +269,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             )}
             
             {isMounted && currentUser ? (
-              <div suppressHydrationWarning className="relative">
+              <div suppressHydrationWarning ref={profileDropdownRef} className="relative">
                 <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   className="flex items-center gap-1.5 p-1 pl-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -293,6 +310,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                         </span>
                       </Link>
                     )}
+
+                    <Link
+                      href={`/creators/${currentUser.id}`}
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
+                    >
+                      Profil Saya
+                    </Link>
 
                     <Link
                       href="/profile"

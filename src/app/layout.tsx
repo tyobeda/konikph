@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteDesc = settings?.siteDescription || "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.";
   
   // Custom uploaded OG Image -> fallback to default
-  const rawOgUrl = settings?.ogImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop';
+  const rawOgUrl = settings?.ogImageUrl || '/img/877859417715829.jpg';
   const ogImageUrl = rawOgUrl.startsWith('/') ? `${baseUrl}${rawOgUrl}` : rawOgUrl;
 
   return {
@@ -46,14 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: siteDesc,
       url: baseUrl,
       siteName: 'PKSart',
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: siteTitle,
-        },
-      ],
+      images: [ogImageUrl],
       locale: 'id_ID',
       type: 'website',
     },

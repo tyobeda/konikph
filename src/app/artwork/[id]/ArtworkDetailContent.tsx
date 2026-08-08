@@ -19,6 +19,8 @@ import {
   MoreVertical,
   Flag,
   Edit,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -41,6 +43,8 @@ export default function ArtworkDetailContent() {
   const [likesCount, setLikesCount] = useState(artwork?.likesCount || 0);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [showToast, setShowToast] = useState('');
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -70,8 +74,11 @@ export default function ArtworkDetailContent() {
   useEffect(() => {
     if (artwork) {
       setLikesCount(artwork.likesCount || 0);
+      if (currentUser && artwork.likedUserIds) {
+        setIsLiked(artwork.likedUserIds.includes(currentUser.id));
+      }
     }
-  }, [artwork?.likesCount]);
+  }, [artwork?.likesCount, artwork?.likedUserIds, currentUser]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -191,13 +198,9 @@ export default function ArtworkDetailContent() {
   };
 
   const handleLikeToggle = () => {
+    if (!artwork) return;
     toggleLikeArtwork(artwork.id);
-    if (isLiked) {
-      setLikesCount((prev) => prev - 1);
-      setIsLiked(false);
-    } else {
-      setLikesCount((prev) => prev + 1);
-      setIsLiked(true);
+    if (!isLiked) {
       triggerToast('Disukai!');
     }
   };
@@ -279,11 +282,8 @@ export default function ArtworkDetailContent() {
     e.preventDefault();
     if (!artwork) return;
 
-    const parsedTags = editTagsInput
-      .split(/[\s,]+/)
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0)
-      .map((t) => (t.startsWith('#') ? t : `#${t}`));
+    const hashtagsFromDesc = (editDescInput.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
+    const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
     await updateArtwork(artwork.id, {
       title: editTitleInput,
@@ -302,12 +302,21 @@ export default function ArtworkDetailContent() {
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
       {/* 🌟 Premium Top-Right Toast Alert */}
       {showToast && (
-        <div className="fixed top-20 right-6 z-[200] bg-white/95 backdrop-blur-md border border-emerald-200 text-gray-900 text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
-            <CheckCircle size={18} className="stroke-[2.5]" />
+        <div className={`fixed top-20 right-6 z-[200] bg-white/95 backdrop-blur-md border ${
+          showToast.toLowerCase().includes('disukai') ? 'border-rose-200' : 'border-emerald-200'
+        } text-gray-900 text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300`}>
+          <div className={`w-8 h-8 rounded-full ${
+            showToast.toLowerCase().includes('disukai')
+              ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
+              : 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+          } flex items-center justify-center shrink-0`}>
+            {showToast.toLowerCase().includes('disukai') ? (
+              <Heart size={18} className="fill-white stroke-white" />
+            ) : (
+              <CheckCircle size={18} className="stroke-[2.5]" />
+            )}
           </div>
           <div>
-            <p className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wider">Berhasil</p>
             <p className="text-gray-800 font-bold">{showToast}</p>
           </div>
         </div>
@@ -329,14 +338,16 @@ export default function ArtworkDetailContent() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-start">
-          <div className="lg:col-span-7 bg-[#111827] relative p-0 w-full flex items-center justify-center">
-            <img
-              src={artwork.imageUrl}
-              alt={artwork.title}
-              className="w-full h-auto block max-h-[75vh] object-contain"
-            />
-            <div className="absolute top-3.5 left-3.5 bg-black/60 backdrop-blur-md text-white text-[11px] font-black uppercase px-2.5 py-0.5 rounded-lg tracking-wider">
-              {artwork.category}
+          <div className="lg:col-span-7 relative p-2 sm:p-4 w-full flex items-center justify-center bg-gray-50/50">
+            <div className="relative max-w-full flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-white">
+              <img
+                src={artwork.imageUrl}
+                alt={artwork.title}
+                className="w-full h-auto max-h-[75vh] object-contain block rounded-2xl"
+              />
+              <div className="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider">
+                {artwork.category}
+              </div>
             </div>
           </div>
 
@@ -420,9 +431,21 @@ export default function ArtworkDetailContent() {
                   {artwork.title}
                 </h1>
                 {artwork.description && (
-                  <p className="text-xs text-gray-600 leading-relaxed font-normal bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    {artwork.description}
-                  </p>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-1">
+                    <p className="text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line">
+                      {!isDescExpanded && artwork.description.length > 100
+                        ? `${artwork.description.slice(0, 100)}...`
+                        : artwork.description}
+                    </p>
+                    {artwork.description.length > 100 && (
+                      <button
+                        onClick={() => setIsDescExpanded(!isDescExpanded)}
+                        className="text-xs font-bold text-[#F26522] hover:underline cursor-pointer inline-block mt-0.5"
+                      >
+                        {isDescExpanded ? 'Sembunyikan' : 'Lihat selengkapnya'}
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {/* Hashtags Section */}
@@ -513,6 +536,7 @@ export default function ArtworkDetailContent() {
                           <div className="mt-2 space-y-2">
                             <textarea
                               value={editContent}
+                              maxLength={1000}
                               onChange={(e) => setEditContent(e.target.value)}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -542,7 +566,26 @@ export default function ArtworkDetailContent() {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-gray-700 mt-1 leading-normal whitespace-pre-wrap break-words">{content}</p>
+                          <div className="mt-1">
+                            <p className="text-gray-700 leading-normal whitespace-pre-line break-words">
+                              {!expandedComments[comment.id] && content.length > 100
+                                ? `${content.slice(0, 100)}...`
+                                : content}
+                            </p>
+                            {content.length > 100 && (
+                              <button
+                                onClick={() =>
+                                  setExpandedComments((prev) => ({
+                                    ...prev,
+                                    [comment.id]: !prev[comment.id],
+                                  }))
+                                }
+                                className="text-[11px] font-bold text-[#F26522] hover:underline cursor-pointer inline-block mt-0.5"
+                              >
+                                {expandedComments[comment.id] ? 'Sembunyikan' : 'Baca selengkapnya'}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -559,21 +602,29 @@ export default function ArtworkDetailContent() {
               )}
             </div>
 
-            <div className="pt-3 border-t border-gray-100 space-y-3">
+            <div className="pt-3 border-t border-gray-100 space-y-1.5">
               <form onSubmit={handleAddComment} className="flex gap-2">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleAddComment(e as unknown as React.FormEvent);
-                    }
-                  }}
-                  placeholder="Tulis komentar..."
-                  className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all resize-none min-h-[36px] overflow-hidden"
-                  rows={2}
-                />
+                <div className="flex-1 min-w-0">
+                  <textarea
+                    value={newComment}
+                    maxLength={1000}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAddComment(e as unknown as React.FormEvent);
+                      }
+                    }}
+                    placeholder="Tulis komentar (maks 1000 karakter)..."
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all resize-none min-h-[36px] overflow-hidden"
+                    rows={2}
+                  />
+                  <div className="flex justify-end pr-1">
+                    <span className={`text-[10px] font-semibold ${newComment.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                      {newComment.length}/1000
+                    </span>
+                  </div>
+                </div>
                 <button
                   type="submit"
                   className="px-3.5 py-2 bg-[#F26522] text-white rounded-xl font-bold text-xs hover:bg-[#d85417] transition-all flex items-center gap-1 shrink-0"
@@ -617,21 +668,39 @@ export default function ArtworkDetailContent() {
                 </button>
               </div>
 
-              <button
-                onClick={handleDownloadTemplate}
-                className="w-full py-3 px-5 bg-[#F26522] hover:bg-[#d95416] active:scale-[0.99] text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <Download size={18} />
-                <span>
-                  {!artwork.format
-                    ? 'Unduh Gambar (JPG)'
-                    : artwork.downloadUrl && artwork.downloadUrl.toLowerCase().includes('canva.com')
-                    ? 'Buka di Canva'
-                    : artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== ''
-                    ? `Unduh File Master (${artwork.format})`
-                    : `Unduh Gambar (${artwork.format} Preview)`}
-                </span>
-              </button>
+              <div className="space-y-2">
+                {/* 1. Unduh Gambar Preview Button (Always available) */}
+                <button
+                  onClick={() => {
+                    triggerToast(`Mengunduh pratinjau gambar JPG/PNG...`);
+                    const link = document.createElement('a');
+                    link.href = artwork.imageUrl;
+                    link.download = `${artwork.title.replace(/\s+/g, '_')}_preview.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="w-full py-3 px-5 bg-gray-900 hover:bg-black active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                >
+                  <Download size={17} />
+                  <span>Unduh Gambar (JPG/PNG)</span>
+                </button>
+
+                {/* 2. Buka / Unduh File Master Button (If master url is present) */}
+                {artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== '' && (
+                  <button
+                    onClick={handleDownloadTemplate}
+                    className="w-full py-3 px-5 bg-[#F26522] hover:bg-[#d95416] active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    <ExternalLink size={17} />
+                    <span>
+                      {artwork.downloadUrl.toLowerCase().includes('canva.com')
+                        ? 'Buka Template Canva'
+                        : `Buka File Master (${artwork.format || 'PSD/AI'})`}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -662,6 +731,7 @@ export default function ArtworkDetailContent() {
         onClose={() => setIsShareModalOpen(false)} 
         url={shareUrl} 
         title={artwork.title} 
+        description={artwork.description || ''}
       />
 
       {/* Edit Artwork Modal for Owner / Super Admin */}
@@ -712,8 +782,9 @@ export default function ArtworkDetailContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Deskripsi Karya
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                  <span>Deskripsi Karya</span>
+                  <span className="text-[11px] font-normal text-[#F26522] lowercase">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
                 </label>
                 <textarea
                   rows={3}
@@ -773,19 +844,6 @@ export default function ArtworkDetailContent() {
                   <option value="AI">AI (Illustrator)</option>
                   <option value="CDR">CDR (CorelDraw)</option>
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Hashtags / Tag (Dipisah spasi atau koma)
-                </label>
-                <input
-                  type="text"
-                  value={editTagsInput}
-                  onChange={(e) => setEditTagsInput(e.target.value)}
-                  placeholder="Contoh: #PKS #PosterPKS #JawaBarat"
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                />
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">

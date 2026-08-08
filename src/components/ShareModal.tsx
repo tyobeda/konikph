@@ -8,9 +8,10 @@ interface ShareModalProps {
   onClose: () => void;
   url: string;
   title: string;
+  description?: string;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, title }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, title, description }) => {
   const [copied, setCopied] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -31,7 +32,15 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, ti
   };
 
   const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(`Lihat desain "${title}" di PKSart: ${url}`);
+    let captionText = `*${title}*\n\n`;
+    if (description && description.trim()) {
+      // Limit description snippet if needed so link stays prominent
+      const descSnippet = description.length > 500 ? `${description.slice(0, 500)}...` : description;
+      captionText += `${descSnippet}\n\n`;
+    }
+    captionText += `Lihat selengkapnya di PKSart:\n${url}`;
+
+    const text = encodeURIComponent(captionText);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 

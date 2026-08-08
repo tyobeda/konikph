@@ -26,6 +26,7 @@ export interface Artwork {
   format?: string | null;
   tags?: string[];
   likesCount: number;
+  likedUserIds?: string[];
   commentsCount: number;
   downloadsCount: number;
   stampsCount?: number;

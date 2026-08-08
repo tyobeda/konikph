@@ -24,8 +24,9 @@ export default function CreatorPublicProfilePage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { users, artworks } = useData();
+  const { users, artworks, currentUser } = useData();
   const [isMounted, setIsMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<'karya' | 'sukai'>('karya');
 
   useEffect(() => {
     setIsMounted(true);
@@ -94,9 +95,18 @@ export default function CreatorPublicProfilePage() {
       art.author?.name === creator.name
   );
 
+  // Filter artworks liked by this user
+  const likedArtworks = artworks.filter(
+    (art) => art.likedUserIds && art.likedUserIds.includes(creator.id)
+  );
+
+  const isOwnProfile = Boolean(currentUser && (currentUser.id === creator.id || currentUser.email === creator.email));
+
   // Calculate stats
   const totalDownloads = creatorArtworks.reduce((acc, curr) => acc + (curr.downloadsCount || 0), 0);
   const totalLikes = creatorArtworks.reduce((acc, curr) => acc + (curr.likesCount || 0), 0);
+
+  const displayedArtworks = activeTab === 'karya' ? creatorArtworks : likedArtworks;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px]">
@@ -187,26 +197,49 @@ export default function CreatorPublicProfilePage() {
           </div>
         </div>
 
-        {/* Gallery / Artworks Section */}
+        {/* Gallery / Artworks Tabs Section */}
         <div className="space-y-6">
-          <h2 className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
-            <Layers size={18} className="text-[#F26522]" />
-            <span>Koleksi Karya Desainer ({creatorArtworks.length})</span>
-          </h2>
+          <div className="flex items-center gap-2 border-b border-gray-200 pb-3 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('karya')}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'karya'
+                  ? 'bg-[#F26522] text-white shadow-sm shadow-orange-500/20'
+                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              <span>Koleksi Karya Desainer ({creatorArtworks.length})</span>
+            </button>
 
-          {creatorArtworks.length === 0 ? (
+            <button
+              onClick={() => setActiveTab('sukai')}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'sukai'
+                  ? 'bg-[#F26522] text-white shadow-sm shadow-orange-500/20'
+                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              <span>{isOwnProfile ? 'Yang Saya Sukai' : 'Disukai Desainer'} ({likedArtworks.length})</span>
+            </button>
+          </div>
+
+          {displayedArtworks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
               <div className="w-14 h-14 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
                 <ImageIcon size={26} />
               </div>
-              <h3 className="text-base font-bold text-gray-900">Belum Ada Karya</h3>
+              <h3 className="text-base font-bold text-gray-900">
+                {activeTab === 'karya' ? 'Belum Ada Karya' : 'Belum Ada Karya yang Disukai'}
+              </h3>
               <p className="text-xs text-gray-500 max-w-sm mt-1">
-                Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.
+                {activeTab === 'karya'
+                  ? 'Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.'
+                  : 'Belum ada karya yang ditandai sebagai favorit.'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {creatorArtworks.map((art) => (
+              {displayedArtworks.map((art) => (
                 <ArtworkCard key={art.id} artwork={art} />
               ))}
             </div>

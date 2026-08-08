@@ -114,6 +114,7 @@ export interface DataContextType {
     ctaSocialUrl?: string;
     adminWhatsapp?: string;
     autoApproveArtworks?: boolean;
+    forbiddenWords?: string;
     maintenanceConfig?: {
       globalEnabled: boolean;
       modules: {
@@ -536,15 +537,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
       setArtworks((prev) =>
         prev.map((a) => {
           if (a.id === id) {
-            return { ...a, likesCount: res.liked ? a.likesCount + 1 : Math.max(0, a.likesCount - 1) };
+            const currentLiked = a.likedUserIds || [];
+            const newLiked = res.liked
+              ? Array.from(new Set([...currentLiked, author.id]))
+              : currentLiked.filter((uid) => uid !== author.id);
+            return {
+              ...a,
+              likesCount: res.liked ? a.likesCount + 1 : Math.max(0, a.likesCount - 1),
+              likedUserIds: newLiked,
+            };
           }
           return a;
         })
-      );
-    } else {
-      // optimistic fallback (not recommended but works)
-      setArtworks((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, likesCount: a.likesCount + 1 } : a))
       );
     }
   };

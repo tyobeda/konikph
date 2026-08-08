@@ -94,7 +94,7 @@ export default function UploadPage() {
         imageUrl: previewUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800',
         downloadUrl: downloadUrl || '#',
         category,
-        region,
+        region: currentUser?.region || region || 'DPP PKS Official',
         format: fileFormat,
         tags: parsedTags,
         author: currentUser || SUPER_ADMIN_USER,
@@ -241,41 +241,22 @@ export default function UploadPage() {
                 />
               </div>
 
-              {/* Category & Region Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Kategori Karya
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
-                  >
-                    {ARTWORK_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Wilayah / Daerah DPW
-                  </label>
-                  <select
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
-                  >
-                    {REGIONS.filter((r) => r !== 'Semua Daerah').map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Category Selection */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Kategori Karya
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
+                >
+                  {ARTWORK_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Source Format */}
@@ -334,7 +315,7 @@ export default function UploadPage() {
                   <span className="text-[11px] font-normal text-gray-500">(Misal: Link Canva, Google Drive, dll.)</span>
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={downloadUrl}
                   onChange={(e) => setDownloadUrl(e.target.value)}
                   placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
@@ -350,11 +331,16 @@ export default function UploadPage() {
                 </label>
                 <textarea
                   rows={4}
+                  maxLength={1500}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Jelaskan mengenai tema desain, peruntukan publikasi, atau sertakan hashtag (contoh: #PKS #PosterPKS #DPWJabar)..."
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                 />
+                <div className="flex justify-end mt-1">
+                  <span className={`text-[11px] font-semibold ${description.length >= 1500 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                    {description.length}/1500 karakter
+                  </span>
+                </div>
               </div>
 
               {/* Submit Button */}

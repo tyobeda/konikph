@@ -5,12 +5,17 @@ import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
 import { requireAdminSession } from '@/lib/serverAuth';
 import { generateUniqueArtworkSlug, slugify } from '@/lib/slug';
+import { containsForbiddenWords } from '@/lib/moderation';
 
 export async function getArtworks() {
   noStore();
   try {
     const artworks = await prisma.artwork.findMany({
-      include: { author: true, comments: { include: { user: true }, orderBy: { createdAt: 'desc' } } },
+      include: {
+        author: true,
+        likes: { select: { userId: true } },
+        comments: { include: { user: true }, orderBy: { createdAt: 'desc' } },
+      },
       orderBy: [ { createdAt: 'desc' }, { id: 'asc' } ],
     });
 
@@ -28,6 +33,7 @@ export async function getArtworks() {
 
     const mapped = artworks.map(a => ({
       ...a,
+      likedUserIds: (a.likes || []).map((l: any) => l.userId),
       comments: a.comments.map((c: any) => ({ ...c, author: c.user }))
     }));
     return { success: true, data: mapped };
@@ -49,6 +55,7 @@ export async function getArtworkBySlugOrId(slugOrId: string) {
       },
       include: {
         author: true,
+        likes: { select: { userId: true } },
         comments: { include: { user: true }, orderBy: { createdAt: 'desc' } },
       },
     });
@@ -61,13 +68,15 @@ export async function getArtworkBySlugOrId(slugOrId: string) {
           data: { slug: generatedSlug },
           include: {
             author: true,
+            likes: { select: { userId: true } },
             comments: { include: { user: true }, orderBy: { createdAt: 'desc' } },
           },
         });
       }
       const mapped = {
         ...artwork,
-        comments: artwork.comments.map((c: any) => ({ ...c, author: c.user })),
+        likedUserIds: ((artwork as any).likes || []).map((l: any) => l.userId),
+        comments: (artwork.comments || []).map((c: any) => ({ ...c, author: c.user })),
       };
       return { success: true, data: mapped };
     }
@@ -81,6 +90,18 @@ export async function getArtworkBySlugOrId(slugOrId: string) {
 
 export async function addArtwork(data: any) {
   try {
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
+    if (settings?.forbiddenWords) {
+      const badTitle = containsForbiddenWords(data.title || '', settings.forbiddenWords);
+      if (badTitle) {
+        return { success: false, error: `Judul karya mengandung kata yang dilarang/tidak diizinkan ("${badTitle}")` };
+      }
+      const badDesc = containsForbiddenWords(data.description || '', settings.forbiddenWords);
+      if (badDesc) {
+        return { success: false, error: `Deskripsi karya mengandung kata yang dilarang/tidak diizinkan ("${badDesc}")` };
+      }
+    }
+
     let authorId = data.authorId || 'superadmin_1';
 
     // Ensure author exists in User table to satisfy FK constraint
@@ -132,6 +153,22 @@ export async function addArtwork(data: any) {
 
 export async function updateArtwork(id: string, data: any) {
   try {
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
+    if (settings?.forbiddenWords) {
+      if (data.title) {
+        const badTitle = containsForbiddenWords(data.title, settings.forbiddenWords);
+        if (badTitle) {
+          return { success: false, error: `Judul karya mengandung kata yang dilarang/tidak diizinkan ("${badTitle}")` };
+        }
+      }
+      if (data.description) {
+        const badDesc = containsForbiddenWords(data.description, settings.forbiddenWords);
+        if (badDesc) {
+          return { success: false, error: `Deskripsi karya mengandung kata yang dilarang/tidak diizinkan ("${badDesc}")` };
+        }
+      }
+    }
+
     const updateData: any = { ...data };
     if (data.title) {
       updateData.slug = await generateUniqueArtworkSlug(data.title, id);
@@ -225,6 +262,14 @@ export async function toggleLikeArtwork(artworkId: string, userId: string) {
 
 export async function addCommentToArtworkDB(artworkId: string, userId: string, content: string) {
   try {
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
+    if (settings?.forbiddenWords) {
+      const badWord = containsForbiddenWords(content, settings.forbiddenWords);
+      if (badWord) {
+        return { success: false, error: `Komentar mengandung kata yang dilarang ("${badWord}")` };
+      }
+    }
+
     const comment = await prisma.comment.create({
       data: { content, artworkId, userId },
       include: { user: true },
@@ -256,6 +301,14 @@ export async function addCommentToArtworkDB(artworkId: string, userId: string, c
 
 export async function editCommentDB(commentId: string, newContent: string) {
   try {
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
+    if (settings?.forbiddenWords) {
+      const badWord = containsForbiddenWords(newContent, settings.forbiddenWords);
+      if (badWord) {
+        return { success: false, error: `Komentar mengandung kata yang dilarang ("${badWord}")` };
+      }
+    }
+
     const comment = await prisma.comment.update({
       where: { id: commentId },
       data: { content: newContent, isEdited: true },

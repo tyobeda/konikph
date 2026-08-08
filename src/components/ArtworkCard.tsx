@@ -13,13 +13,61 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { currentUser, addArtworkReport, toggleLikeArtwork } = useData();
+  const { currentUser, addArtworkReport, toggleLikeArtwork, updateArtwork } = useData();
+  const userLiked = Boolean(
+    currentUser && artwork.likedUserIds && artwork.likedUserIds.includes(currentUser.id)
+  );
+
   const [likes, setLikes] = useState(artwork.likesCount);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(userLiked);
   const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTitleInput, setEditTitleInput] = useState(artwork.title);
+  const [editDescInput, setEditDescInput] = useState(artwork.description || '');
+  const [editCategoryInput, setEditCategoryInput] = useState(artwork.category);
+  const [editFormatInput, setEditFormatInput] = useState(artwork.format || 'Hanya gambar');
+  const [editDownloadUrlInput, setEditDownloadUrlInput] = useState(artwork.downloadUrl || '');
+
+  const handleOpenEditModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowDropdown(false);
+    setEditTitleInput(artwork.title);
+    setEditDescInput(artwork.description || '');
+    setEditCategoryInput(artwork.category);
+    setEditFormatInput(artwork.format || 'Hanya gambar');
+    setEditDownloadUrlInput(artwork.downloadUrl || '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveArtworkEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const hashtagsFromDesc = (editDescInput.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
+    const parsedTags = Array.from(new Set(hashtagsFromDesc));
+
+    updateArtwork(artwork.id, {
+      title: editTitleInput,
+      description: editDescInput,
+      category: editCategoryInput,
+      format: editFormatInput,
+      downloadUrl: editDownloadUrlInput,
+      tags: parsedTags,
+    });
+
+    setIsEditModalOpen(false);
+  };
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLikes(artwork.likesCount);
+    if (currentUser && artwork.likedUserIds) {
+      setIsLiked(artwork.likedUserIds.includes(currentUser.id));
+    }
+  }, [artwork.likesCount, artwork.likedUserIds, currentUser]);
 
   const isOwner = Boolean(
     currentUser &&
@@ -50,13 +98,6 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     e.preventDefault();
     e.stopPropagation();
     toggleLikeArtwork(artwork.id);
-    if (isLiked) {
-      setLikes((prev) => prev - 1);
-      setIsLiked(false);
-    } else {
-      setLikes((prev) => prev + 1);
-      setIsLiked(true);
-    }
   };
 
   const handleDownload = (e: React.MouseEvent) => {
@@ -191,13 +232,12 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
               </button>
               {isOwner ? (
-                <Link
-                  href={artworkPath}
-                  onClick={(e) => { e.stopPropagation(); setShowDropdown(false); }}
+                <button
+                  onClick={handleOpenEditModal}
                   className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center gap-2.5 text-blue-600 font-bold transition-colors"
                 >
                   <Edit size={15} /> <span className="text-xs">Edit Artwork</span>
-                </Link>
+                </button>
               ) : (
                 <button
                   onClick={(e) => { 
@@ -231,7 +271,135 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         onClose={() => setIsShareModalOpen(false)} 
         url={shareUrl} 
         title={artwork.title} 
+        description={artwork.description || ''}
       />
+
+      {/* Edit Artwork Modal */}
+      {isEditModalOpen && (
+        <div
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditModalOpen(false); }}
+          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default max-h-[90vh] overflow-y-auto"
+          >
+            <h3 className="text-xl font-extrabold text-gray-900 mb-5">
+              Edit Postingan Karya
+            </h3>
+
+            <form onSubmit={handleSaveArtworkEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Judul Karya
+                </label>
+                <input
+                  type="text"
+                  value={editTitleInput}
+                  onChange={(e) => setEditTitleInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                  <span>Deskripsi Karya</span>
+                  <span className="text-[11px] font-normal text-[#F26522] lowercase">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  maxLength={1500}
+                  value={editDescInput}
+                  onChange={(e) => setEditDescInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                />
+                <div className="flex justify-end mt-1">
+                  <span className={`text-[11px] font-semibold ${editDescInput.length >= 1500 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                    {editDescInput.length}/1500 karakter
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={editCategoryInput}
+                    onChange={(e) => setEditCategoryInput(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  >
+                    {[
+                      'Hikmah-Motivasi',
+                      'Logo',
+                      'Mereka Bicara PKS',
+                      'Kegiatan-Event PKS',
+                      'Pemilu-Pemilukada',
+                      'Tokoh PKS Bicara',
+                      'Freehand-Komik-Karikatur',
+                      'Kaligrafi-Kufi Design',
+                      'Infografis-InfoPKS',
+                      'Ucapan Selamat-Selebrasi-Duka Cita',
+                      'Ragam Indonesia',
+                      'Serba Serbi',
+                    ].map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Format File Master
+                  </label>
+                  <select
+                    value={editFormatInput}
+                    onChange={(e) => setEditFormatInput(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  >
+                    <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
+                    <option value="PSD">PSD (Photoshop)</option>
+                    <option value="AI">AI (Illustrator)</option>
+                    <option value="CDR">CDR (CorelDraw)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
+                  <span>Tautan File Master / Tautan Berbagi</span>
+                  <span className="text-[11px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editDownloadUrlInput}
+                  onChange={(e) => setEditDownloadUrlInput(e.target.value)}
+                  placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditModalOpen(false); }}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

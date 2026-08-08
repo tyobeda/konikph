@@ -46,6 +46,7 @@ export default function AdminSettingsPage() {
   const [logoFooterPreview, setLogoFooterPreview] = useState(siteSettings.logoFooterUrl || '');
   const [faviconPreview, setFaviconPreview] = useState(siteSettings.faviconUrl || '/favicon.ico');
   const [ogImagePreview, setOgImagePreview] = useState(siteSettings.ogImageUrl || '');
+  const [forbiddenWords, setForbiddenWords] = useState(siteSettings.forbiddenWords || 'judi, slot, gacor, bokep, porno, sara, rasis, penipu');
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
 
   // Maintenance Mode States
@@ -272,6 +273,7 @@ export default function AdminSettingsPage() {
         ogImageUrl: ogImagePreview,
         adminWhatsapp,
         autoApproveArtworks,
+        forbiddenWords,
       });
       setIsSaved(true);
       triggerToast('Pengaturan identitas situs berhasil disimpan permanen!');
@@ -759,6 +761,33 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
+              </div>
+
+              {/* Section Filter Moderation Kata yang Dilarang */}
+              <div className="pt-4 border-t border-gray-100">
+                <div className="bg-orange-50/60 rounded-2xl p-5 border border-orange-100 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert size={20} className="text-[#F26522]" />
+                    <h3 className="text-sm font-extrabold text-gray-900">
+                      Moderasi Kata Terlarang (Filter Otomatis Judul, Deskripsi & Komentar)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Masukkan daftar kata/frasa terlarang yang dipisahkan oleh tanda koma (<code>,</code>) atau baris baru. Sistem secara otomatis memblokir pembuatan judul karya, deskripsi, maupun komentar yang mengandung kata-kata di bawah ini.
+                  </p>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                      Daftar Kata Terlarang (Blacklist Words)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={forbiddenWords}
+                      onChange={(e) => setForbiddenWords(e.target.value)}
+                      placeholder="Contoh: judi, slot, gacor, bokep, porno, sara, rasis, penipu"
+                      className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-xs font-semibold focus:outline-none focus:border-[#F26522] transition-all"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end pt-2">

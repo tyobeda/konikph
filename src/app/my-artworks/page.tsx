@@ -18,6 +18,7 @@ import {
   FolderPlus,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { ArtworkCard } from '@/components/ArtworkCard';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { ARTWORK_CATEGORIES } from '@/lib/data';
@@ -34,7 +35,10 @@ export default function MyArtworksPage() {
   const [filterTab, setFilterTab] = useState<'all' | 'Disetujui' | 'Pending' | 'Ditolak' | 'Dihapus'>('all');
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [editFormat, setEditFormat] = useState('Hanya gambar');
+  const [editDownloadUrl, setEditDownloadUrl] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -52,14 +56,28 @@ export default function MyArtworksPage() {
   const handleOpenEdit = (art: Artwork) => {
     setEditingArtwork(art);
     setEditTitle(art.title);
+    setEditDescription(art.description || '');
     setEditCategory(art.category);
+    setEditFormat(art.format || 'Hanya gambar');
+    setEditDownloadUrl(art.downloadUrl || '');
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingArtwork) return;
 
-    updateArtwork(editingArtwork.id, { title: editTitle, category: editCategory });
+    // Auto extract hashtags from description field (words starting with #)
+    const hashtagsFromDesc = (editDescription.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
+    const parsedTags = Array.from(new Set(hashtagsFromDesc));
+
+    updateArtwork(editingArtwork.id, {
+      title: editTitle,
+      description: editDescription,
+      category: editCategory,
+      format: editFormat,
+      downloadUrl: editDownloadUrl,
+      tags: parsedTags,
+    });
     setEditingArtwork(null);
   };
 
@@ -144,110 +162,82 @@ export default function MyArtworksPage() {
           ))}
         </div>
 
-        {/* Artworks List Container */}
-        <div className="space-y-4">
-          {filteredItems.length > 0 ? (
-            filteredItems.map((artwork) => (
-              <div
-                key={artwork.id}
-                className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-gray-200"
-              >
-                {/* Left Thumbnail & Info */}
-                <div className="flex items-center gap-4">
-                  <img
-                    src={artwork.imageUrl}
-                    alt={artwork.title}
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-gray-200 shrink-0"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                        {artwork.category}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                          artwork.status === 'Disetujui'
-                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                            : artwork.status === 'Pending'
-                            ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                            : 'bg-red-50 text-red-600 border border-red-200'
-                        }`}
-                      >
-                        {artwork.status === 'Disetujui' && <CheckCircle2 size={12} />}
-                        {artwork.status === 'Pending' && <Clock size={12} />}
-                        {artwork.status === 'Ditolak' && <XCircle size={12} />}
-                        <span>{artwork.status}</span>
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-gray-900 mt-1">
-                      {artwork.title}
-                    </h3>
-
-                    <div className="flex items-center gap-4 text-xs text-gray-500 font-medium mt-1">
-                      <span className="flex items-center gap-1">
-                        <Download size={14} className="text-gray-400" />
-                        <span>{artwork.downloadsCount} Unduhan</span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Heart size={14} className="text-red-400" />
-                        <span>{artwork.likesCount} Sukai</span>
-                      </span>
-                    </div>
-                  </div>
+        {/* Artworks Feed Grid Container */}
+        {filteredItems.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredItems.map((artwork) => (
+              <div key={artwork.id} className="relative group">
+                {/* Status Badge Overlay (Bottom Left of Thumbnail) */}
+                <div className="absolute bottom-16 left-3 z-30 pointer-events-none">
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-md backdrop-blur-md ${
+                      artwork.status === 'Disetujui'
+                        ? 'bg-emerald-500/95 text-white'
+                        : artwork.status === 'Pending'
+                        ? 'bg-amber-500/95 text-white'
+                        : 'bg-red-500/95 text-white'
+                    }`}
+                  >
+                    {artwork.status === 'Disetujui' && <CheckCircle2 size={11} />}
+                    {artwork.status === 'Pending' && <Clock size={11} />}
+                    {artwork.status === 'Ditolak' && <XCircle size={11} />}
+                    <span>{artwork.status}</span>
+                  </span>
                 </div>
 
-                {/* Right Action Buttons */}
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                  <Link
-                    href={`/artwork/${artwork.id}`}
-                    className="p-2 text-gray-600 hover:text-[#F26522] hover:bg-orange-50 rounded-xl transition-colors"
-                    title="Lihat Halaman Postingan"
-                  >
-                    <Eye size={18} />
-                  </Link>
-
+                {/* Edit & Delete Quick Action Floating Overlay */}
+                <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => handleOpenEdit(artwork)}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                    title="Edit Postingan"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleOpenEdit(artwork);
+                    }}
+                    className="p-2 bg-white/90 hover:bg-white text-blue-600 rounded-full shadow-lg backdrop-blur-md transition-all active:scale-95"
+                    title="Edit Postingan Karya"
                   >
-                    <Edit3 size={18} />
+                    <Edit3 size={15} />
                   </button>
-
                   <button
-                    onClick={() => handleDelete(artwork.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                    title="Hapus Postingan"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDelete(artwork.id);
+                    }}
+                    className="p-2 bg-white/90 hover:bg-white text-red-600 rounded-full shadow-lg backdrop-blur-md transition-all active:scale-95"
+                    title="Hapus Postingan Karya"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={15} />
                   </button>
                 </div>
+
+                {/* Standard Feed Artwork Card */}
+                <ArtworkCard artwork={artwork} />
               </div>
-            ))
-          ) : (
-            <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
-              <FolderPlus size={48} className="mx-auto text-gray-300 mb-3 stroke-1" />
-              <h3 className="text-base font-bold text-gray-800">
-                {filterTab === 'Pending' ? 'Tidak ada karya yang pending' :
-                 filterTab === 'Ditolak' ? 'Tidak ada karya yang ditolak' :
-                 filterTab === 'Dihapus' ? 'Tidak ada karya yang dihapus' :
-                 'Belum Ada Karya'}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">
-                {filterTab === 'all' || filterTab === 'Disetujui' ? 'Unggah karya desain baru Anda untuk mulai membagikannya kepada kader PKS.' : 'Tidak ada data untuk kategori ini saat ini.'}
-              </p>
-              {(filterTab === 'all' || filterTab === 'Disetujui') && (
-                <Link
-                  href="/upload"
-                  className="inline-block mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-bold rounded-xl"
-                >
-                  Unggah Karya Sekarang
-                </Link>
-              )}
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+            <FolderPlus size={48} className="mx-auto text-gray-300 mb-3 stroke-1" />
+            <h3 className="text-base font-bold text-gray-800">
+              {filterTab === 'Pending' ? 'Tidak ada karya yang pending' :
+               filterTab === 'Ditolak' ? 'Tidak ada karya yang ditolak' :
+               filterTab === 'Dihapus' ? 'Tidak ada karya yang dihapus' :
+               'Belum Ada Karya'}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              {filterTab === 'all' || filterTab === 'Disetujui' ? 'Unggah karya desain baru Anda untuk mulai membagikannya kepada kader PKS.' : 'Tidak ada data untuk kategori ini saat ini.'}
+            </p>
+            {(filterTab === 'all' || filterTab === 'Disetujui') && (
+              <Link
+                href="/upload"
+                className="inline-block mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-bold rounded-xl shadow-md"
+              >
+                Unggah Karya Sekarang
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Edit Artwork Modal */}
         {editingArtwork && (
@@ -257,9 +247,9 @@ export default function MyArtworksPage() {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default"
+              className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
+              <h3 className="text-xl font-extrabold text-gray-900 mb-5">
                 Edit Postingan Karya
               </h3>
 
@@ -272,37 +262,88 @@ export default function MyArtworksPage() {
                     type="text"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Kategori
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                    <span>Deskripsi Karya</span>
+                    <span className="text-[11px] font-normal text-[#F26522] lowercase">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
                   </label>
-                  <select
-                    value={editCategory}
-                    onChange={(e) => setEditCategory(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522]"
-                  >
-                    {ARTWORK_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                  <textarea
+                    rows={3}
+                    maxLength={1500}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  />
+                  <div className="flex justify-end mt-1">
+                    <span className={`text-[11px] font-semibold ${editDescription.length >= 1500 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                      {editDescription.length}/1500 karakter
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Kategori
+                    </label>
+                    <select
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    >
+                      {ARTWORK_CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Format File Master
+                    </label>
+                    <select
+                      value={editFormat}
+                      onChange={(e) => setEditFormat(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    >
+                      <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
+                      <option value="PSD">PSD (Photoshop)</option>
+                      <option value="AI">AI (Illustrator)</option>
+                      <option value="CDR">CDR (CorelDraw)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
+                    <span>Tautan File Master / Tautan Berbagi</span>
+                    <span className="text-[11px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editDownloadUrl}
+                    onChange={(e) => setEditDownloadUrl(e.target.value)}
+                    placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-3">
                   <button
                     type="button"
                     onClick={() => setEditingArtwork(null)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
+                    className="px-5 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all"
                   >
                     Simpan Perubahan
                   </button>
