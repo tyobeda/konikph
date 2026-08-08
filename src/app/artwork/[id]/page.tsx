@@ -35,14 +35,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       description,
       url: `${baseUrl}/artwork/${artwork.slug || artwork.id}`,
       siteName: 'PKSart',
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: artwork.title,
-        },
-      ],
+      images: [imageUrl],
       locale: 'id_ID',
       type: 'article',
     },
