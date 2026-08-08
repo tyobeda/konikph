@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const navLinks = [
     { label: 'Beranda', href: '/', id: 'beranda' },
     { label: 'Eksplorasi', href: '/explore', id: 'explore' },
-    { label: 'Aset Desain', href: '/assets', id: 'assets' },
+    ...(currentUser ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
     { label: 'Desainer', href: '/creators', id: 'creators' },
   ];
 
