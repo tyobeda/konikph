@@ -183,7 +183,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     if (typeof window !== 'undefined') {
       const stored = getClientCookie('pksart_current_user');
-      if (stored) {
+      if (stored && stored !== 'null' && stored !== 'undefined') {
         try { return JSON.parse(stored); } catch (e) {}
       }
     }
@@ -301,7 +301,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
           if (data.authenticated && data.user) {
             setCurrentUser(data.user as User);
           } else {
-            // Clear any stale client cookie
+            setCurrentUser(null);
             deleteClientCookie('pksart_current_user');
           }
         })
