@@ -14,8 +14,18 @@ import {
   MapPin,
   CheckCircle,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { PksLogo } from '@/components/PksLogo';
 import { useData, DpwOffice } from '@/context/DataContext';
+
+const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-56 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-xs font-bold">
+      Memuat Peta Pemilih Pinpoint...
+    </div>
+  ),
+});
 
 export default function AdminDpwPage() {
   const { dpwList, addDpw, updateDpw, deleteDpw, users = [], artworks = [] } = useData();
@@ -30,6 +40,8 @@ export default function AdminDpwPage() {
     phone: '',
     email: '',
     address: '',
+    lat: -2.5489 as number | null,
+    lng: 118.0149 as number | null,
   });
 
   const handleToggleActive = (dpw: DpwOffice) => {
@@ -38,7 +50,7 @@ export default function AdminDpwPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus data wilayah DPW ini dari sistem?')) {
+    if (confirm('Apakah Anda yakin ingin menghapus data wilayah ini dari sistem?')) {
       deleteDpw(id);
     }
   };
@@ -63,11 +75,13 @@ export default function AdminDpwPage() {
       phone: dpw.phone,
       email: dpw.email,
       address: dpw.address,
+      lat: dpw.lat ?? -2.5489,
+      lng: dpw.lng ?? 118.0149,
     });
   };
 
   const handleExportReport = () => {
-    alert('Laporan Rekapitulasi DPW PKS (.csv) berhasil di-generate dan diunduh.');
+    alert('Laporan Rekapitulasi Wilayah PKS (.csv) berhasil di-generate dan diunduh.');
   };
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,10 +108,10 @@ export default function AdminDpwPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
             <Building className="text-[#F26522]" />
-            <span>Kelola Wilayah DPW PKS</span>
+            <span>Kelola Wilayah PKS</span>
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manajemen struktur pengurus wilayah DPW, koordinator daerah, serta rekapitulasi karya per provinsi.
+            Manajemen struktur pengurus wilayah, koordinator daerah, serta rekapitulasi karya per provinsi.
           </p>
         </div>
 
@@ -107,18 +121,18 @@ export default function AdminDpwPage() {
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-xl shadow-sm transition-all"
           >
             <Download size={16} />
-            <span>Ekspor Rekap DPW</span>
+            <span>Ekspor Rekap Wilayah</span>
           </button>
 
           <button
             onClick={() => {
-              setFormData({ name: '', code: '', coordinator: '', phone: '', email: '', address: '' });
+              setFormData({ name: '', code: '', coordinator: '', phone: '', email: '', address: '', lat: -2.5489, lng: 118.0149 });
               setIsAddModalOpen(true);
             }}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-bold rounded-xl shadow-sm transition-all"
           >
             <Plus size={18} />
-            <span>Tambah DPW Baru</span>
+            <span>Tambah Wilayah Baru</span>
           </button>
         </div>
       </div>
@@ -129,7 +143,7 @@ export default function AdminDpwPage() {
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-extrabold text-gray-900">
-              Daftar Wilayah DPW Terdaftar
+              Daftar Wilayah Terdaftar
             </h2>
             <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
               {filteredDpw.length} Wilayah
@@ -142,7 +156,7 @@ export default function AdminDpwPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari wilayah DPW atau koordinator..."
+              placeholder="Cari wilayah atau koordinator..."
               className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
             />
           </div>
@@ -153,7 +167,7 @@ export default function AdminDpwPage() {
           <table className="w-full text-left text-sm text-gray-600">
             <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
               <tr>
-                <th className="py-3.5 px-4">Kantor DPW</th>
+                <th className="py-3.5 px-4">Kantor Wilayah</th>
                 <th className="py-3.5 px-4">Koordinator & Kontak</th>
                 <th className="py-3.5 px-4">Sekretariat</th>
                 <th className="py-3.5 px-4">Statistik Karya</th>
@@ -185,28 +199,21 @@ export default function AdminDpwPage() {
                   return (
                     <tr key={dpw.id} className={`transition-colors ${dpw.isActive === false ? 'bg-gray-50/75 opacity-75' : 'hover:bg-gray-50/60'}`}>
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-xs shrink-0 border ${
-                            dpw.isActive === false ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-orange-50 text-[#F26522] border-orange-100'
-                          }`}>
-                            {dpw.code.split('-')[1] || 'DPW'}
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-900">{dpw.name}</p>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleActive(dpw)}
-                              className={`mt-0.5 text-xs font-bold inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
-                                dpw.isActive !== false
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                                  : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
-                              }`}
-                              title={dpw.isActive !== false ? 'Klik untuk menonaktifkan wilayah DPW ini' : 'Klik untuk mengaktifkan wilayah DPW ini'}
-                            >
-                              <div className={`w-2 h-2 rounded-full ${dpw.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                              <span>{dpw.isActive !== false ? 'DPW Aktif' : 'DPW Nonaktif'}</span>
-                            </button>
-                          </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{dpw.name}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleActive(dpw)}
+                            className={`mt-1 text-xs font-bold inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                              dpw.isActive !== false
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                            }`}
+                            title={dpw.isActive !== false ? 'Klik untuk menonaktifkan wilayah ini' : 'Klik untuk mengaktifkan wilayah ini'}
+                          >
+                            <div className={`w-2 h-2 rounded-full ${dpw.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                            <span>{dpw.isActive !== false ? 'Wilayah Aktif' : 'Wilayah Nonaktif'}</span>
+                          </button>
                         </div>
                       </td>
 
@@ -339,24 +346,54 @@ export default function AdminDpwPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 cursor-default"
+            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default max-h-[90vh] overflow-y-auto"
           >
-            <h3 className="text-xl font-extrabold text-gray-900 mb-6">
-              {editingDpw ? 'Edit Wilayah / Chapter' : 'Tambah Wilayah / Chapter Baru'}
-            </h3>
-
             <form onSubmit={handleSaveDpw} className="space-y-4">
+              <div className="flex items-center justify-between gap-4 mb-2 pb-3 border-b border-gray-100">
+                <h3 className="text-xl font-extrabold text-gray-900 truncate">
+                  {editingDpw ? 'Edit Wilayah' : 'Tambah Wilayah Baru'}
+                </h3>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddModalOpen(false);
+                      setEditingDpw(null);
+                    }}
+                    className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all"
+                  >
+                    Simpan
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5">
-                  NAMA WILAYAH / CHAPTER
+                  NAMA WILAYAH
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Contoh: Sumatera Barat"
+                  placeholder="Contoh: Sumatra Barat"
                   className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
+                />
+              </div>
+
+              {/* Interactive Location Picker Map */}
+              <div className="pt-1">
+                <LocationPickerMap
+                  initialLat={formData.lat}
+                  initialLng={formData.lng}
+                  onLocationSelect={(lat, lng) => setFormData((prev) => ({ ...prev, lat, lng }))}
                 />
               </div>
 
@@ -386,25 +423,6 @@ export default function AdminDpwPage() {
                   className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
                 />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setEditingDpw(null);
-                  }}
-                  className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all"
-                >
-                  Simpan
-                </button>
               </div>
             </form>
           </div>

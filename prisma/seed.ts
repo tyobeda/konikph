@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -15,13 +16,20 @@ async function main() {
   await prisma.dpwOffice.deleteMany();
   await prisma.brandKit.deleteMany();
 
-  console.log('Seeding DPW...');
+  console.log('Seeding Wilayah...');
   const dpws = [
-    { name: 'DPW PKS Jawa Barat', code: 'JBR', coordinator: 'Ahmad S.', email: 'jabar@pks.art', address: 'Jl. Soekarno Hatta No. 538, Bandung', phone: '022-1234567' },
-    { name: 'DPW PKS DKI Jakarta', code: 'DKI', coordinator: 'Budi H.', email: 'dki@pks.art', address: 'Jl. Letjen Suprapto No. 17, Jakarta Pusat', phone: '021-9876543' },
-    { name: 'DPW PKS Banten', code: 'BTN', coordinator: 'Cahya M.', email: 'banten@pks.art', address: 'Jl. Raya Serang Km. 4, Serang', phone: '0254-123123' },
-    { name: 'DPW PKS Jawa Tengah', code: 'JTG', coordinator: 'Dedi K.', email: 'jateng@pks.art', address: 'Jl. Kelud Raya No. 46, Semarang', phone: '024-555666' },
-    { name: 'DPW PKS Jawa Timur', code: 'JTM', coordinator: 'Eko P.', email: 'jatim@pks.art', address: 'Jl. Gayungsari Barat X No. 33, Surabaya', phone: '031-888999' }
+    { name: 'PKS Jawa Barat', code: 'JBR', coordinator: 'Ahmad S.', email: 'jabar@pks.art', address: 'Jl. Soekarno Hatta No. 538, Bandung', phone: '022-1234567' },
+    { name: 'PKS DKI Jakarta', code: 'DKI', coordinator: 'Budi H.', email: 'dki@pks.art', address: 'Jl. Letjen Suprapto No. 17, Jakarta Pusat', phone: '021-9876543' },
+    { name: 'PKS Banten', code: 'BTN', coordinator: 'Cahya M.', email: 'banten@pks.art', address: 'Jl. Raya Serang Km. 4, Serang', phone: '0254-123123' },
+    { name: 'PKS Jawa Tengah', code: 'JTG', coordinator: 'Dedi K.', email: 'jateng@pks.art', address: 'Jl. Kelud Raya No. 46, Semarang', phone: '024-555666' },
+    { name: 'PKS Jawa Timur', code: 'JTM', coordinator: 'Eko P.', email: 'jatim@pks.art', address: 'Jl. Gayungsari Barat X No. 33, Surabaya', phone: '031-888999' },
+    { name: 'PKS Sumatra Utara', code: 'SUMUT', coordinator: 'Faris M.', email: 'sumut@pks.art', address: 'Jl. Gajah Mada No. 12, Medan', phone: '061-444555' },
+    { name: 'PKS Sumatra Barat', code: 'SUMBAR', coordinator: 'Hendra A.', email: 'sumbar@pks.art', address: 'Jl. Rasuna Said No. 88, Padang', phone: '0751-222333' },
+    { name: 'PKS Sulawesi Selatan', code: 'SULSEL', coordinator: 'Irfan T.', email: 'sulsel@pks.art', address: 'Jl. Urip Sumoharjo No. 45, Makassar', phone: '0411-777888' },
+    { name: 'PKS Bali', code: 'BALI', coordinator: 'I Made W.', email: 'bali@pks.art', address: 'Jl. Nangka No. 10, Denpasar', phone: '0361-111222' },
+    { name: 'PKS Kalimantan Timur', code: 'KALTIM', coordinator: 'Joko R.', email: 'kaltim@pks.art', address: 'Jl. M. Yamin No. 20, Samarinda', phone: '0541-333444' },
+    { name: 'PKS DI Yogyakarta', code: 'DIY', coordinator: 'Kusworo N.', email: 'diy@pks.art', address: 'Jl. Ringroad Utara, Sleman', phone: '0274-999000' },
+    { name: 'PKS Papua', code: 'PAPUA', coordinator: 'Lukas P.', email: 'papua@pks.art', address: 'Jl. Raya Abepura, Jayapura', phone: '0967-555444' },
   ];
 
   for (const dpw of dpws) {
@@ -35,11 +43,18 @@ async function main() {
 
   console.log('Seeding Users...');
   const usersData = [
-    { name: 'Ahmad Jauhari', email: 'ahmad@pks.art', region: 'DPW PKS Jawa Barat' },
-    { name: 'Siti Aminah', email: 'siti@pks.art', region: 'DPW PKS DKI Jakarta' },
-    { name: 'Budi Santoso', email: 'budi@pks.art', region: 'DPW PKS Jawa Tengah' },
-    { name: 'Rina Wahyuni', email: 'rina@pks.art', region: 'DPW PKS Jawa Timur' },
-    { name: 'Agus Pratama', email: 'agus@pks.art', region: 'DPW PKS Banten' }
+    { name: 'Ahmad Jauhari', email: 'ahmad@pks.art', region: 'Jawa Barat' },
+    { name: 'Siti Aminah', email: 'siti@pks.art', region: 'DKI Jakarta' },
+    { name: 'Budi Santoso', email: 'budi@pks.art', region: 'Jawa Tengah' },
+    { name: 'Rina Wahyuni', email: 'rina@pks.art', region: 'Jawa Timur' },
+    { name: 'Agus Pratama', email: 'agus@pks.art', region: 'Banten' },
+    { name: 'Faris Ramadhan', email: 'faris@pks.art', region: 'Sumatra Utara' },
+    { name: 'Hendra Chaniago', email: 'hendra@pks.art', region: 'Sumatra Barat' },
+    { name: 'Irfan Makassar', email: 'irfan@pks.art', region: 'Sulawesi Selatan' },
+    { name: 'Wayan Bali', email: 'wayan@pks.art', region: 'Bali' },
+    { name: 'Joko Samarinda', email: 'joko@pks.art', region: 'Kalimantan Timur' },
+    { name: 'Kusworo Jogja', email: 'kusworo@pks.art', region: 'DI Yogyakarta' },
+    { name: 'Lukas Jayapura', email: 'lukas@pks.art', region: 'Papua' },
   ];
 
   const createdUsers = [];
@@ -51,6 +66,7 @@ async function main() {
       name: 'Super Admin PKSart',
       email: 'admin@pks.art',
       phone: '081199887766',
+      password: bcrypt.hashSync('admin', 10),
       address: 'DPP PKS Official, Jakarta Selatan',
       region: 'DPP PKS Official',
       role: 'Super Admin',

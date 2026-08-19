@@ -15,6 +15,7 @@ model User {
   name          String
   email         String         @unique
   phone         String // Nomor WhatsApp (Wajib)
+  password      String? // Password hashed / plain for admin security
   address       String // Alamat Lengkap (Wajib)
   avatar        String?
   region        String // e.g. "Jawa Barat", "DIY", "Sumut"
@@ -27,6 +28,7 @@ model User {
   notifications Notification[]
   twibbonFrames TwibbonFrame[]
   twibbonFavorites TwibbonFavorite[]
+  twibbonUsages UserTwibbonUsage[]
 }
 
 model Artwork {
@@ -112,7 +114,19 @@ model TwibbonFrame {
   authorId   String
   author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   favorites  TwibbonFavorite[]
+  usages     UserTwibbonUsage[]
   createdAt  DateTime @default(now())
+}
+
+model UserTwibbonUsage {
+  id            String       @id @default(uuid())
+  userId        String?
+  user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  twibbonId     String
+  twibbon       TwibbonFrame @relation(fields: [twibbonId], references: [id], onDelete: Cascade)
+  resultImageUrl String?
+  ipAddress     String?
+  createdAt     DateTime     @default(now())
 }
 
 model DpwOffice {
@@ -123,6 +137,8 @@ model DpwOffice {
   phone          String
   email          String
   address        String
+  lat            Float?
+  lng            Float?
   activeCreators Int      @default(0)
   totalArtworks  Int      @default(0)
   isActive       Boolean  @default(true)
@@ -176,6 +192,7 @@ model SiteSettings {
   adminWhatsapp   String?  @default("6281199887766")
   maintenanceConfig String? // JSON string storing maintenance mode toggles and custom message
   autoApproveArtworks Boolean @default(true) // Whether uploaded artworks are automatically approved or require moderation
+  allowCommentLinks   Boolean @default(true) // Whether links/urls are allowed in user comments
   forbiddenWords  String?  // Comma-separated list or newline-separated list of prohibited words for auto moderation
   updatedAt       DateTime @updatedAt
 }

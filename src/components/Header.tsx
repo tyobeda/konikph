@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { PksLogo } from './PksLogo';
 import { Search, ChevronDown, Bell } from 'lucide-react';
 import { useData } from '@/context/DataContext';
+import { getUserSlug } from '@/lib/slug';
 
 interface HeaderProps {
   onSearchChange?: (query: string) => void;
@@ -259,38 +260,48 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             )}
 
             {/* Notification Icon */}
-            {isMounted && currentUser && (
+            {currentUser && (
               <Link href="/notifikasi" className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
                 {unreadNotificationCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />}
               </Link>
             )}
             
-            {isMounted && currentUser ? (
-              <div suppressHydrationWarning ref={profileDropdownRef} className="relative">
-                <button
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-1.5 p-1 pl-1.5 rounded-full hover:bg-gray-100 transition-colors"
-                  aria-label="User Profile"
-                >
-                  {!isMounted ? (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse shrink-0" />
-                  ) : currentUser.avatar ? (
-                    <img
-                      src={currentUser.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
-                      alt={currentUser.name}
-                      className="w-8 h-8 rounded-full object-cover ring-2 ring-[#F26522]"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs shadow-inner">
-                      {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
-                    </div>
-                  )}
-                  <ChevronDown size={16} className="text-gray-500" />
-                </button>
+            {currentUser ? (
+              <div suppressHydrationWarning ref={profileDropdownRef} className="relative flex items-center">
+                <div className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                  {/* Clicking Avatar redirects directly to user profile */}
+                  <Link
+                    href={`/creators/${getUserSlug(currentUser)}`}
+                    className="block group shrink-0"
+                    title="Lihat Profil Saya"
+                  >
+                    {currentUser.avatar ? (
+                      <img
+                        src={currentUser.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
+                        alt={currentUser.name}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-[#F26522] group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs shadow-inner group-hover:scale-105 transition-transform">
+                        {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                    )}
+                  </Link>
+
+                  {/* Dropdown toggle arrow */}
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="p-1 text-gray-500 hover:text-gray-900 transition-colors focus:outline-none"
+                    aria-label="Toggle profile menu"
+                    title="Menu Akun"
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                </div>
 
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 text-sm animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 text-sm animate-in fade-in slide-in-from-top-2">
                     <div className="px-4 py-2.5 border-b border-gray-100">
                       <p suppressHydrationWarning className="font-bold text-gray-900 truncate">{currentUser.name}</p>
                       <p suppressHydrationWarning className="text-xs text-gray-500 truncate">{currentUser.email}</p>
@@ -310,7 +321,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     )}
 
                     <Link
-                      href={`/creators/${currentUser.id}`}
+                      href={`/creators/${getUserSlug(currentUser)}`}
                       onClick={() => setIsProfileDropdownOpen(false)}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
                     >

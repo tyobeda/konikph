@@ -20,3 +20,10 @@ export function containsForbiddenWords(text: string, forbiddenWordsListStr?: str
 
   return null;
 }
+
+export function containsLink(text: string): boolean {
+  if (!text) return false;
+  // Match http://, https://, www., or domain pattern (xxx.xxx / xxx.com / xxx.id, etc.)
+  const linkRegex = /(https?:\/\/|www\.|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/|\b))/i;
+  return linkRegex.test(text);
+}

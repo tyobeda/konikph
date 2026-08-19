@@ -105,7 +105,7 @@ export default function PendingApprovalPage() {
               <span className="font-bold text-gray-900 truncate max-w-[200px]">{currentUser.email}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-500 font-semibold">Wilayah / DPW:</span>
+              <span className="text-gray-500 font-semibold">Wilayah:</span>
               <span className="font-bold text-[#F26522]">{currentUser.region || 'PKS Official'}</span>
             </div>
           </div>

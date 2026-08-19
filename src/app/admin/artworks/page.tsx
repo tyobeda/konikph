@@ -21,6 +21,8 @@ import {
   Filter,
   Flag,
   AlertTriangle,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
@@ -37,7 +39,8 @@ export default function AdminArtworksPage() {
 
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('');
-  const [editRegion, setEditRegion] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
 
   const pendingArtworksCount = artworks.filter((a) => (a as any).status === 'Pending').length;
   const pendingReportsCount = artworkReports.filter((r) => r.status === 'Pending').length;
@@ -64,14 +67,33 @@ export default function AdminArtworksPage() {
     setEditingArtwork(art);
     setEditTitle(art.title);
     setEditCategory(art.category);
-    setEditRegion(art.region);
+
+    const createdDateObj = new Date(art.createdAt || Date.now());
+    const yyyy = createdDateObj.getFullYear();
+    const mm = String(createdDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(createdDateObj.getDate()).padStart(2, '0');
+    const hh = String(createdDateObj.getHours()).padStart(2, '0');
+    const min = String(createdDateObj.getMinutes()).padStart(2, '0');
+    setEditDate(`${yyyy}-${mm}-${dd}`);
+    setEditTime(`${hh}:${min}`);
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingArtwork) return;
 
-    updateArtwork(editingArtwork.id, { title: editTitle, category: editCategory, region: editRegion });
+    let updatedCreatedAt: string | undefined = undefined;
+    if (editDate && editTime) {
+      updatedCreatedAt = new Date(`${editDate}T${editTime}`).toISOString();
+    } else if (editDate) {
+      updatedCreatedAt = new Date(editDate).toISOString();
+    }
+
+    updateArtwork(editingArtwork.id, {
+      title: editTitle,
+      category: editCategory,
+      ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
+    });
     setEditingArtwork(null);
   };
 
@@ -255,10 +277,9 @@ export default function AdminArtworksPage() {
                   </tr>
                 ) : (
                   <tr>
-                    <th className="py-3.5 px-4">Artwork & Title</th>
-                    <th className="py-3.5 px-4">Kategori & DPW</th>
-                    <th className="py-3.5 px-4">Uploader / Desainer</th>
-                    <th className="py-3.5 px-4">Format File</th>
+                    <th className="py-3.5 px-4">Artwork & Format</th>
+                    <th className="py-3.5 px-4">Kategori</th>
+                    <th className="py-3.5 px-4">Desainer & Wilayah</th>
                     <th className="py-3.5 px-4">Unduhan</th>
                     <th className="py-3.5 px-4">Status</th>
                     <th className="py-3.5 px-4 text-right">Tindakan Admin</th>
@@ -342,7 +363,7 @@ export default function AdminArtworksPage() {
                   paginatedArtworks.map((art) => (
                     <tr key={art.id} className="hover:bg-gray-50/60 transition-colors">
                     
-                    {/* Artwork & Title */}
+                    {/* Artwork, Title & Format */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <div className="relative">
@@ -361,18 +382,19 @@ export default function AdminArtworksPage() {
                           <p className="font-bold text-gray-900 max-w-xs truncate">
                             {art.title}
                           </p>
-                          <p className="text-xs text-gray-400 font-mono">ID: {art.id}</p>
+                          <span className="inline-block mt-0.5 text-[10px] font-mono font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md border border-gray-200">
+                            {art.format || 'PSD/AI'}
+                          </span>
                         </div>
                       </div>
                     </td>
 
-                    {/* Category & Region */}
+                    {/* Category */}
                     <td className="py-3.5 px-4">
-                      <span className="font-bold text-gray-800 block">{art.category}</span>
-                      <span className="text-xs text-gray-500">{art.region}</span>
+                      <span className="font-bold text-gray-800 text-xs">{art.category}</span>
                     </td>
 
-                    {/* Uploader */}
+                    {/* Desainer & Wilayah */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
                         <img
@@ -380,13 +402,11 @@ export default function AdminArtworksPage() {
                           alt={art.author.name}
                           className="w-7 h-7 rounded-full object-cover shrink-0"
                         />
-                        <span className="font-semibold text-gray-800">{art.author.name}</span>
+                        <div>
+                          <span className="font-bold text-gray-900 text-xs block">{art.author.name}</span>
+                          <span className="text-[11px] text-gray-500 font-medium">{(art.region || art.author?.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
+                        </div>
                       </div>
-                    </td>
-
-                    {/* Format File */}
-                    <td className="py-3.5 px-4 font-mono text-xs font-semibold text-gray-700">
-                      {art.format || 'PSD/AI'}
                     </td>
 
                     {/* Downloads */}
@@ -619,17 +639,39 @@ export default function AdminArtworksPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Wilayah / Daerah DPW
-                  </label>
-                  <input
-                    type="text"
-                    value={editRegion}
-                    onChange={(e) => setEditRegion(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
-                    required
-                  />
+                {/* Tanggal & Jam Karya (2 Kolom 1 Baris pada Mobile) */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Tanggal Karya
+                    </label>
+                    <div className="relative">
+                      <Calendar size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Jam Karya
+                    </label>
+                    <div className="relative">
+                      <Clock size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                      <input
+                        type="time"
+                        value={editTime}
+                        onChange={(e) => setEditTime(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">

@@ -14,6 +14,22 @@ export function slugify(text: string): string {
 }
 
 /**
+ * Generate a user slug from name or username
+ */
+export function getUserSlug(user: { id?: string; name?: string; email?: string }): string {
+  if (!user) return 'desainer';
+  if (user.id === 'superadmin_1' || user.id === 'admin' || user.id === 'super-admin') return 'super-admin';
+  const nameSlug = slugify(user.name || '');
+  if (nameSlug) return nameSlug;
+  if (user.email) {
+    const emailPrefix = user.email.split('@')[0];
+    const emailSlug = slugify(emailPrefix);
+    if (emailSlug) return emailSlug;
+  }
+  return user.id || 'desainer';
+}
+
+/**
  * Generate a unique artwork slug in the database
  */
 export async function generateUniqueArtworkSlug(title: string, currentArtworkId?: string): Promise<string> {

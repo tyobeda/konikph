@@ -191,6 +191,21 @@ export async function trackPageView(payload: {
       },
     });
 
+    // Keep database super lightweight: auto-prune table to maximum 100 rows
+    const totalCount = await (prisma as any).pageView.count();
+    if (totalCount > 100) {
+      const oldestRows = await (prisma as any).pageView.findMany({
+        orderBy: { createdAt: 'asc' },
+        take: totalCount - 100,
+        select: { id: true }
+      });
+      if (oldestRows.length > 0) {
+        await (prisma as any).pageView.deleteMany({
+          where: { id: { in: oldestRows.map((r: any) => r.id) } }
+        });
+      }
+    }
+
     return { success: true };
   } catch (error) {
     console.error('Failed to track page view:', error);
@@ -218,6 +233,7 @@ export async function getAnalyticsStats(timeRange: 'today' | '7d' | '30d' | 'all
       (prisma as any).pageView.findMany({
         where: whereClause,
         orderBy: { createdAt: 'desc' },
+        take: 100,
         select: {
           id: true,
           path: true,

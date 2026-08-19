@@ -311,8 +311,11 @@ export default function TwibbonGalleryPage() {
                   />
                 </button>
 
-                {/* Checkered pattern background for transparent twibbons */}
-                <div className="relative aspect-square w-full bg-gray-50 flex items-center justify-center p-6 border-b border-gray-50/80 overflow-hidden">
+                {/* Checkered pattern background for transparent twibbons (Clickable to use twibbon) */}
+                <Link 
+                  href={`/twibbon/${tw.slug || tw.id}`}
+                  className="relative aspect-square w-full bg-gray-50 flex items-center justify-center p-6 border-b border-gray-50/80 overflow-hidden cursor-pointer"
+                >
                   <div 
                     className="absolute inset-0 opacity-5 pointer-events-none" 
                     style={{
@@ -329,14 +332,16 @@ export default function TwibbonGalleryPage() {
                   <span className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     {tw.category}
                   </span>
-                </div>
+                </Link>
 
                 {/* Details */}
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-sm font-extrabold text-gray-900 group-hover:text-[#F26522] transition-colors leading-snug line-clamp-1">
-                      {tw.title}
-                    </h3>
+                    <Link href={`/twibbon/${tw.slug || tw.id}`}>
+                      <h3 className="text-sm font-extrabold text-gray-900 group-hover:text-[#F26522] transition-colors leading-snug line-clamp-1 cursor-pointer">
+                        {tw.title}
+                      </h3>
+                    </Link>
                     <p className="text-xs text-gray-400 mt-0.5 font-medium">
                       Wilayah: {tw.region}
                     </p>
@@ -465,13 +470,13 @@ export default function TwibbonGalleryPage() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                      Wilayah / DPW
+                      Wilayah
                     </label>
                     <input
                       type="text"
                       value={uploadRegion}
                       onChange={(e) => setUploadRegion(e.target.value)}
-                      placeholder="Contoh: DPW Jatim"
+                      placeholder="Contoh: Jawa Timur"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
                       required
                     />

@@ -25,6 +25,8 @@ export async function addDpw(data: any) {
         phone: data.phone,
         email: data.email,
         address: data.address,
+        lat: data.lat !== undefined && data.lat !== null ? Number(data.lat) : null,
+        lng: data.lng !== undefined && data.lng !== null ? Number(data.lng) : null,
         activeCreators: data.activeCreators || 0,
         totalArtworks: data.totalArtworks || 0,
         isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,

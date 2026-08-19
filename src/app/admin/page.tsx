@@ -27,7 +27,16 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import dynamic from 'next/dynamic';
+
+const IndonesiaMapSection = dynamic(() => import('@/components/IndonesiaMapSection'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[360px] sm:h-[400px] bg-slate-950 rounded-3xl flex items-center justify-center text-slate-500 font-bold text-xs">
+      Memuat Peta Persebaran Wilayah...
+    </div>
+  ),
+});
 import { useData } from '@/context/DataContext';
 
 const ITEMS_PER_PAGE = 8;
@@ -103,28 +112,32 @@ export default function AdminDashboardPage() {
       totalLikes: userLikes,
     };
   })
-  .sort((a, b) => b.rawDownloads - a.rawDownloads || b.totalArtworks - a.totalArtworks)
-  .slice(0, 4)
+  .sort((a, b) => b.rawDownloads - a.rawDownloads || b.totalArtworks - a.totalArtworks || b.totalLikes - a.totalLikes)
+  .slice(0, 10)
   .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
-  // Leaderboard Data: Most Liked
+  // Leaderboard Data: Most Liked Artworks
   const mostLikedArtworks = [...artworks]
-    .sort((a, b) => b.likesCount - a.likesCount)
-    .slice(0, 4);
+    .sort((a, b) => b.likesCount - a.likesCount || b.downloadsCount - a.downloadsCount)
+    .slice(0, 10);
 
-  // Leaderboard Data: Most Downloaded
+  // Leaderboard Data: Most Downloaded Artworks
   const mostDownloadedArtworks = [...artworks]
-    .sort((a, b) => b.downloadsCount - a.downloadsCount)
-    .slice(0, 4);
+    .sort((a, b) => b.downloadsCount - a.downloadsCount || b.likesCount - a.likesCount)
+    .slice(0, 10);
 
   // Leaderboard Data: Most Used Twibbon
-  const mostUsedTwibbons = twibbons.slice(0, 4).map((tw) => ({
-    id: tw.id,
-    title: tw.title,
-    region: tw.region,
-    usedCount: `${tw.usedCount.toLocaleString()}x`,
-    format: 'PNG Frame',
-  }));
+  const mostUsedTwibbons = [...twibbons]
+    .sort((a, b) => b.usedCount - a.usedCount)
+    .slice(0, 10)
+    .map((tw) => ({
+      id: tw.id,
+      title: tw.title,
+      imageUrl: tw.imageUrl,
+      region: tw.region,
+      usedCount: tw.usedCount,
+      format: 'PNG Frame',
+    }));
 
   const filteredArtworks = artworks.filter((art) => {
     const matchesSearch =
@@ -176,6 +189,11 @@ export default function AdminDashboardPage() {
       </div>
 
 
+        {/* 🗺️ MINIMALIST INDONESIA MAP WITH DYNAMIC DPW PINPOINTS */}
+        <div className="mb-8 w-full">
+          <IndonesiaMapSection />
+        </div>
+
         {/* Stats Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((item, idx) => {
@@ -201,7 +219,7 @@ export default function AdminDashboardPage() {
           })}
         </div>
 
-        {/* 🏆 LEADERBOARD SECTIONS (2x2 Grid) */}
+        {/* 🏆 LEADERBOARD SECTIONS (2x2 Grid, Top 10 Lists) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           
           {/* 1. Top Creator */}
@@ -210,40 +228,50 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
                 <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                   <Trophy size={18} className="text-amber-500" />
-                  <span>Top Designers (Desainer Paling Populer)</span>
+                  <span>10 Desainer Terpopuler</span>
                 </h3>
-                <Link href="/admin/creators" className="text-xs font-bold text-[#F26522] hover:underline">
+                <Link href="/admin/desainer" className="text-xs font-bold text-[#F26522] hover:underline">
                   Lihat Semua
                 </Link>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1 divide-y divide-gray-50">
                 {topCreators.map((creator) => (
                   <div
                     key={creator.user.id}
-                    className="flex items-center justify-between bg-gray-50/70 p-3 rounded-xl border border-gray-100"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-[#1E293B] text-white text-xs font-black flex items-center justify-center">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                        creator.rank === 1 ? 'bg-amber-400 text-white shadow-xs' :
+                        creator.rank === 2 ? 'bg-slate-300 text-gray-800' :
+                        creator.rank === 3 ? 'bg-amber-700 text-white' :
+                        'text-gray-400 font-semibold'
+                      }`}>
                         #{creator.rank}
                       </span>
                       <img
                         src={creator.user.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                         alt={creator.user.name}
-                        className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-gray-200"
+                        className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-gray-200"
                       />
-                      <div>
-                        <p className="text-sm font-bold text-gray-900 flex items-center gap-1">
-                          <span>{creator.user.name}</span>
-                          <BadgeCheck size={14} className="text-[#F26522]" />
+                      <div className="min-w-0 truncate">
+                        <p className="text-xs font-bold text-gray-900 flex items-center gap-1 truncate">
+                          <span className="truncate">{creator.user.name}</span>
+                          <BadgeCheck size={13} className="text-[#F26522] shrink-0" />
                         </p>
-                        <p className="text-xs text-gray-500 font-medium">{creator.user.region}</p>
+                        <p className="text-[10px] text-gray-500 font-medium truncate">{(creator.user.region || '').replace(/^DPW\s+/i, '')}</p>
                       </div>
                     </div>
 
-                    <div className="text-right text-xs">
-                      <p className="font-extrabold text-gray-900">{creator.totalDownloads} Unduhan</p>
-                      <p className="text-gray-400 font-medium">{creator.totalArtworks} Karya • ❤️ {creator.totalLikes}</p>
+                    <div className="text-right text-xs shrink-0 ml-2">
+                      <p className="font-semibold text-gray-900">{creator.totalDownloads} Unduhan</p>
+                      <p className="text-[10px] text-gray-400 font-medium flex items-center justify-end gap-1">
+                        <span>{creator.totalArtworks} Karya</span>
+                        <span>•</span>
+                        <Heart size={10} className="fill-red-500 text-red-500 shrink-0" />
+                        <span>{creator.totalLikes}</span>
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -254,39 +282,47 @@ export default function AdminDashboardPage() {
           {/* 2. Most Liked Artworks */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
                 <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                   <Flame size={18} className="text-red-500" />
-                  <span>Most Liked (Karya Paling Disukai)</span>
+                  <span>10 Karya terpopuler</span>
                 </h3>
                 <Link href="/admin/artworks" className="text-xs font-bold text-[#F26522] hover:underline">
                   Lihat Semua
                 </Link>
               </div>
 
-              <div className="space-y-3">
-                {mostLikedArtworks.map((art) => (
+              <div className="space-y-1 divide-y divide-gray-50">
+                {mostLikedArtworks.map((art, index) => (
                   <div
                     key={art.id}
-                    className="flex items-center justify-between bg-gray-50/70 p-2.5 rounded-xl border border-gray-100"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                        index === 0 ? 'bg-amber-400 text-white' :
+                        index === 1 ? 'bg-slate-300 text-gray-800' :
+                        index === 2 ? 'bg-amber-700 text-white' :
+                        'text-gray-400 font-semibold'
+                      }`}>
+                        #{index + 1}
+                      </span>
                       <img
                         src={art.imageUrl}
                         alt={art.title}
-                        className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0"
+                        className="w-7 h-7 rounded-md object-cover border border-gray-200 shrink-0"
                       />
-                      <div>
-                        <p className="text-xs font-bold text-gray-900 max-w-[180px] sm:max-w-xs truncate">
+                      <div className="min-w-0 truncate">
+                        <p className="text-xs font-bold text-gray-900 truncate">
                           {art.title}
                         </p>
-                        <p className="text-[11px] text-gray-500">{art.author.name} - {art.region}</p>
+                        <p className="text-[10px] text-gray-500 truncate">{art.author.name} - {(art.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</p>
                       </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full text-xs font-black">
-                      <Heart size={13} className="fill-red-500" />
-                      <span>{art.likesCount} Sukai</span>
+                    <div className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 shrink-0 ml-2">
+                      <Heart size={12} className="fill-red-500 shrink-0" />
+                      <span>{art.likesCount}</span>
                     </div>
                   </div>
                 ))}
@@ -297,39 +333,47 @@ export default function AdminDashboardPage() {
           {/* 3. Most Downloaded Artworks */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
                 <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                   <Download size={18} className="text-[#F26522]" />
-                  <span>Most Downloaded (Paling Banyak Diunduh)</span>
+                  <span>10 Karya paling banyak diunduh</span>
                 </h3>
-                <Link href="/admin/artworks" className="text-xs font-bold text-[#F26522] hover:underline">
+                <Link href="/admin/unduh" className="text-xs font-bold text-[#F26522] hover:underline">
                   Lihat Semua
                 </Link>
               </div>
 
-              <div className="space-y-3">
-                {mostDownloadedArtworks.map((art) => (
+              <div className="space-y-1 divide-y divide-gray-50">
+                {mostDownloadedArtworks.map((art, index) => (
                   <div
                     key={art.id}
-                    className="flex items-center justify-between bg-gray-50/70 p-2.5 rounded-xl border border-gray-100"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                        index === 0 ? 'bg-amber-400 text-white' :
+                        index === 1 ? 'bg-slate-300 text-gray-800' :
+                        index === 2 ? 'bg-amber-700 text-white' :
+                        'text-gray-400 font-semibold'
+                      }`}>
+                        #{index + 1}
+                      </span>
                       <img
                         src={art.imageUrl}
                         alt={art.title}
-                        className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0"
+                        className="w-7 h-7 rounded-md object-cover border border-gray-200 shrink-0"
                       />
-                      <div>
-                        <p className="text-xs font-bold text-gray-900 max-w-[180px] sm:max-w-xs truncate">
+                      <div className="min-w-0 truncate">
+                        <p className="text-xs font-bold text-gray-900 truncate">
                           {art.title}
                         </p>
-                        <p className="text-[11px] text-gray-500">Format: {art.format || 'PSD/AI'}</p>
+                        <p className="text-[10px] text-gray-500 truncate">Format: {art.format || 'PSD/AI'}</p>
                       </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-[#F26522] border border-orange-200 rounded-full text-xs font-black">
-                      <Download size={13} />
-                      <span>{art.downloadsCount}x Unduhan</span>
+                    <div className="inline-flex items-center gap-1 text-xs font-semibold text-[#F26522] shrink-0 ml-2">
+                      <Download size={12} className="shrink-0" />
+                      <span>{art.downloadsCount}</span>
                     </div>
                   </div>
                 ))}
@@ -340,28 +384,50 @@ export default function AdminDashboardPage() {
           {/* 4. Most Used Twibbon */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
                 <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                   <Sparkles size={18} className="text-purple-600" />
-                  <span>Most Used Twibbon (Bingkai Terfavorit)</span>
+                  <span>10 Twibbon paling banyak digunakan</span>
                 </h3>
-                <Link href="/twibbon" className="text-xs font-bold text-[#F26522] hover:underline">
-                  Coba Twibbon
+                <Link href="/admin/twibbon" className="text-xs font-bold text-[#F26522] hover:underline">
+                  Lihat Semua
                 </Link>
               </div>
 
-              <div className="space-y-3">
-                {mostUsedTwibbons.map((tw) => (
+              <div className="space-y-1 divide-y divide-gray-50">
+                {mostUsedTwibbons.map((tw, index) => (
                   <div
                     key={tw.id}
-                    className="flex items-center justify-between bg-gray-50/70 p-3 rounded-xl border border-gray-100"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <div>
-                      <p className="text-xs font-bold text-gray-900">{tw.title}</p>
-                      <p className="text-[11px] text-gray-500 font-medium">Wilayah: {tw.region} • {tw.format}</p>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                        index === 0 ? 'bg-amber-400 text-white' :
+                        index === 1 ? 'bg-slate-300 text-gray-800' :
+                        index === 2 ? 'bg-amber-700 text-white' :
+                        'text-gray-400 font-semibold'
+                      }`}>
+                        #{index + 1}
+                      </span>
+                      {tw.imageUrl ? (
+                        <img
+                          src={tw.imageUrl}
+                          alt={tw.title}
+                          className="w-7 h-7 rounded-md object-cover border border-purple-100 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
+                          <ImageIcon size={14} className="text-purple-500" />
+                        </div>
+                      )}
+                      <div className="min-w-0 truncate">
+                        <p className="text-xs font-bold text-gray-900 truncate">{tw.title}</p>
+                        <p className="text-[10px] text-gray-500 font-medium truncate">Wilayah: {(tw.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • {tw.format}</p>
+                      </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-black">
+                    <div className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 shrink-0 ml-2">
+                      <ImageIcon size={12} className="text-purple-600 shrink-0" />
                       <span>{tw.usedCount}</span>
                     </div>
                   </div>
@@ -369,229 +435,6 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
-
-        </div>
-        {/* Artworks Management Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          
-          <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-extrabold text-gray-900">
-                Manajemen Moderasi Karya
-              </h2>
-              <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
-                {filteredArtworks.length} Item
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
-                <Search size={16} className="absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari judul atau uploader..."
-                  className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                />
-              </div>
-
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
-              >
-                <option value="all">Semua Status</option>
-                <option value="Disetujui">Disetujui</option>
-                <option value="Pending">Pending</option>
-                <option value="Ditolak">Ditolak</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
-                <tr>
-                  <th className="py-3.5 px-4">Artwork / Title</th>
-                  <th className="py-3.5 px-4">Kategori & DPW</th>
-                  <th className="py-3.5 px-4">Uploader</th>
-                  <th className="py-3.5 px-4">Unduhan</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Aksi Moderasi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {paginatedArtworks.length > 0 ? (
-                  paginatedArtworks.map((artwork) => (
-                    <tr key={artwork.id} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={artwork.imageUrl}
-                            alt={artwork.title}
-                            className="w-11 h-11 rounded-lg object-cover border border-gray-200 shrink-0"
-                          />
-                          <div>
-                            <p className="font-bold text-gray-900 max-w-xs truncate">
-                              {artwork.title}
-                            </p>
-                            <p className="text-xs text-gray-400 font-mono">
-                              ID: {artwork.id}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-800">{artwork.category}</span>
-                          <span className="text-xs text-gray-500">{artwork.region}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={artwork.author.avatar}
-                            alt={artwork.author.name}
-                            className="w-6 h-6 rounded-full object-cover"
-                          />
-                          <span className="font-semibold text-gray-800">
-                            {artwork.author.name}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-4 font-semibold text-gray-700">
-                        {artwork.downloadsCount}x
-                      </td>
-
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                            (artwork as any).status === 'Disetujui'
-                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                              : (artwork as any).status === 'Pending'
-                              ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                              : 'bg-red-50 text-red-600 border border-red-200'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              (artwork as any).status === 'Disetujui'
-                                ? 'bg-emerald-500'
-                                : (artwork as any).status === 'Pending'
-                                ? 'bg-amber-500'
-                                : 'bg-red-500'
-                            }`}
-                          />
-                          {(artwork as any).status || 'Disetujui'}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Link
-                            href={`/artwork/${artwork.id}`}
-                            className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors"
-                            title="Pratinjau"
-                          >
-                            <Eye size={16} />
-                          </Link>
-
-                          {(artwork as any).status !== 'Disetujui' && (
-                            <button
-                              onClick={() => handleApprove(artwork.id)}
-                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                              title="Setujui Karya"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                          )}
-
-                          {(artwork as any).status !== 'Ditolak' && (
-                            <button
-                              onClick={() => handleReject(artwork.id)}
-                              className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                              title="Tolak Karya"
-                            >
-                              <XCircle size={16} />
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => handleDelete(artwork.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Hapus Permanent"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
-                      Tidak ada karya yang sesuai dengan kriteria pencarian / filter.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          {filteredArtworks.length > 0 && (
-            <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 font-medium bg-gray-50/50">
-              <div>
-                Menampilkan <span className="font-bold text-gray-800">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, filteredArtworks.length)}</span> dari <span className="font-bold text-gray-800">{filteredArtworks.length}</span> karya
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
-                  title="Halaman Sebelumnya"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-
-                <div className="flex items-center gap-1 px-1">
-                  {Array.from({ length: totalPages }).map((_, idx) => {
-                    const pageNum = idx + 1;
-                    return (
-                      <button
-                        key={pageNum}
-                        type="button"
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                          currentPage === pageNum
-                            ? 'bg-[#F26522] text-white shadow-sm'
-                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
-                  title="Halaman Selanjutnya"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
 
         </div>
     </>

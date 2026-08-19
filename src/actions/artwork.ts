@@ -5,7 +5,8 @@ import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
 import { requireAdminSession } from '@/lib/serverAuth';
 import { generateUniqueArtworkSlug, slugify } from '@/lib/slug';
-import { containsForbiddenWords } from '@/lib/moderation';
+import { containsForbiddenWords, containsLink } from '@/lib/moderation';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function getArtworks() {
   noStore();
@@ -91,18 +92,27 @@ export async function getArtworkBySlugOrId(slugOrId: string) {
 export async function addArtwork(data: any) {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
-    if (settings?.forbiddenWords) {
-      const badTitle = containsForbiddenWords(data.title || '', settings.forbiddenWords);
-      if (badTitle) {
-        return { success: false, error: `Judul karya mengandung kata yang dilarang/tidak diizinkan ("${badTitle}")` };
-      }
-      const badDesc = containsForbiddenWords(data.description || '', settings.forbiddenWords);
-      if (badDesc) {
-        return { success: false, error: `Deskripsi karya mengandung kata yang dilarang/tidak diizinkan ("${badDesc}")` };
-      }
+    const activeForbiddenWords = settings?.forbiddenWords || 'judi, slot, gacor, bokep, porno, sara, rasis, penipu';
+    const badTitle = containsForbiddenWords(data.title || '', activeForbiddenWords);
+    if (badTitle) {
+      return { success: false, error: `Judul karya mengandung kata yang dilarang/tidak diizinkan ("${badTitle}")` };
+    }
+    const badDesc = containsForbiddenWords(data.description || '', activeForbiddenWords);
+    if (badDesc) {
+      return { success: false, error: `Deskripsi karya mengandung kata yang dilarang/tidak diizinkan ("${badDesc}")` };
     }
 
     let authorId = data.authorId || 'superadmin_1';
+
+    // Anti-spam Rate Limiting: Max 10 artwork uploads per minute per user
+    const rateCheck = checkRateLimit(`upload:${authorId}`, 10, 60 * 1000);
+    if (!rateCheck.success) {
+      const secondsLeft = Math.ceil(rateCheck.resetInMs / 1000);
+      return {
+        success: false,
+        error: `Batas unggah tercapai (Maksimal 10 karya per menit). Silakan tunggu ${secondsLeft} detik lagi.`
+      };
+    }
 
     // Ensure author exists in User table to satisfy FK constraint
     let userExists = await prisma.user.findUnique({ where: { id: authorId } });
@@ -139,6 +149,7 @@ export async function addArtwork(data: any) {
         format: data.format || 'Hanya gambar',
         tags: Array.isArray(data.tags) ? data.tags : [],
         authorId: authorId,
+        ...(data.createdAt ? { createdAt: new Date(data.createdAt) } : {}),
       },
       include: { author: true }
     });
@@ -262,12 +273,27 @@ export async function toggleLikeArtwork(artworkId: string, userId: string) {
 
 export async function addCommentToArtworkDB(artworkId: string, userId: string, content: string) {
   try {
+    // Anti-spam Rate Limiting: Max 10 comments per minute per user
+    const rateCheck = checkRateLimit(`comment:${userId}`, 10, 60 * 1000);
+    if (!rateCheck.success) {
+      const secondsLeft = Math.ceil(rateCheck.resetInMs / 1000);
+      return {
+        success: false,
+        error: `Batas komentar tercapai (Maksimal 10 komentar per menit). Silakan tunggu ${secondsLeft} detik lagi.`
+      };
+    }
+
     const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
-    if (settings?.forbiddenWords) {
-      const badWord = containsForbiddenWords(content, settings.forbiddenWords);
-      if (badWord) {
-        return { success: false, error: `Komentar mengandung kata yang dilarang ("${badWord}")` };
-      }
+    
+    // Hyperlink / URL Check
+    if (settings && (settings as any).allowCommentLinks === false && containsLink(content)) {
+      return { success: false, error: 'Komentar mengandung tautan link/URL yang dilarang' };
+    }
+
+    const activeForbiddenWords = settings?.forbiddenWords || 'judi, slot, gacor, bokep, porno, sara, rasis, penipu';
+    const badWord = containsForbiddenWords(content, activeForbiddenWords);
+    if (badWord) {
+      return { success: false, error: `Komentar mengandung kata yang dilarang ("${badWord}")` };
     }
 
     const comment = await prisma.comment.create({
@@ -302,11 +328,13 @@ export async function addCommentToArtworkDB(artworkId: string, userId: string, c
 export async function editCommentDB(commentId: string, newContent: string) {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
-    if (settings?.forbiddenWords) {
-      const badWord = containsForbiddenWords(newContent, settings.forbiddenWords);
-      if (badWord) {
-        return { success: false, error: `Komentar mengandung kata yang dilarang ("${badWord}")` };
-      }
+    if (settings && (settings as any).allowCommentLinks === false && containsLink(newContent)) {
+      return { success: false, error: 'Komentar mengandung tautan link/URL yang dilarang' };
+    }
+    const activeForbiddenWords = settings?.forbiddenWords || 'judi, slot, gacor, bokep, porno, sara, rasis, penipu';
+    const badWord = containsForbiddenWords(newContent, activeForbiddenWords);
+    if (badWord) {
+      return { success: false, error: `Komentar mengandung kata yang dilarang ("${badWord}")` };
     }
 
     const comment = await prisma.comment.update({

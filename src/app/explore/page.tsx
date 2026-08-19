@@ -104,7 +104,7 @@ export default function ExplorePage() {
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-              Cari dan saring ribuan karya poster, spanduk, feeds media sosial, dan templat CDR/PSD dari seluruh DPW PKS se-Indonesia.
+              Cari dan saring ribuan karya poster, spanduk, feeds media sosial, dan templat CDR/PSD dari seluruh Wilayah PKS se-Indonesia.
             </p>
 
             {/* Big Search Bar */}
@@ -189,7 +189,7 @@ export default function ExplorePage() {
             {/* Region Dropdown */}
             <div>
               <label className="block text-[11px] font-extrabold text-gray-500 uppercase mb-1">
-                Wilayah DPW / Daerah
+                Wilayah
               </label>
               <select
                 value={selectedRegion}

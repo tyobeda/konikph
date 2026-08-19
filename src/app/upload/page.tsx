@@ -12,11 +12,32 @@ import {
   MapPin,
   Sparkles,
   Layers,
+  Calendar,
+  Clock,
+  HelpCircle,
 } from 'lucide-react';
 import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
+import { GdriveTutorialModal } from '@/components/GdriveTutorialModal';
 import { CATEGORIES, REGIONS, ARTWORK_CATEGORIES } from '@/lib/data';
 import { useData, SUPER_ADMIN_USER } from '@/context/DataContext';
+
+// Helper to get current date (YYYY-MM-DD)
+const getCurrentDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper to get current time (HH:mm)
+const getCurrentTimeString = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
 
 export default function UploadPage() {
   const router = useRouter();
@@ -37,15 +58,18 @@ export default function UploadPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Hikmah-Motivasi');
-  const [region, setRegion] = useState(REGIONS[1] || 'DPW Jawa Barat');
+  const [region, setRegion] = useState(REGIONS[1] || 'Wilayah Jawa Barat');
   const [fileFormat, setFileFormat] = useState('Hanya gambar');
   const [downloadUrl, setDownloadUrl] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [publishDate, setPublishDate] = useState(getCurrentDateString());
+  const [publishTime, setPublishTime] = useState(getCurrentTimeString());
   const [compressionInfo, setCompressionInfo] = useState<CompressionResult | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPendingModeration, setIsPendingModeration] = useState(false);
+  const [isGdriveTutorialOpen, setIsGdriveTutorialOpen] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,6 +96,8 @@ export default function UploadPage() {
     setDownloadUrl('');
     setPreviewUrl(null);
     setFileFormat('Hanya gambar');
+    setPublishDate(getCurrentDateString());
+    setPublishTime(getCurrentTimeString());
     setIsSuccess(false);
     setIsPendingModeration(false);
   };
@@ -87,6 +113,16 @@ export default function UploadPage() {
     const hashtagsFromDesc = (description.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
     const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
+    // Combine separate date and time values into ISO string
+    let combinedDateTime: Date;
+    if (publishDate && publishTime) {
+      combinedDateTime = new Date(`${publishDate}T${publishTime}`);
+    } else if (publishDate) {
+      combinedDateTime = new Date(publishDate);
+    } else {
+      combinedDateTime = new Date();
+    }
+
     setTimeout(() => {
       addArtwork({
         title,
@@ -99,6 +135,7 @@ export default function UploadPage() {
         tags: parsedTags,
         author: currentUser || SUPER_ADMIN_USER,
         status: status as any,
+        createdAt: combinedDateTime.toISOString(),
       });
 
       setIsSubmitting(false);
@@ -241,6 +278,43 @@ export default function UploadPage() {
                 />
               </div>
 
+              {/* Tanggal & Waktu Publis Karya (2 Kolom 1 Baris pada Mobile) */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {/* Tanggal Karya */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-gray-800 mb-1.5 sm:mb-2 truncate">
+                    <span>Tanggal Karya</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar size={16} className="absolute left-3 top-3.5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={publishDate}
+                      onChange={(e) => setPublishDate(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 sm:pl-10 pr-2 sm:pr-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-semibold cursor-pointer"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Jam Karya */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-gray-800 mb-1.5 sm:mb-2 truncate">
+                    <span>Jam Karya</span>
+                  </label>
+                  <div className="relative">
+                    <Clock size={16} className="absolute left-3 top-3.5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="time"
+                      value={publishTime}
+                      onChange={(e) => setPublishTime(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 sm:pl-10 pr-2 sm:pr-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-semibold cursor-pointer"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Category Selection */}
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -321,6 +395,23 @@ export default function UploadPage() {
                   placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-medium"
                 />
+
+                {/* Google Drive Link Tutorial Hint */}
+                <div className="mt-2 bg-blue-50/70 border border-blue-100 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="flex items-start gap-2 text-blue-900">
+                    <HelpCircle size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                    <p className="text-[11px] leading-relaxed">
+                      <strong className="font-bold">Cara Berbagi Google Drive:</strong> Upload file master ke Google Drive Anda &rarr; Ubah akses menjadi <span className="font-bold text-blue-700">"Siapa saja yang memiliki link" (Public)</span> &rarr; Salin dan tempel link-nya di sini.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsGdriveTutorialOpen(true)}
+                    className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition-colors text-center shadow-xs"
+                  >
+                    Lihat Panduan Lengkap
+                  </button>
+                </div>
               </div>
 
               {/* Description */}
@@ -355,6 +446,12 @@ export default function UploadPage() {
           )}
         </div>
       </main>
+
+      {/* Tutorial Modal */}
+      <GdriveTutorialModal
+        isOpen={isGdriveTutorialOpen}
+        onClose={() => setIsGdriveTutorialOpen(false)}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createSessionCookie } from '@/lib/serverAuth';
 import { checkRateLimit } from '@/lib/rateLimit';
+import bcrypt from 'bcryptjs';
 
 // Super Admin credentials stored server-side only (never sent to client)
 const ADMIN_EMAIL = 'admin@pks.art';
@@ -30,7 +31,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Super Admin path ────────────────────────────────────────────────────
-    if (cleanEmail === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    if (cleanEmail === ADMIN_EMAIL) {
+      if (password !== ADMIN_PASSWORD) {
+        return NextResponse.json({ success: false, message: 'Kata sandi Super Admin yang Anda masukkan salah.' }, { status: 401 });
+      }
+
       await createSessionCookie('superadmin_1', 'Super Admin', ADMIN_EMAIL);
       return NextResponse.json({
         success: true,
@@ -45,6 +50,7 @@ export async function POST(req: NextRequest) {
           phone: '',
           address: 'DPP PKS Official',
           region: 'DPP PKS Official',
+          status: 'Active',
         },
       });
     }
@@ -54,6 +60,30 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ success: false, message: 'Email tidak ditemukan.' }, { status: 401 });
+    }
+
+    // Password verification for regular users (bcrypt compare + legacy fallback auto-upgrade)
+    let isMatch = false;
+    const storedPassword = user.password || user.phone;
+
+    if (storedPassword && (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$'))) {
+      isMatch = await bcrypt.compare(password, storedPassword);
+    } else if (storedPassword && password === storedPassword) {
+      isMatch = true;
+      // Auto-upgrade legacy plain text password to bcrypt hash
+      try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { password: hashedPassword },
+        });
+      } catch (e) {
+        console.error('Failed to auto-upgrade password hash:', e);
+      }
+    }
+
+    if (!isMatch) {
+      return NextResponse.json({ success: false, message: 'Kata sandi yang Anda masukkan salah.' }, { status: 401 });
     }
 
     if (user.status === 'Pending' || user.status === 'Pending Approval') {

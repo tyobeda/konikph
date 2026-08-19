@@ -16,12 +16,14 @@ import {
   Clock,
   XCircle,
   FolderPlus,
+  Calendar,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { ArtworkCard } from '@/components/ArtworkCard';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { ARTWORK_CATEGORIES } from '@/lib/data';
+import { ConfirmUnsavedModal } from '@/components/ConfirmUnsavedModal';
 
 export default function MyArtworksPage() {
   const router = useRouter();
@@ -34,11 +36,14 @@ export default function MyArtworksPage() {
 
   const [filterTab, setFilterTab] = useState<'all' | 'Disetujui' | 'Pending' | 'Ditolak' | 'Dihapus'>('all');
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editFormat, setEditFormat] = useState('Hanya gambar');
   const [editDownloadUrl, setEditDownloadUrl] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -53,13 +58,73 @@ export default function MyArtworksPage() {
     }
   };
 
+  const [initialEditSnapshot, setInitialEditSnapshot] = useState<string>('');
+
   const handleOpenEdit = (art: Artwork) => {
     setEditingArtwork(art);
-    setEditTitle(art.title);
-    setEditDescription(art.description || '');
-    setEditCategory(art.category);
-    setEditFormat(art.format || 'Hanya gambar');
-    setEditDownloadUrl(art.downloadUrl || '');
+    const titleVal = art.title;
+    const descVal = art.description || '';
+    const catVal = art.category;
+    const formatVal = art.format || 'Hanya gambar';
+    const dlVal = art.downloadUrl || '';
+
+    // Parse date & time from art.createdAt
+    const createdDateObj = new Date(art.createdAt || Date.now());
+    const yyyy = createdDateObj.getFullYear();
+    const mm = String(createdDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(createdDateObj.getDate()).padStart(2, '0');
+    const hh = String(createdDateObj.getHours()).padStart(2, '0');
+    const min = String(createdDateObj.getMinutes()).padStart(2, '0');
+    const dateVal = `${yyyy}-${mm}-${dd}`;
+    const timeVal = `${hh}:${min}`;
+
+    setEditTitle(titleVal);
+    setEditDescription(descVal);
+    setEditCategory(catVal);
+    setEditFormat(formatVal);
+    setEditDownloadUrl(dlVal);
+    setEditDate(dateVal);
+    setEditTime(timeVal);
+
+    setInitialEditSnapshot(JSON.stringify({
+      title: titleVal,
+      desc: descVal,
+      cat: catVal,
+      fmt: formatVal,
+      dl: dlVal,
+      date: dateVal,
+      time: timeVal,
+    }));
+  };
+
+  const isFormDirty = () => {
+    const currentSnapshot = JSON.stringify({
+      title: editTitle,
+      desc: editDescription,
+      cat: editCategory,
+      fmt: editFormat,
+      dl: editDownloadUrl,
+      date: editDate,
+      time: editTime,
+    });
+    return currentSnapshot !== initialEditSnapshot;
+  };
+
+  const handleAttemptCloseModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (isFormDirty()) {
+      setShowUnsavedModal(true);
+      return;
+    }
+    setEditingArtwork(null);
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedModal(false);
+    setEditingArtwork(null);
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -70,13 +135,21 @@ export default function MyArtworksPage() {
     const hashtagsFromDesc = (editDescription.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
     const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
+    let updatedCreatedAt: string | undefined = undefined;
+    if (editDate && editTime) {
+      updatedCreatedAt = new Date(`${editDate}T${editTime}`).toISOString();
+    } else if (editDate) {
+      updatedCreatedAt = new Date(editDate).toISOString();
+    }
+
     updateArtwork(editingArtwork.id, {
       title: editTitle,
       description: editDescription,
       category: editCategory,
       format: editFormat,
-      downloadUrl: editDownloadUrl,
+      downloadUrl: editFormat === 'Hanya gambar' ? '' : editDownloadUrl,
       tags: parsedTags,
+      ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
     });
     setEditingArtwork(null);
   };
@@ -242,16 +315,26 @@ export default function MyArtworksPage() {
         {/* Edit Artwork Modal */}
         {editingArtwork && (
           <div
-            onClick={() => setEditingArtwork(null)}
+            onClick={handleAttemptCloseModal}
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
           >
             <div
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="text-xl font-extrabold text-gray-900 mb-5">
-                Edit Postingan Karya
-              </h3>
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                <h3 className="text-xl font-extrabold text-gray-900">
+                  Edit Postingan Karya
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleAttemptCloseModal}
+                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors font-bold text-base"
+                  title="Tutup Modal"
+                >
+                  ✕
+                </button>
+              </div>
 
               <form onSubmit={handleSaveEdit} className="space-y-4">
                 <div>
@@ -286,21 +369,55 @@ export default function MyArtworksPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  >
+                    {ARTWORK_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Tanggal & Jam Karya (2 Kolom 1 Baris pada Mobile) */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                      Kategori
+                      Tanggal Karya
                     </label>
-                    <select
-                      value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                    >
-                      {ARTWORK_CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <Calendar size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        required
+                      />
+                    </div>
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Jam Karya
+                    </label>
+                    <div className="relative">
+                      <Clock size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                      <input
+                        type="time"
+                        value={editTime}
+                        onChange={(e) => setEditTime(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
 
                   <div>
                     <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
@@ -317,26 +434,27 @@ export default function MyArtworksPage() {
                       <option value="CDR">CDR (CorelDraw)</option>
                     </select>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
-                    <span>Tautan File Master / Tautan Berbagi</span>
-                    <span className="text-[11px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={editDownloadUrl}
-                    onChange={(e) => setEditDownloadUrl(e.target.value)}
-                    placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                  />
-                </div>
+                {editFormat !== 'Hanya gambar' && (
+                  <div className="animate-in fade-in duration-200">
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
+                      <span>Tautan File Master / Tautan Berbagi</span>
+                      <span className="text-[11px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editDownloadUrl}
+                      onChange={(e) => setEditDownloadUrl(e.target.value)}
+                      placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    />
+                  </div>
+                )}
 
                 <div className="flex items-center justify-end gap-2 pt-3">
                   <button
                     type="button"
-                    onClick={() => setEditingArtwork(null)}
+                    onClick={handleAttemptCloseModal}
                     className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
                   >
                     Batal
@@ -349,9 +467,16 @@ export default function MyArtworksPage() {
                   </button>
                 </div>
               </form>
-            </div>
           </div>
-        )}
+        </div>
+      )}
+
+        {/* Confirm Unsaved Changes Modal */}
+        <ConfirmUnsavedModal
+          isOpen={showUnsavedModal}
+          onDiscard={handleDiscardChanges}
+          onKeepEditing={() => setShowUnsavedModal(false)}
+        />
 
       </main>
     </div>

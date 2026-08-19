@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { FilterBar } from '@/components/FilterBar';
@@ -18,6 +19,8 @@ import {
   ArrowRight,
   Rss,
   Compass,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
@@ -73,12 +76,13 @@ export default function HomePage() {
     });
   }, [artworks, activeCategory, selectedRegion, searchQuery]);
 
-  // Display pagination limit
-  const [visibleCount, setVisibleCount] = useState(12);
-  const observerTargetRef = useRef<HTMLDivElement | null>(null);
-  
+  // Page-based pagination (20 items per page)
+  const ITEMS_PER_PAGE = 20;
+  const [currentPage, setCurrentPage] = useState(1);
   const gridContainerRef = useRef<HTMLDivElement | null>(null);
   const [gridMinHeight, setGridMinHeight] = useState<number | undefined>(undefined);
+
+  const totalPages = Math.ceil(baseFiltered.length / ITEMS_PER_PAGE) || 1;
 
   // Smooth filter handler
   const handleCategoryChange = (val: string) => {
@@ -86,6 +90,7 @@ export default function HomePage() {
       setGridMinHeight(gridContainerRef.current.offsetHeight);
     }
     setActiveCategory(val);
+    setCurrentPage(1);
     setTimeout(() => setGridMinHeight(undefined), 600);
   };
 
@@ -94,45 +99,27 @@ export default function HomePage() {
       setGridMinHeight(gridContainerRef.current.offsetHeight);
     }
     setSelectedRegion(val);
+    setCurrentPage(1);
     setTimeout(() => setGridMinHeight(undefined), 600);
   };
 
-  // Reset pagination count when category/region/search changes
+  // Reset page to 1 when category/region/search changes
   useEffect(() => {
-    setVisibleCount(12);
+    setCurrentPage(1);
   }, [activeCategory, selectedRegion, searchQuery]);
 
-  // Load more when reaching bottom of page
-  const loadMoreItems = useCallback(() => {
-    if (visibleCount >= baseFiltered.length) return;
-    setVisibleCount((prev) => Math.min(prev + 8, baseFiltered.length));
-  }, [visibleCount, baseFiltered.length]);
-
-  // Intersection Observer for Infinite Scroll trigger
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMoreItems();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTargetRef.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    if (gridContainerRef.current) {
+      gridContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
 
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [loadMoreItems]);
-
-  const displayedArtworks = baseFiltered.slice(0, visibleCount);
-  const hasMore = visibleCount < baseFiltered.length;
+  const displayedArtworks = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return baseFiltered.slice(start, start + ITEMS_PER_PAGE);
+  }, [baseFiltered, currentPage]);
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
@@ -151,10 +138,14 @@ export default function HomePage() {
               
               {/* Image Banner Preview (Top on Mobile, Right on Desktop) */}
               <div className="order-1 lg:order-2 lg:col-span-5 relative h-56 sm:h-72 lg:h-full min-h-[220px] sm:min-h-[280px] overflow-hidden bg-slate-800">
-                <img
+                <Image
                   src={heroFeaturedArtwork.imageUrl}
                   alt={heroFeaturedArtwork.title}
+                  fill
+                  priority
+                  unoptimized={heroFeaturedArtwork.imageUrl.startsWith('data:')}
                   className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-gray-900/90 via-gray-900/30 to-transparent" />
               </div>
@@ -176,9 +167,12 @@ export default function HomePage() {
 
                 {/* Creator info */}
                 <div className="flex items-center gap-3 mt-4 p-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 max-w-fit">
-                  <img
-                    src={heroFeaturedArtwork.author.avatar}
+                  <Image
+                    src={heroFeaturedArtwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
                     alt={heroFeaturedArtwork.author.name}
+                    width={36}
+                    height={36}
+                    unoptimized={Boolean(heroFeaturedArtwork.author.avatar?.startsWith('data:'))}
                     className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-[#F26522]"
                   />
                   <div>
@@ -186,7 +180,7 @@ export default function HomePage() {
                       {heroFeaturedArtwork.author.name}
                     </p>
                     <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium">
-                      {heroFeaturedArtwork.author.region} • Format {heroFeaturedArtwork.format || 'PSD/AI'}
+                      {(heroFeaturedArtwork.author.region || heroFeaturedArtwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • Format {heroFeaturedArtwork.format || 'PSD/AI'}
                     </p>
                   </div>
                 </div>
@@ -259,16 +253,67 @@ export default function HomePage() {
                 ))}
               </div>
 
-            {/* Infinite Scroll Loader Target */}
-            {hasMore && (
-              <div
-                ref={observerTargetRef}
-                className="py-8 flex items-center justify-center text-gray-400 text-xs font-semibold"
-              >
-                <span>Memuat karya berikutnya...</span>
-              </div>
-            )}
-          </>
+              {/* 📄 Pagination Navigation Controls (20 Karya Per Halaman) */}
+              {totalPages > 1 && (
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200/80">
+                  <div className="text-xs text-gray-500 font-semibold">
+                    Menampilkan <span className="font-extrabold text-gray-800">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> - <span className="font-extrabold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, baseFiltered.length)}</span> dari <span className="font-extrabold text-gray-800">{baseFiltered.length}</span> karya
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-orange-50 hover:text-[#F26522] hover:border-orange-200 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-gray-700 disabled:hover:border-gray-200 transition-all shadow-sm"
+                      aria-label="Halaman Sebelumnya"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+
+                    {/* Page Number Buttons */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                      .reduce<(number | string)[]>((acc, page, idx, array) => {
+                        if (idx > 0 && page - (array[idx - 1] as number) > 1) {
+                          acc.push('...');
+                        }
+                        acc.push(page);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        typeof p === 'number' ? (
+                          <button
+                            key={p}
+                            onClick={() => handlePageChange(p)}
+                            className={`min-w-[36px] h-9 px-3 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                              currentPage === p
+                                ? 'bg-[#F26522] text-white shadow-orange-500/20'
+                                : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-50 hover:text-[#F26522] hover:border-orange-200'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ) : (
+                          <span key={`dots-${idx}`} className="px-1 text-gray-400 text-xs font-bold">
+                            ...
+                          </span>
+                        )
+                      )}
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-orange-50 hover:text-[#F26522] hover:border-orange-200 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-gray-700 disabled:hover:border-gray-200 transition-all shadow-sm"
+                      aria-label="Halaman Berikutnya"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-gray-100">
             <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-4">

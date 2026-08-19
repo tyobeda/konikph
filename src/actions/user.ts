@@ -5,6 +5,7 @@ import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { createNotification } from './notification';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { requireAdminSession } from '@/lib/serverAuth';
+import bcrypt from 'bcryptjs';
 
 export async function getUsers() {
   noStore();
@@ -19,9 +20,10 @@ export async function getUsers() {
   }
 }
 
-export async function loginUser(email: string, phone: string) {
+export async function loginUser(email: string, passwordInput: string) {
   try {
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = passwordInput.trim();
     const rateCheck = checkRateLimit(`login:${cleanEmail}`, 20, 15 * 60 * 1000);
     if (!rateCheck.success) {
       const minutesLeft = Math.ceil(rateCheck.resetInMs / 60000);
@@ -36,6 +38,30 @@ export async function loginUser(email: string, phone: string) {
     });
     
     if (user) {
+      // Validate password strictly (bcrypt compare + fallback auto-upgrade for legacy plain text)
+      let isMatch = false;
+      const storedPassword = user.password || user.phone || (user.role === 'Super Admin' ? 'admin' : '');
+      
+      if (storedPassword && (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$'))) {
+        isMatch = await bcrypt.compare(cleanPassword, storedPassword);
+      } else if (storedPassword && cleanPassword === storedPassword) {
+        isMatch = true;
+        // Auto-upgrade legacy plain text password to bcrypt hash
+        try {
+          const hashedPassword = await bcrypt.hash(cleanPassword, 10);
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword },
+          });
+        } catch (e) {
+          console.error('Failed to auto-upgrade password hash:', e);
+        }
+      }
+
+      if (!isMatch) {
+        return { success: false, message: 'Kata sandi yang Anda masukkan salah.' };
+      }
+
       // Check user status approval
       if (user.status === 'Pending' || user.status === 'Pending Approval') {
         return { 
@@ -62,6 +88,7 @@ export async function registerUser(data: {
   name: string;
   email: string;
   phone: string;
+  password?: string;
   address?: string;
   region?: string;
   role?: string;
@@ -85,11 +112,15 @@ export async function registerUser(data: {
       return { success: false, message: 'Email sudah terdaftar.' };
     }
 
+    const plainPassword = data.password || data.phone;
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
         email: cleanEmail,
         phone: data.phone,
+        password: hashedPassword,
         address: data.address || '',
         region: data.region || '',
         role: data.role || 'Desainer PKS',
@@ -112,6 +143,12 @@ export async function registerUser(data: {
 export async function updateUser(id: string, data: any) {
   try {
     const { id: _, createdAt, updatedAt, totalArtworks, totalDownloads, ...updateData } = data;
+    
+    // Hash password if updating password and it's not already hashed
+    if (updateData.password && !updateData.password.startsWith('$2a$') && !updateData.password.startsWith('$2b$')) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
     const user = await prisma.user.update({
       where: { id },
       data: updateData,

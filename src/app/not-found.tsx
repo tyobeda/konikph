@@ -82,7 +82,7 @@ export default function NotFound() {
                 className="px-3 py-1.5 bg-gray-100/80 hover:bg-orange-50 hover:text-[#F26522] rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <Search size={13} className="text-[#F26522]" />
-                <span>Desainer DPW</span>
+                <span>Desainer Wilayah</span>
               </a>
             </div>
           </div>

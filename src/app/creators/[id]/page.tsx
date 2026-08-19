@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -19,18 +20,81 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ArtworkCard } from '@/components/ArtworkCard';
 import { useData } from '@/context/DataContext';
+import { getUserSlug, slugify } from '@/lib/slug';
+import { getUserUsedTwibbons } from '@/actions/twibbon';
 
 export default function CreatorPublicProfilePage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { users, artworks, currentUser } = useData();
+  const { users, artworks, twibbons, currentUser } = useData();
   const [isMounted, setIsMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'karya' | 'sukai'>('karya');
+  const [activeTab, setActiveTab] = useState<'karya' | 'sukai' | 'template-twibbon' | 'twibbon-saya'>('karya');
+  const [usedTwibbonsList, setUsedTwibbonsList] = useState<any[]>([]);
+  const [isLoadingUsedTwibbons, setIsLoadingUsedTwibbons] = useState(true);
+
+  // Read initial cached used twibbons from sessionStorage to prevent UI flash on refresh
+  useEffect(() => {
+    try {
+      const cacheKey = `twibbon_user_used_${id}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setUsedTwibbonsList(parsed);
+          setIsLoadingUsedTwibbons(false);
+        }
+      }
+    } catch (_) {}
+  }, [id]);
+
+  // Find creator by ID or Slug
+  const decodedId = decodeURIComponent(id || '').toLowerCase();
+  let creator = users.find((u) => {
+    if (u.id?.toLowerCase() === decodedId) return true;
+    const userSlug = getUserSlug(u).toLowerCase();
+    if (userSlug === decodedId) return true;
+    const nameSlug = slugify(u.name || '').toLowerCase();
+    if (nameSlug && nameSlug === decodedId) return true;
+    return false;
+  });
+
+  if (!creator && (decodedId === 'super-admin' || decodedId === 'admin' || decodedId === 'u-admin' || decodedId === 'super-admin-pksart')) {
+    creator = {
+      id: 'superadmin_1',
+      name: 'Super Admin PKSart',
+      email: 'admin@pks.art',
+      phone: '081234567890',
+      address: 'DPP PKS, Jakarta',
+      region: 'Nasional',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      role: 'Super Admin',
+      status: 'Active',
+      isVerified: true,
+    } as any;
+  }
+
+  const creatorId = creator?.id;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Auto-fetch twibbon usages on mount and tab switch
+  useEffect(() => {
+    const targetQuery = creatorId || creator?.email || id;
+    if (targetQuery) {
+      getUserUsedTwibbons(targetQuery).then((res) => {
+        if (res.success && res.data) {
+          setUsedTwibbonsList(res.data);
+          try {
+            sessionStorage.setItem(`twibbon_user_used_${id}`, JSON.stringify(res.data));
+          } catch (_) {}
+        }
+        setIsLoadingUsedTwibbons(false);
+      });
+    }
+  }, [creatorId, creator?.email, id]);
 
   if (!isMounted) {
     return (
@@ -43,25 +107,6 @@ export default function CreatorPublicProfilePage() {
         </main>
       </div>
     );
-  }
-
-  // Find creator in the users list
-  // Fallback support for Super Admin
-  let creator = users.find((u) => u.id === id);
-
-  if (!creator && (id === 'super-admin' || id === 'admin' || id === 'u-admin')) {
-    creator = {
-      id: 'admin',
-      name: 'Super Admin PKSart',
-      email: 'admin@pks.art',
-      phone: '081234567890',
-      address: 'DPP PKS, Jakarta',
-      region: 'Nasional',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
-      role: 'Super Admin',
-      status: 'Active',
-      isVerified: true,
-    } as any;
   }
 
   if (!creator) {
@@ -98,6 +143,12 @@ export default function CreatorPublicProfilePage() {
   // Filter artworks liked by this user
   const likedArtworks = artworks.filter(
     (art) => art.likedUserIds && art.likedUserIds.includes(creator.id)
+  );
+
+  // Filter twibbon frames created by this user (Template Twibbon)
+  const creatorTwibbonTemplates = twibbons.filter(
+    (tw) =>
+      tw.author?.name === creator.name
   );
 
   const isOwnProfile = Boolean(currentUser && (currentUser.id === creator.id || currentUser.email === creator.email));
@@ -153,7 +204,7 @@ export default function CreatorPublicProfilePage() {
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3.5 text-xs text-gray-500 font-semibold pt-1">
                   <span className="flex items-center gap-1 text-gray-700">
                     <MapPin size={13} className="text-[#F26522]" />
-                    <span>{creator.region}</span>
+                    <span>{(creator.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
                   </span>
                   
                   {creator.email && (
@@ -197,52 +248,224 @@ export default function CreatorPublicProfilePage() {
           </div>
         </div>
 
-        {/* Gallery / Artworks Tabs Section */}
+        {/* Gallery / Artworks / Twibbon 4 Tabs Section */}
         <div className="space-y-6">
-          <div className="flex items-center gap-2 border-b border-gray-200 pb-3 overflow-x-auto">
+          <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab('karya')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'karya'
-                  ? 'bg-[#F26522] text-white shadow-sm shadow-orange-500/20'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                  ? 'border-[#F26522] text-[#F26522]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
               }`}
             >
-              <span>Koleksi Karya Desainer ({creatorArtworks.length})</span>
+              <span>Koleksi Karya Desainer</span>
+              <span
+                className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
+                  activeTab === 'karya'
+                    ? 'bg-orange-100 text-[#F26522]'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {creatorArtworks.length}
+              </span>
             </button>
 
             <button
               onClick={() => setActiveTab('sukai')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'sukai'
-                  ? 'bg-[#F26522] text-white shadow-sm shadow-orange-500/20'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                  ? 'border-[#F26522] text-[#F26522]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
               }`}
             >
-              <span>{isOwnProfile ? 'Yang Saya Sukai' : 'Disukai Desainer'} ({likedArtworks.length})</span>
+              <span>{isOwnProfile ? 'Yang Saya Sukai' : 'Disukai Desainer'}</span>
+              <span
+                className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
+                  activeTab === 'sukai'
+                    ? 'bg-orange-100 text-[#F26522]'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {likedArtworks.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('template-twibbon')}
+              className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'template-twibbon'
+                  ? 'border-[#F26522] text-[#F26522]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <span>Template Twibbon</span>
+              <span
+                className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
+                  activeTab === 'template-twibbon'
+                    ? 'bg-orange-100 text-[#F26522]'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {creatorTwibbonTemplates.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('twibbon-saya')}
+              className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'twibbon-saya'
+                  ? 'border-[#F26522] text-[#F26522]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <span>Twibbon Saya</span>
+              <span
+                className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
+                  activeTab === 'twibbon-saya'
+                    ? 'bg-orange-100 text-[#F26522]'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {isLoadingUsedTwibbons && usedTwibbonsList.length === 0 ? (
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse mx-1" />
+                ) : (
+                  usedTwibbonsList.length
+                )}
+              </span>
             </button>
           </div>
 
-          {displayedArtworks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-              <div className="w-14 h-14 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
-                <ImageIcon size={26} />
+          {activeTab === 'karya' || activeTab === 'sukai' ? (
+            displayedArtworks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="w-14 h-14 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
+                  <ImageIcon size={26} />
+                </div>
+                <h3 className="text-base font-bold text-gray-900">
+                  {activeTab === 'karya' ? 'Belum Ada Karya' : 'Belum Ada Karya yang Disukai'}
+                </h3>
+                <p className="text-xs text-gray-500 max-w-sm mt-1">
+                  {activeTab === 'karya'
+                    ? 'Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.'
+                    : 'Belum ada karya yang ditandai sebagai favorit.'}
+                </p>
               </div>
-              <h3 className="text-base font-bold text-gray-900">
-                {activeTab === 'karya' ? 'Belum Ada Karya' : 'Belum Ada Karya yang Disukai'}
-              </h3>
-              <p className="text-xs text-gray-500 max-w-sm mt-1">
-                {activeTab === 'karya'
-                  ? 'Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.'
-                  : 'Belum ada karya yang ditandai sebagai favorit.'}
-              </p>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {displayedArtworks.map((art) => (
+                  <ArtworkCard key={art.id} artwork={art} />
+                ))}
+              </div>
+            )
+          ) : activeTab === 'template-twibbon' ? (
+            creatorTwibbonTemplates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-4">
+                  <Sparkles size={26} />
+                </div>
+                <h3 className="text-base font-bold text-gray-900">Belum Ada Template Twibbon</h3>
+                <p className="text-xs text-gray-500 max-w-sm mt-1">
+                  Desainer ini belum mengunggah template bingkai twibbon resmi.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                {creatorTwibbonTemplates.map((tw) => (
+                  <Link
+                    key={tw.id}
+                    href={`/twibbon/${tw.slug || tw.id}`}
+                    className="group bg-white rounded-2xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-2 relative">
+                      <img
+                        src={tw.imageUrl}
+                        alt={tw.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <h4 className="font-bold text-xs text-gray-900 line-clamp-1 group-hover:text-[#F26522] transition-colors">
+                      {tw.title}
+                    </h4>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{tw.usedCount || 0}x digunakan</p>
+                  </Link>
+                ))}
+              </div>
+            )
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {displayedArtworks.map((art) => (
-                <ArtworkCard key={art.id} artwork={art} />
-              ))}
-            </div>
+            /* activeTab === 'twibbon-saya' */
+            isLoadingUsedTwibbons ? (
+              <div className="py-20 flex flex-col items-center justify-center text-gray-400">
+                <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#F26522] mb-3"></div>
+                <p className="text-xs font-semibold">Memuat riwayat twibbon...</p>
+              </div>
+            ) : usedTwibbonsList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="w-14 h-14 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
+                  <Layers size={26} />
+                </div>
+                <h3 className="text-base font-bold text-gray-900">Belum Ada Twibbon Yang Digenerate</h3>
+                <p className="text-xs text-gray-500 max-w-sm mt-1">
+                  Kreator ini belum pernah men-generate twibbon.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {usedTwibbonsList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-2xl border border-gray-100 p-3.5 flex flex-col justify-between hover:shadow-md transition-all group"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 relative mb-3">
+                      <img
+                        src={item.resultImageUrl || item.twibbon?.imageUrl || '/img/logo.png'}
+                        alt={item.twibbon?.title || 'Hasil Twibbon'}
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (item.twibbon?.imageUrl && target.src !== item.twibbon.imageUrl) {
+                            target.src = item.twibbon.imageUrl;
+                          }
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+
+                    <div>
+                      <h4 className="font-extrabold text-sm text-gray-900 line-clamp-1 group-hover:text-[#F26522] transition-colors">
+                        {item.twibbon?.title || 'Frame Twibbon PKS'}
+                      </h4>
+                      <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+                        Kategori: {item.twibbon?.category || 'Nasional'} • {item.twibbon?.region || 'Official'}
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-mono mt-1">
+                        Dibuat pada: {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <Link
+                          href={`/twibbon/${item.twibbon?.slug || item.twibbon?.id}`}
+                          className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
+                        >
+                          <Sparkles size={12} />
+                          <span>Buat Lagi</span>
+                        </Link>
+
+                        {item.resultImageUrl && (
+                          <a
+                            href={item.resultImageUrl}
+                            download={`Twibbon_${item.twibbon?.title || 'PKS'}.png`}
+                            className="p-1.5 bg-white border border-gray-200 text-gray-700 hover:text-[#F26522] hover:border-orange-200 rounded-lg shadow-sm transition-all"
+                            title="Unduh Lagi"
+                          >
+                            <Download size={14} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           )}
         </div>
 

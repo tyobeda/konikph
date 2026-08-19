@@ -3,10 +3,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag, Edit } from 'lucide-react';
+import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag, Edit, Calendar, Clock, HelpCircle } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
+import { getUserSlug } from '@/lib/slug';
 import { ShareModal } from './ShareModal';
+
+import { ConfirmUnsavedModal } from './ConfirmUnsavedModal';
+import { GdriveTutorialModal } from './GdriveTutorialModal';
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -24,22 +28,87 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [isGdriveTutorialOpen, setIsGdriveTutorialOpen] = useState(false);
+
   const [editTitleInput, setEditTitleInput] = useState(artwork.title);
   const [editDescInput, setEditDescInput] = useState(artwork.description || '');
   const [editCategoryInput, setEditCategoryInput] = useState(artwork.category);
   const [editFormatInput, setEditFormatInput] = useState(artwork.format || 'Hanya gambar');
   const [editDownloadUrlInput, setEditDownloadUrlInput] = useState(artwork.downloadUrl || '');
+  const [editDateInput, setEditDateInput] = useState('');
+  const [editTimeInput, setEditTimeInput] = useState('');
+  const [initialEditSnapshot, setInitialEditSnapshot] = useState<string>('');
 
   const handleOpenEditModal = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowDropdown(false);
-    setEditTitleInput(artwork.title);
-    setEditDescInput(artwork.description || '');
-    setEditCategoryInput(artwork.category);
-    setEditFormatInput(artwork.format || 'Hanya gambar');
-    setEditDownloadUrlInput(artwork.downloadUrl || '');
+    
+    const titleVal = artwork.title;
+    const descVal = artwork.description || '';
+    const catVal = artwork.category;
+    const formatVal = artwork.format || 'Hanya gambar';
+    const dlVal = artwork.downloadUrl || '';
+
+    const createdDateObj = new Date(artwork.createdAt || Date.now());
+    const yyyy = createdDateObj.getFullYear();
+    const mm = String(createdDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(createdDateObj.getDate()).padStart(2, '0');
+    const hh = String(createdDateObj.getHours()).padStart(2, '0');
+    const min = String(createdDateObj.getMinutes()).padStart(2, '0');
+    const dateVal = `${yyyy}-${mm}-${dd}`;
+    const timeVal = `${hh}:${min}`;
+
+    setEditTitleInput(titleVal);
+    setEditDescInput(descVal);
+    setEditCategoryInput(catVal);
+    setEditFormatInput(formatVal);
+    setEditDownloadUrlInput(dlVal);
+    setEditDateInput(dateVal);
+    setEditTimeInput(timeVal);
+
+    setInitialEditSnapshot(JSON.stringify({
+      title: titleVal,
+      desc: descVal,
+      cat: catVal,
+      fmt: formatVal,
+      dl: dlVal,
+      date: dateVal,
+      time: timeVal,
+    }));
+
     setIsEditModalOpen(true);
+  };
+
+  const isFormDirty = () => {
+    const currentSnapshot = JSON.stringify({
+      title: editTitleInput,
+      desc: editDescInput,
+      cat: editCategoryInput,
+      fmt: editFormatInput,
+      dl: editDownloadUrlInput,
+      date: editDateInput,
+      time: editTimeInput,
+    });
+    return currentSnapshot !== initialEditSnapshot;
+  };
+
+  const handleAttemptCloseModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (isFormDirty()) {
+      setShowUnsavedModal(true);
+      return;
+    }
+    setIsEditModalOpen(false);
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedModal(false);
+    setIsEditModalOpen(false);
   };
 
   const handleSaveArtworkEdit = (e: React.FormEvent) => {
@@ -49,13 +118,21 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     const hashtagsFromDesc = (editDescInput.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
     const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
+    let updatedCreatedAt: string | undefined = undefined;
+    if (editDateInput && editTimeInput) {
+      updatedCreatedAt = new Date(`${editDateInput}T${editTimeInput}`).toISOString();
+    } else if (editDateInput) {
+      updatedCreatedAt = new Date(editDateInput).toISOString();
+    }
+
     updateArtwork(artwork.id, {
       title: editTitleInput,
       description: editDescInput,
       category: editCategoryInput,
       format: editFormatInput,
-      downloadUrl: editDownloadUrlInput,
+      downloadUrl: editFormatInput === 'Hanya gambar' ? '' : editDownloadUrlInput,
       tags: parsedTags,
+      ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
     });
 
     setIsEditModalOpen(false);
@@ -109,7 +186,8 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [isImgLoaded, setIsImgLoaded] = useState(false);
 
   return (
-    <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
+    <>
+      <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
       <Link href={artworkPath} className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
         <div className="relative w-full overflow-hidden">
@@ -117,18 +195,21 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           {!isImgLoaded && (
             <div className="absolute inset-0 bg-gray-100 animate-pulse" />
           )}
-          <img
+          <Image
             src={imgSrc}
             alt={artwork.title}
+            width={600}
+            height={800}
             onLoad={() => setIsImgLoaded(true)}
             onError={() => {
               setImgSrc(fallbackImage);
               setIsImgLoaded(true);
             }}
+            unoptimized={imgSrc.startsWith('data:')}
             className={`w-full h-auto object-contain block group-hover:scale-[1.02] transition-all duration-300 ${
               isImgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
             }`}
-            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -151,10 +232,13 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Creator Avatar Link */}
-          <Link href={`/creators/${artwork.author.id || 'admin'}`}>
-            <img
-              src={artwork.author.avatar}
+          <Link href={`/creators/${getUserSlug(artwork.author)}`}>
+            <Image
+              src={artwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
               alt={artwork.author.name}
+              width={32}
+              height={32}
+              unoptimized={Boolean(artwork.author.avatar?.startsWith('data:'))}
               className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-gray-200 hover:ring-[#F26522] transition-all"
             />
           </Link>
@@ -162,10 +246,10 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           <div className="min-w-0 flex flex-col">
             {/* Creator Name & Province Link to Creator Profile */}
             <Link 
-              href={`/creators/${artwork.author.id || 'admin'}`}
+              href={`/creators/${getUserSlug(artwork.author)}`}
               className="text-xs font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors"
             >
-              {artwork.author.name} - {artwork.author.region}
+              {artwork.author.name} - {(artwork.author.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')}
             </Link>
 
             {/* Hashtags list */}
@@ -277,16 +361,26 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       {/* Edit Artwork Modal */}
       {isEditModalOpen && (
         <div
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditModalOpen(false); }}
+          onClick={handleAttemptCloseModal}
           className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default max-h-[90vh] overflow-y-auto"
           >
-            <h3 className="text-xl font-extrabold text-gray-900 mb-5">
-              Edit Postingan Karya
-            </h3>
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <h3 className="text-xl font-extrabold text-gray-900">
+                Edit Postingan Karya
+              </h3>
+              <button
+                type="button"
+                onClick={handleAttemptCloseModal}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors font-bold text-base"
+                title="Tutup Modal"
+              >
+                ✕
+              </button>
+            </div>
 
             <form onSubmit={handleSaveArtworkEdit} className="space-y-4">
               <div>
@@ -321,70 +415,127 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Kategori
-                  </label>
-                  <select
-                    value={editCategoryInput}
-                    onChange={(e) => setEditCategoryInput(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                  >
-                    {[
-                      'Hikmah-Motivasi',
-                      'Logo',
-                      'Mereka Bicara PKS',
-                      'Kegiatan-Event PKS',
-                      'Pemilu-Pemilukada',
-                      'Tokoh PKS Bicara',
-                      'Freehand-Komik-Karikatur',
-                      'Kaligrafi-Kufi Design',
-                      'Infografis-InfoPKS',
-                      'Ucapan Selamat-Selebrasi-Duka Cita',
-                      'Ragam Indonesia',
-                      'Serba Serbi',
-                    ].map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Format File Master
-                  </label>
-                  <select
-                    value={editFormatInput}
-                    onChange={(e) => setEditFormatInput(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                  >
-                    <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
-                    <option value="PSD">PSD (Photoshop)</option>
-                    <option value="AI">AI (Illustrator)</option>
-                    <option value="CDR">CDR (CorelDraw)</option>
-                  </select>
-                </div>
-              </div>
-
+              {/* Kategori */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
-                  <span>Tautan File Master / Tautan Berbagi</span>
-                  <span className="text-[11px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Kategori
                 </label>
-                <input
-                  type="text"
-                  value={editDownloadUrlInput}
-                  onChange={(e) => setEditDownloadUrlInput(e.target.value)}
-                  placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
+                <select
+                  value={editCategoryInput}
+                  onChange={(e) => setEditCategoryInput(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                />
+                >
+                  {[
+                    'Hikmah-Motivasi',
+                    'Logo',
+                    'Mereka Bicara PKS',
+                    'Kegiatan-Event PKS',
+                    'Pemilu-Pemilukada',
+                    'Tokoh PKS Bicara',
+                    'Freehand-Komik-Karikatur',
+                    'Kaligrafi-Kufi Design',
+                    'Infografis-InfoPKS',
+                    'Ucapan Selamat-Selebrasi-Duka Cita',
+                    'Ragam Indonesia',
+                    'Serba Serbi',
+                  ].map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
               </div>
+
+              {/* Tanggal & Jam Karya (2 Kolom 1 Baris pada Mobile) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Tanggal Karya
+                  </label>
+                  <div className="relative">
+                    <Calendar size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={editDateInput}
+                      onChange={(e) => setEditDateInput(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Jam Karya
+                  </label>
+                  <div className="relative">
+                    <Clock size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                    <input
+                      type="time"
+                      value={editTimeInput}
+                      onChange={(e) => setEditTimeInput(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Format File Master */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Format File Master
+                </label>
+                <select
+                  value={editFormatInput}
+                  onChange={(e) => setEditFormatInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                >
+                  <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
+                  <option value="PSD">PSD (Photoshop)</option>
+                  <option value="AI">AI (Illustrator)</option>
+                  <option value="CDR">CDR (CorelDraw)</option>
+                  <option value="CANVA">CANVA</option>
+                  <option value="FIGMA">FIGMA</option>
+                </select>
+              </div>
+
+              {/* Conditional Tautan File Master */}
+              {editFormatInput !== 'Hanya gambar' && (
+                <div className="animate-in fade-in duration-200 space-y-2">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
+                    <span>Tautan File Master / Tautan Berbagi</span>
+                    <span className="text-[11px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editDownloadUrlInput}
+                    onChange={(e) => setEditDownloadUrlInput(e.target.value)}
+                    placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  />
+
+                  {/* Google Drive Link Tutorial Hint */}
+                  <div className="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="flex items-start gap-1.5 text-blue-900">
+                      <HelpCircle size={15} className="text-blue-600 shrink-0 mt-0.5" />
+                      <p className="text-[11px] leading-relaxed">
+                        <strong className="font-bold">Google Drive:</strong> Upload ke Drive &rarr; Ubah akses ke <span className="font-bold text-blue-700">"Public / Anyone with the link"</span> &rarr; Paste link di sini.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsGdriveTutorialOpen(true)}
+                      className="shrink-0 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition-colors text-center"
+                    >
+                      Panduan Drive
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-3">
                 <button
                   type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditModalOpen(false); }}
+                  onClick={handleAttemptCloseModal}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
                 >
                   Batal
@@ -400,6 +551,21 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           </div>
         </div>
       )}
-    </div>
+
+      </div>
+
+      {/* Unsaved Changes Confirmation Modal */}
+      <ConfirmUnsavedModal
+        isOpen={showUnsavedModal}
+        onKeepEditing={() => setShowUnsavedModal(false)}
+        onDiscard={handleDiscardChanges}
+      />
+
+      {/* Google Drive Tutorial Modal */}
+      <GdriveTutorialModal
+        isOpen={isGdriveTutorialOpen}
+        onClose={() => setIsGdriveTutorialOpen(false)}
+      />
+    </>
   );
 };

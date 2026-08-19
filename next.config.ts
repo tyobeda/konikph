@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   allowedDevOrigins: ['192.168.18.14', '192.168.18.14:3000'],
   devIndicators: false,
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+      { protocol: 'http', hostname: '**' },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '50mb',

@@ -7,9 +7,9 @@ export const USERS: Record<string, User> = {
     email: 'ahmad.jauhari@pks.art',
     phone: '081298765432',
     address: 'Jl. Ahmad Yani No. 45, Bandung, Jawa Barat',
-    region: 'Jawa Barat - DPW PKS',
+    region: 'Jawa Barat',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-    role: 'DPW PKS Jabar',
+    role: 'Wilayah Jabar',
   },
   ahmad_jabar: {
     id: 'user_2',
@@ -430,7 +430,7 @@ export const CATEGORIES = [
 
 export const REGIONS = [
   'Semua Daerah',
-  'DPW Jabar',
+  'Jawa Barat',
   'DKI Jakarta',
   'DIY',
   'Sumut',

@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
-import { getUserTwibbonFavorites, toggleTwibbonFavorite, incrementTwibbonUsedDB } from '@/actions/twibbon';
+import { getUserTwibbonFavorites, toggleTwibbonFavorite, getRecentTwibbonUsages } from '@/actions/twibbon';
 
 export default function TwibbonDetailContent() {
   const router = useRouter();
@@ -27,8 +27,18 @@ export default function TwibbonDetailContent() {
 
   const [showShareToast, setShowShareToast] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [recentThumbnails, setRecentThumbnails] = useState<string[]>([]);
+
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleCanvasClick = () => {
+    if (!photoUrl && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   const userId = currentUser?.id || 'superadmin_1';
+  const activeTwibbon = twibbons.find((t) => t.id === id || t.slug === id);
 
   useEffect(() => {
     setIsMounted(true);
@@ -39,7 +49,22 @@ export default function TwibbonDetailContent() {
     }
   }, [userId]);
 
-  const activeTwibbon = twibbons.find((t) => t.id === id || t.slug === id);
+  // Load real recent generated thumbnails from database for this twibbon frame + fallback to localStorage
+  useEffect(() => {
+    if (activeTwibbon?.id) {
+      getRecentTwibbonUsages(activeTwibbon.id).then((res) => {
+        if (res.success && res.data && res.data.length > 0) {
+          setRecentThumbnails(res.data);
+        } else {
+          // Fallback to local storage for guest session
+          try {
+            const saved = localStorage.getItem(`twibbon_recent_${activeTwibbon.id}`);
+            if (saved) setRecentThumbnails(JSON.parse(saved));
+          } catch (e) {}
+        }
+      });
+    }
+  }, [activeTwibbon?.id]);
 
   const [isTogglingFavorite, setIsTogglingFavorite] = useState<string | null>(null);
 
@@ -100,6 +125,25 @@ export default function TwibbonDetailContent() {
     setIsDragging(false);
   };
 
+  // Touch Handlers for Smartphone (iOS & Android)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!photoUrl || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setDragStart({ x: touch.clientX - offsetX, y: touch.clientY - offsetY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    setOffsetX(touch.clientX - dragStart.x);
+    setOffsetY(touch.clientY - dragStart.y);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   const handleDownload = async () => {
     if (!photoUrl || !activeTwibbon) return;
 
@@ -151,13 +195,47 @@ export default function TwibbonDetailContent() {
 
       ctx.drawImage(frameImg, 0, 0, 1080, 1080);
 
+      const generatedDataUrl = canvas.toDataURL('image/jpeg', 0.90);
+
       const link = document.createElement('a');
-      link.download = `Twibbon_${activeTwibbon.title.replace(/\s+/g, '_')}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = `Twibbon_${activeTwibbon.title.replace(/\s+/g, '_')}.jpg`;
+      link.href = generatedDataUrl;
       link.click();
 
-      // Persist usage count in PostgreSQL database
-      const res = await incrementTwibbonUsedDB(activeTwibbon.id);
+      // Persist usage record via API route (bypasses server action payload limits)
+      const targetUserId = currentUser?.id || currentUser?.email || 'superadmin_1';
+      let res: any = { success: false };
+      try {
+        const apiRes = await fetch('/api/twibbon-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            twibbonId: activeTwibbon.id,
+            userId: targetUserId,
+            resultImageBase64: generatedDataUrl,
+          }),
+        });
+        res = await apiRes.json();
+      } catch (apiErr) {
+        console.error('API twibbon-usage error:', apiErr);
+      }
+
+      if (!res.success && res.rateLimited) {
+        alert(res.error);
+        return;
+      }
+
+      const finalSavedUrl = res?.resultImageUrl || generatedDataUrl;
+
+      // Add generated thumbnail to history list (Strict FIFO Queue: Max 5 items)
+      setRecentThumbnails((prev) => {
+        const next = [finalSavedUrl, ...prev.slice(0, 4)];
+        try {
+          localStorage.setItem(`twibbon_recent_${activeTwibbon.id}`, JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
+
       const newCount = (res && res.success && typeof res.usedCount === 'number') ? res.usedCount : (activeTwibbon.usedCount || 0) + 1;
 
       updateTwibbon(activeTwibbon.id, {
@@ -219,14 +297,21 @@ export default function TwibbonDetailContent() {
         </div>
 
         <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-          {/* Canvas Box */}
-          <div className="lg:col-span-6 bg-gray-900 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] relative select-none overflow-hidden">
+          {/* Canvas Box (Putih Tulang / Off-White Ivory Background) */}
+          <div className="lg:col-span-6 bg-[#FAF7F2] p-6 sm:p-8 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] relative select-none overflow-hidden border-r border-amber-100/60">
             <div
-              className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gray-800 cursor-move flex items-center justify-center"
+              onClick={handleCanvasClick}
+              className={`relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-amber-50/50 flex items-center justify-center ${
+                photoUrl ? 'cursor-move touch-none' : 'cursor-pointer hover:border-[#F26522] transition-colors group'
+              }`}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
             >
               {photoUrl ? (
                 <div
@@ -243,9 +328,13 @@ export default function TwibbonDetailContent() {
                 </div>
               ) : (
                 <div className="text-center p-6 text-gray-400 flex flex-col items-center justify-center">
-                  <Upload size={40} className="mb-2 text-gray-500 animate-bounce" />
-                  <p className="text-xs font-bold text-gray-300">Unggah Foto Anda Di Sini</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Gunakan tombol unggah foto di sebelah kanan untuk memulai</p>
+                  <Upload size={44} className="mb-2 text-[#F26522] animate-bounce group-hover:scale-110 transition-transform" />
+                  <p className="text-xs font-extrabold text-gray-800 group-hover:text-[#F26522] transition-colors">
+                    Unggah Foto Anda Di Sini
+                  </p>
+                  <p className="text-[10px] text-gray-500 font-medium mt-1">
+                    Klik di dalam bingkai ini untuk memilih foto dari perangkat
+                  </p>
                 </div>
               )}
 
@@ -257,11 +346,49 @@ export default function TwibbonDetailContent() {
             </div>
 
             {photoUrl && (
-              <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1 font-medium">
-                <Sparkles size={12} className="text-amber-400" />
+              <p className="text-[11px] text-gray-600 mt-3 flex items-center gap-1 font-medium">
+                <Sparkles size={12} className="text-[#F26522]" />
                 <span>Geser & atur posisi foto Anda di dalam bingkai</span>
               </p>
             )}
+
+            {/* Thumbnails Hasil Generate Terakhir */}
+            <div className="mt-5 w-full max-w-[340px] pt-4 border-t border-amber-200/40">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-extrabold text-gray-600 uppercase tracking-wider">
+                  Hasil Generate Terbaru
+                </span>
+                <span className="text-[10px] text-gray-400 font-bold">
+                  {(activeTwibbon.usedCount || 0) + 100}+ Dibuat
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {recentThumbnails.slice(0, 5).map((thumbUrl, idx) => (
+                  <div
+                    key={idx}
+                    className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl overflow-hidden border-2 border-white shadow-md bg-white relative group shrink-0"
+                  >
+                    <img
+                      src={thumbUrl}
+                      alt={`Hasil Twibbon ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <img
+                      src={activeTwibbon.imageUrl}
+                      alt="Overlay Frame"
+                      className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80"
+                    />
+                  </div>
+                ))}
+
+                {/* Kotak X: Jumlah 100+ Lainnya */}
+                <div className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl bg-orange-100/70 border-2 border-orange-200/80 text-[#F26522] flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm hover:bg-orange-100 transition-colors">
+                  <span className="text-[11px] font-black leading-none">100+</span>
+                  <span className="text-[8px] font-bold text-orange-600 mt-0.5 leading-none">Lainnya</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between space-y-6">
@@ -274,14 +401,10 @@ export default function TwibbonDetailContent() {
 
                 <button
                   onClick={toggleFavorite}
-                  className={`p-2 rounded-full border transition-all ${
-                    favorites.includes(activeTwibbon.id)
-                      ? 'bg-red-50 text-red-500 border-red-200'
-                      : 'bg-gray-50 text-gray-400 border-gray-200 hover:text-red-500'
-                  }`}
+                  className="p-1.5 text-gray-400 hover:text-red-500 transition-colors inline-flex items-center justify-center"
                   title="Simpan Favorit"
                 >
-                  <Heart size={18} className={favorites.includes(activeTwibbon.id) ? 'fill-red-500' : ''} />
+                  <Heart size={20} className={favorites.includes(activeTwibbon.id) ? 'fill-red-500 text-red-500' : ''} />
                 </button>
               </div>
 
@@ -304,7 +427,7 @@ export default function TwibbonDetailContent() {
                 <label className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all">
                   <Upload size={16} />
                   <span>{photoUrl ? 'Ganti Foto Lain' : 'Pilih Foto Dari Perangkat'}</span>
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                 </label>
               </div>
 

@@ -21,14 +21,19 @@ import {
   Edit,
   Copy,
   ExternalLink,
+  Calendar,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ArtworkCard } from '@/components/ArtworkCard';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
+import { ConfirmUnsavedModal } from '@/components/ConfirmUnsavedModal';
 import { ShareModal } from '@/components/ShareModal';
 import { useData } from '@/context/DataContext';
 import { ARTWORK_CATEGORIES, REGIONS } from '@/lib/data';
+import { getUserSlug } from '@/lib/slug';
 
 export default function ArtworkDetailContent() {
   const params = useParams();
@@ -54,14 +59,21 @@ export default function ArtworkDetailContent() {
   const [showOptions, setShowOptions] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
+  const [commentError, setCommentError] = useState('');
+  
   // Edit Artwork Modal States for owner
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [editTitleInput, setEditTitleInput] = useState('');
   const [editDescInput, setEditDescInput] = useState('');
   const [editCategoryInput, setEditCategoryInput] = useState('');
   const [editRegionInput, setEditRegionInput] = useState('');
   const [editFormatInput, setEditFormatInput] = useState('');
+  const [editDownloadUrlInput, setEditDownloadUrlInput] = useState('');
   const [editTagsInput, setEditTagsInput] = useState('');
+  const [editDateInput, setEditDateInput] = useState('');
+  const [editTimeInput, setEditTimeInput] = useState('');
+  const [initialEditSnapshot, setInitialEditSnapshot] = useState<string>('');
   
   const optionsRef = useRef<HTMLDivElement>(null);
 
@@ -249,9 +261,15 @@ export default function ArtworkDetailContent() {
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    await addCommentToArtwork(artwork.id, newComment);
-    setNewComment('');
-    triggerToast('Komentar berhasil dikirim!');
+    setCommentError('');
+    const res = await addCommentToArtwork(artwork.id, newComment);
+    if (res && res.success) {
+      setNewComment('');
+      setCommentError('');
+      triggerToast('Komentar berhasil dikirim!');
+    } else if (res && res.error) {
+      setCommentError(res.error);
+    }
   };
 
   const relatedArtworks = artworks.filter((item) => item.id !== artwork.id).slice(0, 4);
@@ -269,13 +287,72 @@ export default function ArtworkDetailContent() {
 
   const handleOpenEditModal = () => {
     if (!artwork) return;
-    setEditTitleInput(artwork.title);
-    setEditDescInput(artwork.description || '');
-    setEditCategoryInput(artwork.category);
-    setEditRegionInput(artwork.region);
-    setEditFormatInput(artwork.format || 'Hanya gambar');
+    const titleVal = artwork.title;
+    const descVal = artwork.description || '';
+    const catVal = artwork.category;
+    const formatVal = artwork.format || 'Hanya gambar';
+    const dlVal = artwork.downloadUrl || '';
+
+    // Parse date & time from artwork.createdAt
+    const createdDateObj = new Date(artwork.createdAt || Date.now());
+    const yyyy = createdDateObj.getFullYear();
+    const mm = String(createdDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(createdDateObj.getDate()).padStart(2, '0');
+    const hh = String(createdDateObj.getHours()).padStart(2, '0');
+    const min = String(createdDateObj.getMinutes()).padStart(2, '0');
+    const dateVal = `${yyyy}-${mm}-${dd}`;
+    const timeVal = `${hh}:${min}`;
+
+    setEditTitleInput(titleVal);
+    setEditDescInput(descVal);
+    setEditCategoryInput(catVal);
+    setEditFormatInput(formatVal);
+    setEditDownloadUrlInput(dlVal);
     setEditTagsInput(artwork.tags ? artwork.tags.join(' ') : '');
+    setEditDateInput(dateVal);
+    setEditTimeInput(timeVal);
+
+    setInitialEditSnapshot(JSON.stringify({
+      title: titleVal,
+      desc: descVal,
+      cat: catVal,
+      fmt: formatVal,
+      dl: dlVal,
+      date: dateVal,
+      time: timeVal,
+    }));
+
     setIsEditModalOpen(true);
+  };
+
+  const isFormDirty = () => {
+    const currentSnapshot = JSON.stringify({
+      title: editTitleInput,
+      desc: editDescInput,
+      cat: editCategoryInput,
+      fmt: editFormatInput,
+      dl: editDownloadUrlInput,
+      date: editDateInput,
+      time: editTimeInput,
+    });
+    return currentSnapshot !== initialEditSnapshot;
+  };
+
+  const handleAttemptCloseModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (isFormDirty()) {
+      setShowUnsavedModal(true);
+      return;
+    }
+    setIsEditModalOpen(false);
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedModal(false);
+    setIsEditModalOpen(false);
   };
 
   const handleSaveArtworkEdit = async (e: React.FormEvent) => {
@@ -285,13 +362,21 @@ export default function ArtworkDetailContent() {
     const hashtagsFromDesc = (editDescInput.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
     const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
+    let updatedCreatedAt: string | undefined = undefined;
+    if (editDateInput && editTimeInput) {
+      updatedCreatedAt = new Date(`${editDateInput}T${editTimeInput}`).toISOString();
+    } else if (editDateInput) {
+      updatedCreatedAt = new Date(editDateInput).toISOString();
+    }
+
     await updateArtwork(artwork.id, {
       title: editTitleInput,
       description: editDescInput,
       category: editCategoryInput,
-      region: editRegionInput,
       format: editFormatInput,
+      downloadUrl: editFormatInput === 'Hanya gambar' ? '' : editDownloadUrlInput,
       tags: parsedTags,
+      ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
     });
 
     setIsEditModalOpen(false);
@@ -361,7 +446,7 @@ export default function ArtworkDetailContent() {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Link href={`/creators/${artwork.author?.id || 'admin'}`}>
+                  <Link href={`/creators/${getUserSlug(artwork.author)}`}>
                     <img
                       src={artwork.author?.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                       alt={artwork.author?.name || 'Desainer PKS'}
@@ -369,13 +454,13 @@ export default function ArtworkDetailContent() {
                     />
                   </Link>
                   <div>
-                    <Link href={`/creators/${artwork.author?.id || 'admin'}`}>
+                    <Link href={`/creators/${getUserSlug(artwork.author)}`}>
                       <h2 className="text-sm font-extrabold text-gray-900 leading-snug hover:text-[#F26522] transition-colors">
                         {artwork.author?.name || 'Desainer PKS'}
                       </h2>
                     </Link>
                     <p className="text-xs text-gray-500 font-medium">
-                      {artwork.author?.region || artwork.region} • Format {artwork.format || 'PSD/AI'}
+                      {(artwork.author?.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • Format {artwork.format || 'PSD/AI'}
                     </p>
                   </div>
                 </div>
@@ -493,7 +578,7 @@ export default function ArtworkDetailContent() {
 
                   return (
                     <div key={comment.id} className="flex gap-2.5 bg-gray-50/70 p-3 rounded-xl border border-gray-100 group">
-                      <Link href={`/creators/${author.id || 'admin'}`}>
+                      <Link href={`/creators/${getUserSlug(author)}`}>
                         <img
                           src={author.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
                           alt={author.name}
@@ -503,8 +588,8 @@ export default function ArtworkDetailContent() {
                       <div className="flex-1 text-xs">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <Link href={`/creators/${author.id || 'admin'}`}>
-                              <span className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">{author.name} - {author.region}</span>
+                            <Link href={`/creators/${getUserSlug(author)}`}>
+                              <span className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">{author.name} - {(author.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
                             </Link>
                             {comment.isEdited && (
                               <span className="text-[10px] text-gray-400 font-normal italic">(disunting)</span>
@@ -614,7 +699,10 @@ export default function ArtworkDetailContent() {
                   <textarea
                     value={newComment}
                     maxLength={1000}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={(e) => {
+                      setNewComment(e.target.value);
+                      if (commentError) setCommentError('');
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -622,10 +710,19 @@ export default function ArtworkDetailContent() {
                       }
                     }}
                     placeholder="Tulis komentar (maks 1000 karakter)..."
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#F26522] focus:bg-white transition-all resize-none min-h-[36px] overflow-hidden"
+                    className={`w-full bg-gray-50 border text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:bg-white transition-all resize-none min-h-[36px] overflow-hidden ${
+                      commentError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#F26522]'
+                    }`}
                     rows={2}
                   />
-                  <div className="flex justify-end pr-1">
+                  <div className="flex items-center justify-between px-1 mt-1">
+                    {commentError ? (
+                      <span className="text-[11px] font-normal text-red-500">
+                        {commentError.replace(/\s*\("[^"]+"\)/g, '')}
+                      </span>
+                    ) : (
+                      <span />
+                    )}
                     <span className={`text-[10px] font-semibold ${newComment.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
                       {newComment.length}/1000
                     </span>
@@ -743,7 +840,7 @@ export default function ArtworkDetailContent() {
       {/* Edit Artwork Modal for Owner / Super Admin */}
       {isEditModalOpen && (
         <div
-          onClick={() => setIsEditModalOpen(false)}
+          onClick={handleAttemptCloseModal}
           className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer overflow-y-auto"
         >
           <div
@@ -800,39 +897,56 @@ export default function ArtworkDetailContent() {
                 />
               </div>
 
+              {/* Kategori & Tanggal/Jam */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  Kategori
+                </label>
+                <select
+                  value={editCategoryInput}
+                  onChange={(e) => setEditCategoryInput(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                >
+                  {ARTWORK_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tanggal & Jam Karya (2 Kolom 1 Baris) */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Kategori
+                    Tanggal Karya
                   </label>
-                  <select
-                    value={editCategoryInput}
-                    onChange={(e) => setEditCategoryInput(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                  >
-                    {ARTWORK_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <Calendar size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={editDateInput}
+                      onChange={(e) => setEditDateInput(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Wilayah DPW
+                    Jam Karya
                   </label>
-                  <select
-                    value={editRegionInput}
-                    onChange={(e) => setEditRegionInput(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
-                  >
-                    {REGIONS.filter((r) => r !== 'Semua Daerah').map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <Clock size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                    <input
+                      type="time"
+                      value={editTimeInput}
+                      onChange={(e) => setEditTimeInput(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -849,13 +963,31 @@ export default function ArtworkDetailContent() {
                   <option value="PSD">PSD (Photoshop)</option>
                   <option value="AI">AI (Illustrator)</option>
                   <option value="CDR">CDR (CorelDraw)</option>
+                  <option value="CANVA">CANVA</option>
+                  <option value="FIGMA">FIGMA</option>
                 </select>
               </div>
+
+              {editFormatInput !== 'Hanya gambar' && (
+                <div className="animate-in fade-in duration-200">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col gap-0.5">
+                    <span>Tautan File Master / Tautan Berbagi</span>
+                    <span className="text-[10px] font-normal text-gray-500 lowercase">(Misal: Link Canva, Google Drive, dll.)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editDownloadUrlInput}
+                    onChange={(e) => setEditDownloadUrlInput(e.target.value)}
+                    placeholder="Contoh: https://canva.com/... atau https://drive.google.com/..."
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsEditModalOpen(false)}
+                  onClick={handleAttemptCloseModal}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
                 >
                   Batal
@@ -871,6 +1003,13 @@ export default function ArtworkDetailContent() {
           </div>
         </div>
       )}
+
+      {/* Confirm Unsaved Changes Modal */}
+      <ConfirmUnsavedModal
+        isOpen={showUnsavedModal}
+        onDiscard={handleDiscardChanges}
+        onKeepEditing={() => setShowUnsavedModal(false)}
+      />
     </div>
   );
 }

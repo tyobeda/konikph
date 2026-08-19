@@ -50,3 +50,8 @@ revert_user.js
 seed_notif.js
 append_schema.js
 test_supabase.ts
+scripts/
+
+# User Uploaded Content
+/public/uploads/*
+!/public/uploads/.gitkeep

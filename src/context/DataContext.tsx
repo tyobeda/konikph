@@ -39,6 +39,8 @@ export interface DpwOffice {
   phone: string;
   email: string;
   address: string;
+  lat?: number | null;
+  lng?: number | null;
   activeCreators: number;
   totalArtworks: number;
   isActive?: boolean;
@@ -47,12 +49,12 @@ export interface DpwOffice {
 export interface DataContextType {
   // Artworks
   artworks: Artwork[];
-  addArtwork: (art: Omit<Artwork, 'id' | 'createdAt' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'>) => Promise<void> | void;
+  addArtwork: (art: Omit<Artwork, 'id' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'> & { createdAt?: string | Date }) => Promise<void> | void;
   updateArtwork: (id: string, updated: Partial<Artwork>) => void;
   deleteArtwork: (id: string) => void;
   toggleLikeArtwork: (id: string) => void;
   incrementDownloadCount: (id: string) => void;
-  addCommentToArtwork: (id: string, content: string) => Promise<void> | void;
+  addCommentToArtwork: (id: string, content: string) => Promise<{ success: boolean; error?: string }>;
   editCommentInArtwork: (artworkId: string, commentId: string, newContent: string) => void;
   deleteCommentFromArtwork: (artworkId: string, commentId: string) => void;
 
@@ -114,6 +116,7 @@ export interface DataContextType {
     ctaSocialUrl?: string;
     adminWhatsapp?: string;
     autoApproveArtworks?: boolean;
+    allowCommentLinks?: boolean;
     forbiddenWords?: string;
     maintenanceConfig?: {
       globalEnabled: boolean;
@@ -246,7 +249,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
       { label: 'Login/Upload', url: '/login' }
     ],
     ctaSocialText: 'Follow @pksart',
-    ctaSocialUrl: '#'
+    ctaSocialUrl: '#',
+    allowCommentLinks: true,
+    forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu'
   };
 
   const [siteSettings, setSiteSettings] = useState(() => {
@@ -286,14 +291,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   // Load stored state safely after client mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Restore cached user session synchronously on mount to prevent top-right header UI flash
+      try {
+        const cachedUser = localStorage.getItem('pksart_user_cache');
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          if (parsed && parsed.id) {
+            setCurrentUser(parsed);
+          }
+        }
+      } catch (_) {}
+
       // ── Restore session from server (HttpOnly cookie validated server-side) ──
       fetch('/api/auth/session')
         .then(r => r.json())
         .then(data => {
           if (data.authenticated && data.user) {
             setCurrentUser(data.user as User);
+            try {
+              localStorage.setItem('pksart_user_cache', JSON.stringify(data.user));
+            } catch (_) {}
           } else {
             setCurrentUser(null);
+            try {
+              localStorage.removeItem('pksart_user_cache');
+            } catch (_) {}
             deleteClientCookie('pksart_current_user');
           }
         })
@@ -411,17 +433,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         document.title = siteSettings.siteName;
       }
       if (siteSettings.faviconUrl) {
-        // Clear all previous favicon nodes to avoid duplicates/overrides safely
-        const existingLinks = document.querySelectorAll("link[rel*='icon']");
-        existingLinks.forEach((el) => {
-          if (el.parentNode) {
-            el.parentNode.removeChild(el);
-          }
-        });
-
-        // Create a single clean link element
-        const link = document.createElement('link');
-        link.rel = 'icon';
+        let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
         
         const isDataUri = siteSettings.faviconUrl.startsWith('data:');
         link.type = siteSettings.faviconUrl.startsWith('data:image/svg') 
@@ -434,8 +451,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         link.href = isDataUri 
           ? siteSettings.faviconUrl 
           : `${siteSettings.faviconUrl}?v=${Date.now()}`;
-          
-        document.head.appendChild(link);
       }
     }
   }, [siteSettings, isMounted, isSettingsLoaded]);
@@ -474,7 +489,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   };
 
   // Actions
-  const addArtwork = async (art: Omit<Artwork, 'id' | 'createdAt' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'>) => {
+  const addArtwork = async (art: Omit<Artwork, 'id' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'> & { createdAt?: string | Date }) => {
     // Pass authorId explicitly to the server action
     const payload = {
       ...art,
@@ -553,7 +568,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   };
 
   const addCommentToArtwork = async (id: string, content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim()) return { success: false, error: 'Komentar tidak boleh kosong' };
     const author = currentUser || SUPER_ADMIN_USER;
 
     const res = await addCommentToArtworkDB(id, author.id, content.trim());
@@ -581,6 +596,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         });
         return nextArtworks;
       });
+      return { success: true };
+    } else {
+      return { success: false, error: res?.error || 'Gagal mengirim komentar' };
     }
   };
 
@@ -677,6 +695,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
       const data = await res.json();
       if (data.success && data.user) {
         setCurrentUser(data.user as User);
+        try {
+          localStorage.setItem('pksart_user_cache', JSON.stringify(data.user));
+        } catch (_) {}
       }
       return { success: data.success, message: data.message, user: data.user };
     } catch (error) {
@@ -688,6 +709,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (_) {}
+    try {
+      localStorage.removeItem('pksart_user_cache');
+    } catch (_) {}
     setCurrentUser(null);
   };
 
@@ -697,8 +721,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         name: user.name,
         email: user.email,
         phone: user.phone || '',
+        password: (user as any).password || '',
         address: user.address || '',
-        region: user.region || 'DPW Jawa Barat',
+        region: user.region || 'Wilayah Jawa Barat',
         role: user.role || 'Desainer PKS',
         avatar: user.avatar || '',
       });

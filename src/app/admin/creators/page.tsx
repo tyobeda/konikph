@@ -298,7 +298,7 @@ export default function AdminCreatorsPage() {
                 <tr>
                   <th className="py-3.5 px-4">Desainer & Lencana</th>
                   <th className="py-3.5 px-4">Kontak WhatsApp & Email</th>
-                  <th className="py-3.5 px-4">Wilayah DPW</th>
+                  <th className="py-3.5 px-4">Daerah / Wilayah</th>
                   <th className="py-3.5 px-4">Total Karya</th>
                   <th className="py-3.5 px-4">Status Akun</th>
                   <th className="py-3.5 px-4 text-right">Aksi Admin</th>
@@ -398,7 +398,7 @@ export default function AdminCreatorsPage() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4 font-semibold text-gray-800">
-                        {creator.region}
+                        {(creator.region || '').replace(/^DPW\s+/i, '')}
                       </td>
                       <td className="py-3.5 px-4 font-semibold text-gray-700">
                         {artworks.filter(a => a.author?.name === creator.name || a.author?.email === creator.email || a.author?.id === creator.id).length} Karya

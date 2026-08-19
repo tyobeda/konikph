@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
+
+import { Footer } from '@/components/Footer';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,6 +33,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -120,15 +123,23 @@ export default function LoginPage() {
               Kata Sandi
             </label>
             <div className="relative">
-              <Lock size={18} className="absolute left-3.5 top-3 text-gray-400" />
+              <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setAlertInfo(null); }}
                 placeholder="Masukkan kata sandi Anda"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-bold"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-bold"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3.5 text-gray-400 hover:text-[#F26522] transition-colors"
+                aria-label="Tampilkan atau sembunyikan kata sandi"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
@@ -169,6 +180,8 @@ export default function LoginPage() {
         </div>
 
       </div>
+
+      <Footer />
     </div>
   );
 }

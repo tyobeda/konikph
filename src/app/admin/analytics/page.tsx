@@ -435,123 +435,61 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Grid 2 Columns: Traffic Sources & Geo Provinces */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* SECTION 1: Asal Trafik (Traffic Channels / Referrer) */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F26522] flex items-center justify-center">
-                  <Share2 size={16} />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-gray-900">
-                    Asal Saluran Trafik (Referrer)
-                  </h2>
-                  <p className="text-[11px] text-gray-400">
-                    Dari mana pengunjung datang ke website PKSart
-                  </p>
-                </div>
+      {/* Traffic Channels / Referrer */}
+      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F26522] flex items-center justify-center">
+                <Share2 size={16} />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-gray-900">
+                  Asal Saluran Trafik (Referrer)
+                </h2>
+                <p className="text-[11px] text-gray-400">
+                  Dari mana pengunjung datang ke website PKSart
+                </p>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-3.5 mt-4">
-              {stats?.sources && stats.sources.length > 0 ? (
-                stats.sources.map((item: any, idx: number) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 font-bold text-gray-400 text-[11px]">
-                          #{idx + 1}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${getSourceBadgeColor(item.name)}`}>
-                          {item.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 font-bold text-gray-700">
-                        <span>{item.count} kunjungan</span>
-                        <span className="text-gray-400 font-normal">
-                          ({item.percentage}%)
-                        </span>
-                      </div>
+          <div className="space-y-3.5 mt-4">
+            {stats?.sources && stats.sources.length > 0 ? (
+              stats.sources.map((item: any, idx: number) => (
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 font-bold text-gray-400 text-[11px]">
+                        #{idx + 1}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${getSourceBadgeColor(item.name)}`}>
+                        {item.name}
+                      </span>
                     </div>
-                    {/* Progress Bar */}
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${item.percentage}%` }}
-                        className="h-full bg-gradient-to-r from-orange-400 to-[#F26522] rounded-full transition-all"
-                      />
+                    <div className="flex items-center gap-2 font-bold text-gray-700">
+                      <span>{item.count} kunjungan</span>
+                      <span className="text-gray-400 font-normal">
+                        ({item.percentage}%)
+                      </span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-xs text-gray-400 py-8 text-center">
-                  Belum ada rekaman saluran trafik.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 2: Sebaran Geografis Wilayah Indonesia (Provinsi) */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <MapPin size={16} />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-gray-900">
-                    Sebaran Provinsi Pengunjung
-                  </h2>
-                  <p className="text-[11px] text-gray-400">
-                    Top 10 Provinsi di Indonesia berdasarkan IP Geo-Location
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3.5 mt-4">
-              {stats?.provinces && stats.provinces.length > 0 ? (
-                stats.provinces.map((item: any, idx: number) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 font-bold text-gray-400 text-[11px]">
-                          #{idx + 1}
-                        </span>
-                        <span className="font-bold text-gray-800">
-                          {item.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 font-bold text-gray-700">
-                        <span>{item.count} views</span>
-                        <span className="text-gray-400 font-normal">
-                          ({item.percentage}%)
-                        </span>
-                      </div>
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${item.percentage}%` }}
-                        className="h-full bg-gradient-to-r from-emerald-400 to-teal-600 rounded-full transition-all"
-                      />
-                    </div>
+                  {/* Progress Bar */}
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${item.percentage}%` }}
+                      className="h-full bg-gradient-to-r from-orange-400 to-[#F26522] rounded-full transition-all"
+                    />
                   </div>
-                ))
-              ) : (
-                <p className="text-xs text-gray-400 py-8 text-center">
-                  Belum ada data geolokasi wilayah.
-                </p>
-              )}
-            </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-gray-400 py-8 text-center">
+                Belum ada rekaman saluran trafik.
+              </p>
+            )}
           </div>
         </div>
-
       </div>
 
       {/* Grid 2 Columns: Top Pages & Devices Breakdown */}

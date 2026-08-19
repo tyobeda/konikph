@@ -94,3 +94,31 @@ body {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   pointer-events: none;
 }
+
+/* Custom Sleek Scrollbar (Light Gray & No Arrow Buttons) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0; /* Soft light gray */
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1; /* Slightly darker on hover */
+}
+

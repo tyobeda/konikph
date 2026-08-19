@@ -16,15 +16,28 @@ import {
   Grid,
   Eye,
   EyeOff,
+  Sparkles,
+  Layers,
+  Download,
+  Heart,
+  Image as ImageIcon,
+  LayoutGrid,
+  Edit3,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Plus,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { REGIONS } from '@/lib/data';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
+import { ArtworkCard } from '@/components/ArtworkCard';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { currentUser, updateUser, addResetRequest } = useData();
+  const { currentUser, updateUser, addResetRequest, artworks, twibbons, deleteArtwork } = useData();
 
   const [userData, setUserData] = useState({
     name: currentUser?.name || '',
@@ -57,9 +70,28 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState(userData.avatar);
   const [isMounted, setIsMounted] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<'profile' | 'used-twibbon'>('profile');
+  const [usedTwibbonsList, setUsedTwibbonsList] = useState<any[]>([]);
+  const [isLoadingUsedTwibbons, setIsLoadingUsedTwibbons] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Fetch used twibbons when tab changes to used-twibbon
+  useEffect(() => {
+    if (activeTab === 'used-twibbon' && currentUser?.id) {
+      setIsLoadingUsedTwibbons(true);
+      import('@/actions/twibbon').then(({ getUserUsedTwibbons }) => {
+        getUserUsedTwibbons(currentUser.id).then((res) => {
+          if (res.success && res.data) {
+            setUsedTwibbonsList(res.data);
+          }
+          setIsLoadingUsedTwibbons(false);
+        });
+      });
+    }
+  }, [activeTab, currentUser?.id]);
 
   // Sync state when currentUser is loaded or updated
   useEffect(() => {
@@ -164,26 +196,58 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        {/* Profile Edit Card */}
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
-          
-          <div className="border-b border-gray-100 pb-5 mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-gray-900">
-                Pengaturan Profil Saya
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                Perbarui informasi akun, foto profil, dan kontak WhatsApp Anda.
-              </p>
-            </div>
+        {/* Navigation Tabs Bar */}
+        <div className="mb-6 flex items-center gap-2 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-5 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all ${
+              activeTab === 'profile'
+                ? 'border-[#F26522] text-[#F26522]'
+                : 'border-transparent text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <UserIcon size={16} />
+            <span>Edit Profil Saya</span>
+          </button>
 
-            {isSaved && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-full animate-in fade-in">
-                <CheckCircle size={16} />
-                <span>Berhasil Disimpan!</span>
+          <button
+            onClick={() => setActiveTab('used-twibbon')}
+            className={`px-5 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all ${
+              activeTab === 'used-twibbon'
+                ? 'border-[#F26522] text-[#F26522]'
+                : 'border-transparent text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <Layers size={16} />
+            <span>Twibbon Yang Dipakai</span>
+            {usedTwibbonsList.length > 0 && (
+              <span className="bg-orange-100 text-[#F26522] text-[10px] font-black px-2 py-0.5 rounded-full">
+                {usedTwibbonsList.length}
               </span>
             )}
-          </div>
+          </button>
+        </div>
+
+        {activeTab === 'profile' ? (
+          /* Profile Edit Card */
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
+            <div className="border-b border-gray-100 pb-5 mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-gray-900">
+                  Pengaturan Profil Saya
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  Perbarui informasi akun, foto profil, dan kontak WhatsApp Anda.
+                </p>
+              </div>
+
+              {isSaved && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-full animate-in fade-in">
+                  <CheckCircle size={16} />
+                  <span>Berhasil Disimpan!</span>
+                </span>
+              )}
+            </div>
 
           <form onSubmit={handleProfileSubmit} className="space-y-6">
             
@@ -271,10 +335,10 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Wilayah DPW */}
+              {/* Wilayah */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                  Wilayah DPW / Daerah
+                  Wilayah
                 </label>
                 <div className="relative">
                   <Building size={18} className="absolute left-3.5 top-3 text-gray-400" />
@@ -399,8 +463,102 @@ export default function ProfilePage() {
             </button>
 
           </form>
-
         </div>
+        ) : (
+          /* Twibbon Yang Dipakai Tab View */
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
+            <div className="border-b border-gray-100 pb-5 mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2">
+                  <Layers className="text-[#F26522]" />
+                  <span>Twibbon Yang Pernah Anda Buat</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  Daftar riwayat bingkai twibbon yang pernah Anda gunakan dan unduh.
+                </p>
+              </div>
+            </div>
+
+            {isLoadingUsedTwibbons ? (
+              <div className="py-12 flex flex-col items-center justify-center text-gray-400">
+                <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#F26522] mb-3"></div>
+                <p className="text-xs font-semibold">Memuat riwayat twibbon...</p>
+              </div>
+            ) : usedTwibbonsList.length === 0 ? (
+              <div className="py-12 text-center text-gray-400 flex flex-col items-center">
+                <Layers size={40} className="text-gray-300 mb-3" />
+                <p className="font-bold text-sm text-gray-700">Belum Ada Twibbon Yang Digunakan</p>
+                <p className="text-xs text-gray-400 max-w-sm mt-1 mb-4">
+                  Anda belum pernah membuat twibbon. Cari bingkai menarik dan buat twibbon pertama Anda!
+                </p>
+                <Link
+                  href="/twibbon"
+                  className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+                >
+                  Jelajahi Galeri Twibbon
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {usedTwibbonsList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-gray-50/80 rounded-2xl border border-gray-200/80 p-3.5 flex flex-col justify-between hover:shadow-md transition-all group"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden bg-white border border-gray-200 relative mb-3">
+                      {item.resultImageUrl ? (
+                        <img
+                          src={item.resultImageUrl}
+                          alt={item.twibbon?.title || 'Hasil Twibbon'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <img
+                          src={item.twibbon?.imageUrl}
+                          alt={item.twibbon?.title || 'Frame Twibbon'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-extrabold text-sm text-gray-900 line-clamp-1 group-hover:text-[#F26522] transition-colors">
+                        {item.twibbon?.title || 'Frame Twibbon PKS'}
+                      </h4>
+                      <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+                        Kategori: {item.twibbon?.category || 'Nasional'} • {item.twibbon?.region || 'Official'}
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-mono mt-1">
+                        Dibuat pada: {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+
+                      <div className="mt-3 pt-2 border-t border-gray-200/60 flex items-center justify-between">
+                        <Link
+                          href={`/twibbon/${item.twibbon?.slug || item.twibbon?.id}`}
+                          className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
+                        >
+                          <Sparkles size={12} />
+                          <span>Buat Lagi</span>
+                        </Link>
+
+                        {item.resultImageUrl && (
+                          <a
+                            href={item.resultImageUrl}
+                            download={`Twibbon_${item.twibbon?.title || 'PKS'}.png`}
+                            className="p-1.5 bg-white border border-gray-200 text-gray-700 hover:text-[#F26522] hover:border-orange-200 rounded-lg shadow-sm transition-all"
+                            title="Unduh Lagi"
+                          >
+                            <Download size={14} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Password Reset Request Modal */}

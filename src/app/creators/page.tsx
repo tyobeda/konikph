@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
+import { getUserSlug } from '@/lib/slug';
 import {
   Users,
   Search,
@@ -61,10 +62,10 @@ export default function CreatorsPage() {
               <span>Komunitas & Struktur Official</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Direktori Desainer Grafis & DPW PKS
+              Direktori Desainer Grafis & Wilayah PKS
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-              Jelajahi para perancang grafis, desainer visual, serta koordinator sekretariat DPW PKS se-Indonesia yang aktif berkontribusi menyediakan aset publikasi resmi.
+              Jelajahi para perancang grafis, desainer visual, serta koordinator sekretariat Wilayah PKS se-Indonesia yang aktif berkontribusi menyediakan aset publikasi resmi.
             </p>
           </div>
 
@@ -97,7 +98,7 @@ export default function CreatorsPage() {
               }`}
             >
               <Building size={16} />
-              <span>Kantor DPW Wilayah ({dpwList.length})</span>
+              <span>Kantor Wilayah ({dpwList.length})</span>
             </button>
           </div>
 
@@ -111,7 +112,7 @@ export default function CreatorsPage() {
               placeholder={
                 activeTab === 'creators'
                   ? 'Cari nama desainer atau wilayah...'
-                  : 'Cari nama DPW atau koordinator...'
+                  : 'Cari nama Wilayah atau koordinator...'
               }
               className="w-full bg-white text-sm rounded-2xl pl-10 pr-4 py-2.5 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] shadow-sm"
             />
@@ -138,7 +139,7 @@ export default function CreatorsPage() {
                   <div>
                     {/* User Header Info */}
                     <div className="flex items-start gap-4 mb-4">
-                      <Link href={`/creators/${user.id}`} className="shrink-0">
+                      <Link href={`/creators/${getUserSlug(user)}`} className="shrink-0">
                         <img
                           src={user.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                           alt={user.name}
@@ -147,7 +148,7 @@ export default function CreatorsPage() {
                       </Link>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <Link href={`/creators/${user.id}`} className="hover:text-[#F26522] transition-colors truncate">
+                          <Link href={`/creators/${getUserSlug(user)}`} className="hover:text-[#F26522] transition-colors truncate">
                             <h3 className="font-extrabold text-base text-gray-900 hover:text-[#F26522] transition-colors truncate">
                               {user.name}
                             </h3>
@@ -204,7 +205,7 @@ export default function CreatorsPage() {
                       </a>
                     )}
                     <Link
-                      href={`/creators/${user.id}`}
+                      href={`/creators/${getUserSlug(user)}`}
                       className="flex-1 py-2 px-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl text-center transition-colors shadow-sm"
                     >
                       Buka Profil

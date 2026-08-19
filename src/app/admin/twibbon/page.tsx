@@ -113,6 +113,13 @@ export default function AdminTwibbonPage() {
     });
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus]);
+
   const filteredTwibbons = twibbons.filter((t) => {
     const matchesSearch =
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -120,6 +127,9 @@ export default function AdminTwibbonPage() {
     const matchesStatus = filterStatus === 'all' || t.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredTwibbons.length / itemsPerPage));
+  const paginatedTwibbons = filteredTwibbons.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <>
@@ -188,86 +198,83 @@ export default function AdminTwibbonPage() {
 
         {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
+          <table className="w-full text-sm text-gray-600">
             <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
               <tr>
-                <th className="py-3.5 px-4">Frame Twibbon</th>
-                <th className="py-3.5 px-4">Kategori & DPW</th>
-                <th className="py-3.5 px-4">Uploader</th>
-                <th className="py-3.5 px-4">Penggunaan</th>
-                <th className="py-3.5 px-4">Featured</th>
-                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4 text-left">Frame Twibbon</th>
+                <th className="py-3.5 px-4 text-center">Kategori & Wilayah</th>
+                <th className="py-3.5 px-4 text-center">Uploader</th>
+                <th className="py-3.5 px-4 text-center">Featured</th>
+                <th className="py-3.5 px-4 text-center">Status</th>
                 <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredTwibbons.map((tw) => (
+              {paginatedTwibbons.map((tw) => (
                 <tr key={tw.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="py-3 px-4">
+                  {/* Frame Twibbon - Rata Kiri */}
+                  <td className="py-3 px-4 text-left">
                     <div className="flex items-center gap-3">
                       <img
                         src={tw.imageUrl}
                         alt={tw.title}
                         className="w-12 h-12 rounded-xl object-cover border border-purple-200 shrink-0 p-0.5 bg-purple-50"
                       />
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-bold text-gray-900 max-w-xs truncate">
                           {tw.title}
                         </p>
-                        <p className="text-xs text-gray-400 font-mono">
-                          ID: {tw.id} • {tw.createdAt}
+                        <p className="text-xs text-gray-500 font-normal">
+                          digunakan {tw.usedCount.toLocaleString()} kali
                         </p>
                       </div>
                     </div>
                   </td>
 
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col">
+                  {/* Kategori & Wilayah - Rata Tengah */}
+                  <td className="py-3 px-4 text-center">
+                    <div className="flex flex-col items-center">
                       <span className="font-bold text-gray-800">{tw.category}</span>
                       <span className="text-xs text-gray-500">{tw.region}</span>
                     </div>
                   </td>
 
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
+                  {/* Uploader - Rata Tengah */}
+                  <td className="py-3 px-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
                       <img
                         src={tw.author.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                         alt={tw.author.name}
-                        className="w-6 h-6 rounded-full object-cover"
+                        className="w-6 h-6 rounded-full object-cover shrink-0"
                       />
-                      <span className="font-semibold text-gray-800">{tw.author.name}</span>
+                      <span className="font-semibold text-gray-800 truncate">{tw.author.name}</span>
                     </div>
                   </td>
 
-                  <td className="py-3 px-4">
-                    <span className="inline-flex items-center gap-1 font-extrabold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full text-xs border border-purple-200">
-                      <Layers size={13} />
-                      <span>{tw.usedCount.toLocaleString()}x</span>
-                    </span>
-                  </td>
-
-                  <td className="py-3 px-4">
+                  {/* Featured - Tanpa Container */}
+                  <td className="py-3 px-4 text-center">
                     <button
                       onClick={() => handleToggleFeatured(tw.id, tw.isFeatured)}
-                      className={`p-1.5 rounded-lg border transition-colors ${
+                      className={`p-1.5 transition-colors inline-flex items-center justify-center ${
                         tw.isFeatured
-                          ? 'bg-amber-50 text-amber-500 border-amber-200'
-                          : 'bg-gray-50 text-gray-300 border-gray-200 hover:text-amber-400'
+                          ? 'text-amber-500 hover:text-amber-600'
+                          : 'text-gray-300 hover:text-amber-400'
                       }`}
                       title={tw.isFeatured ? 'Pilihan Utama (Featured)' : 'Sematkan Pilihan Utama'}
                     >
-                      <Star size={16} className={tw.isFeatured ? 'fill-amber-400' : ''} />
+                      <Star size={18} className={tw.isFeatured ? 'fill-amber-400' : ''} />
                     </button>
                   </td>
 
-                  <td className="py-3 px-4">
+                  {/* Status - Tanpa Container */}
+                  <td className="py-3 px-4 text-center">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+                      className={`inline-flex items-center gap-1.5 text-xs font-bold ${
                         tw.status === 'Disetujui'
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                          ? 'text-emerald-600'
                           : tw.status === 'Pending'
-                          ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                          : 'bg-red-50 text-red-600 border border-red-200'
+                          ? 'text-amber-600'
+                          : 'text-red-600'
                       }`}
                     >
                       <span
@@ -283,6 +290,7 @@ export default function AdminTwibbonPage() {
                     </span>
                   </td>
 
+                  {/* Aksi - Rata Kanan */}
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <Link
@@ -335,6 +343,35 @@ export default function AdminTwibbonPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+            <div>
+              Halaman <span className="font-bold text-gray-900">{currentPage}</span> dari <span className="font-bold text-gray-900">{totalPages}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm font-bold"
+              >
+                &larr; Prev
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm font-bold"
+              >
+                Next &rarr;
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -432,13 +469,13 @@ export default function AdminTwibbonPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Wilayah / DPW
+                    Wilayah
                   </label>
                   <input
                     type="text"
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    placeholder="DPP PKS / DPW Jabar"
+                    placeholder="DPP PKS / Jawa Barat"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
                     required
                   />

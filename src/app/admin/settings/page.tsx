@@ -28,6 +28,8 @@ import {
   Wrench,
   Eye,
   Layers,
+  FileSpreadsheet,
+  Filter,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
@@ -37,7 +39,7 @@ import { getCustomPageBySlug, addCustomPage, updateCustomPage } from '@/actions/
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
-  const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'danger'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'filter' | 'danger'>('identity');
 
   const [siteName, setSiteName] = useState(siteSettings.siteName || '');
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription || '');
@@ -80,6 +82,7 @@ export default function AdminSettingsPage() {
   const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
   const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
   const [autoApproveArtworks, setAutoApproveArtworks] = useState(siteSettings.autoApproveArtworks !== false);
+  const [allowCommentLinks, setAllowCommentLinks] = useState((siteSettings as any).allowCommentLinks !== false);
 
   useEffect(() => {
     if (siteSettings) {
@@ -103,6 +106,7 @@ export default function AdminSettingsPage() {
       setCtaSocialUrl(siteSettings.ctaSocialUrl || '');
       setAdminWhatsapp(siteSettings.adminWhatsapp || '6281199887766');
       setAutoApproveArtworks(siteSettings.autoApproveArtworks !== false);
+      setAllowCommentLinks((siteSettings as any).allowCommentLinks !== false);
       if (siteSettings.maintenanceConfig) {
         setMaintenanceState(siteSettings.maintenanceConfig as any);
       }
@@ -247,6 +251,41 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleForbiddenWordsCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        if (text) {
+          // Parse lines and commas from CSV
+          const rawWords = text
+            .split(/[\r\n,]+/)
+            .map((w) => w.trim().toLowerCase())
+            .filter((w) => w.length > 0 && !w.startsWith('#'));
+          
+          if (rawWords.length === 0) {
+            alert('File CSV kosong atau tidak memiliki kata terlarang yang valid.');
+            return;
+          }
+
+          // Combine with existing forbidden words without duplicates
+          const existingList = forbiddenWords
+            .split(/[\r\n,]+/)
+            .map((w) => w.trim().toLowerCase())
+            .filter((w) => w.length > 0);
+
+          const combinedSet = Array.from(new Set([...existingList, ...rawWords]));
+          const formattedText = combinedSet.join(', ');
+          
+          setForbiddenWords(formattedText);
+          triggerToast(`Berhasil mengimpor ${rawWords.length} kata terlarang baru dari CSV "${file.name}"!`);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleSaveMaintenance = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -273,6 +312,7 @@ export default function AdminSettingsPage() {
         ogImageUrl: ogImagePreview,
         adminWhatsapp,
         autoApproveArtworks,
+        allowCommentLinks,
         forbiddenWords,
       });
       setIsSaved(true);
@@ -498,6 +538,7 @@ export default function AdminSettingsPage() {
           </button>
           <button onClick={() => setActiveTab('resource')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'resource' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Storage & Server</button>
           <button onClick={() => setActiveTab('backup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'backup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Backup Data</button>
+          <button onClick={() => setActiveTab('filter')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'filter' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}><Filter size={14} /> Filter Komentar & Konten</button>
           <button onClick={() => setActiveTab('danger')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'danger' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-red-600'}`}><ShieldAlert size={14} /> Danger Zone</button>
         </div>
 
@@ -761,33 +802,6 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-              </div>
-
-              {/* Section Filter Moderation Kata yang Dilarang */}
-              <div className="pt-4 border-t border-gray-100">
-                <div className="bg-orange-50/60 rounded-2xl p-5 border border-orange-100 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert size={20} className="text-[#F26522]" />
-                    <h3 className="text-sm font-extrabold text-gray-900">
-                      Moderasi Kata Terlarang (Filter Otomatis Judul, Deskripsi & Komentar)
-                    </h3>
-                  </div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Masukkan daftar kata/frasa terlarang yang dipisahkan oleh tanda koma (<code>,</code>) atau baris baru. Sistem secara otomatis memblokir pembuatan judul karya, deskripsi, maupun komentar yang mengandung kata-kata di bawah ini.
-                  </p>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                      Daftar Kata Terlarang (Blacklist Words)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={forbiddenWords}
-                      onChange={(e) => setForbiddenWords(e.target.value)}
-                      placeholder="Contoh: judi, slot, gacor, bokep, porno, sara, rasis, penipu"
-                      className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-xs font-semibold focus:outline-none focus:border-[#F26522] transition-all"
-                    />
-                  </div>
-                </div>
               </div>
 
               <div className="flex justify-end pt-2">
@@ -1731,6 +1745,116 @@ export default function AdminSettingsPage() {
           </div>
 
           </>
+          )}
+
+          {activeTab === 'filter' && (
+            <>
+            {/* Section: Filter Komentar & Konten Terlarang */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-4">
+                <div>
+                  <h2 className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
+                    <Filter size={20} className="text-[#F26522]" />
+                    <span>Filter Komentar & Konten Terlarang (Blacklist Words)</span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Proteksi real-time otomatis untuk memblokir kata kasar, judi, SARA, dan spam pada judul karya, deskripsi, dan komentar pengguna.
+                  </p>
+                </div>
+
+                {/* CSV Upload & Template Buttons */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <label className="px-3.5 py-2 bg-white border border-gray-300 hover:border-[#F26522] text-gray-700 hover:text-[#F26522] text-xs font-bold rounded-xl cursor-pointer transition-all flex items-center gap-2 shadow-xs">
+                    <FileSpreadsheet size={15} className="text-emerald-600" />
+                    <span>Upload File CSV Blacklist</span>
+                    <input type="file" accept=".csv, .txt" onChange={handleForbiddenWordsCsvUpload} className="hidden" />
+                  </label>
+
+                  <a
+                    href="/template_kata_terlarang.csv"
+                    download="template_kata_terlarang.csv"
+                    className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 bg-gray-50 border border-gray-200 rounded-xl transition-colors text-xs font-semibold flex items-center justify-center"
+                    title="Unduh Template CSV (Siap Edit di Excel)"
+                  >
+                    <Download size={15} />
+                  </a>
+                </div>
+              </div>
+
+              <div className="bg-orange-50/60 rounded-2xl p-5 border border-orange-100 space-y-4">
+                <p className="text-xs text-gray-700 leading-relaxed font-medium">
+                  Anda dapat menelaah, menambah, atau mengedit daftar kata terlarang secara manual di bawah ini (dipisahkan koma atau baris baru), atau mengunggah berkas <strong>.CSV / .TXT</strong> berisi daftar <em>forbidden words</em>.
+                </p>
+
+                <form onSubmit={handleSaveGeneral} className="space-y-5">
+                  
+                  {/* Toggle Switch Filter Link / Hyperlink */}
+                  <div className="bg-white p-4 rounded-xl border border-orange-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                        <span>Izin Tautan / Link pada Komentar</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${allowCommentLinks ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                          {allowCommentLinks ? 'Diizinkan' : 'Dilarang (Blokir Link)'}
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        Memblokir otomatis komentar yang mengandung hyperlink / URL (seperti <code>https://</code>, <code>www.</code>, atau domain <code>xxx.xxx</code> / <code>xxx.com</code>).
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setAllowCommentLinks(!allowCommentLinks)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        allowCommentLinks ? 'bg-[#F26522]' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          allowCommentLinks ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-bold text-gray-800 uppercase">
+                        Daftar Kata Terlarang Aktif
+                      </label>
+                      {forbiddenWords && (
+                        <button
+                          type="button"
+                          onClick={() => setForbiddenWords('')}
+                          className="text-[11px] font-bold text-red-600 hover:underline"
+                        >
+                          Kosongkan Semua
+                        </button>
+                      )}
+                    </div>
+                    <textarea
+                      rows={6}
+                      value={forbiddenWords}
+                      onChange={(e) => setForbiddenWords(e.target.value)}
+                      placeholder="Contoh: judi, slot, gacor, bokep, porno, sara, rasis, penipu"
+                      className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-xs font-semibold focus:outline-none focus:border-[#F26522] transition-all leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSavingGeneral}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50"
+                    >
+                      <Save size={16} />
+                      <span>{isSavingGeneral ? 'Menyimpan...' : 'Simpan Daftar Kata Terlarang'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            </>
           )}
 
           {activeTab === 'danger' && (

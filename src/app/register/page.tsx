@@ -19,10 +19,11 @@ import {
 import { PksLogo } from '@/components/PksLogo';
 import { REGIONS } from '@/lib/data';
 import { useData } from '@/context/DataContext';
+import { Footer } from '@/components/Footer';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { registerUser, loginUser, users, currentUser, isMounted, isModuleUnderMaintenance } = useData();
+  const { registerUser, loginUser, users, dpwList, currentUser, isMounted, isModuleUnderMaintenance } = useData();
 
   React.useEffect(() => {
     if (isMounted) {
@@ -42,12 +43,20 @@ export default function RegisterPage() {
     }
   }, [currentUser, router, isMounted, isModuleUnderMaintenance]);
 
+  // Combine dynamic DPW list from database settings with fallback constant REGIONS
+  const availableRegions = React.useMemo(() => {
+    if (dpwList && dpwList.length > 0) {
+      return dpwList.map((d) => d.name);
+    }
+    return REGIONS.filter((r) => r !== 'Semua Daerah');
+  }, [dpwList]);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     address: '',
-    region: 'DPW Jawa Barat',
+    region: '',
     gender: 'Laki-laki',
     password: '',
     confirmPassword: '',
@@ -57,8 +66,10 @@ export default function RegisterPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [regionSearch, setRegionSearch] = useState('DPW Jawa Barat');
+  const [regionSearch, setRegionSearch] = useState('');
   const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+
+  // Keep region empty by default so user picks manually
 
   // XSS & SQLi Protection Sanitizer
   const sanitize = (val: string): string => {
@@ -105,7 +116,7 @@ export default function RegisterPage() {
       return;
     }
     if (!sanitizedRegion) {
-      setErrorMessage('Wilayah DPW / Daerah wajib dipilih.');
+      setErrorMessage('Wilayah wajib dipilih.');
       return;
     }
 
@@ -137,12 +148,13 @@ export default function RegisterPage() {
       name: sanitizedName,
       email: sanitizedEmail,
       phone: sanitizedPhone,
+      password: formData.password,
       address: sanitizedAddress,
       region: sanitizedRegion,
       gender: sanitizedGender,
       avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
       role: 'Desainer PKS',
-    });
+    } as any);
 
     setIsSubmitting(false);
     
@@ -193,7 +205,7 @@ export default function RegisterPage() {
             Daftar Akun PKSart
           </h2>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Bergabunglah bersama komunitas desainer & pengurus daerah PKS seluruh Indonesia.
+            Bergabunglah bersama komunitas desainer & pengurus wilayah PKS seluruh Indonesia.
           </p>
         </div>
 
@@ -318,7 +330,7 @@ export default function RegisterPage() {
                  {/* Wilayah DPW Search Combobox */}
                  <div className="relative">
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                    Wilayah DPW / Daerah <span className="text-red-500">*</span>
+                    Wilayah <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Building size={18} className="absolute left-3.5 top-3 text-gray-400 z-10" />
@@ -326,41 +338,42 @@ export default function RegisterPage() {
                       type="text"
                       value={regionSearch}
                       onChange={(e) => {
-                        setRegionSearch(e.target.value);
+                        const val = e.target.value;
+                        setRegionSearch(val);
+                        setFormData((prev) => ({ ...prev, region: val }));
                         setShowRegionDropdown(true);
                       }}
                       onFocus={() => setShowRegionDropdown(true)}
                       onBlur={() => {
                         setTimeout(() => setShowRegionDropdown(false), 200);
                       }}
-                      placeholder="Cari Wilayah DPW..."
+                      placeholder="Cari Wilayah..."
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
                       required
                     />
                   </div>
                   {showRegionDropdown && (
                     <div className="absolute z-20 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg divide-y divide-gray-50">
-                      {REGIONS.filter((r) => r !== 'Semua Daerah')
-                        .filter((r) => r.toLowerCase().includes(regionSearch.toLowerCase()))
-                        .length > 0 ? (
-                          REGIONS.filter((r) => r !== 'Semua Daerah')
-                            .filter((r) => r.toLowerCase().includes(regionSearch.toLowerCase()))
-                            .map((r) => (
-                              <button
-                                key={r}
-                                type="button"
-                                onMouseDown={() => {
-                                  setRegionSearch(r);
-                                  setShowRegionDropdown(false);
-                                }}
-                                className="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-orange-50 hover:text-[#F26522] transition-colors"
-                              >
-                                {r}
-                              </button>
-                            ))
-                        ) : (
-                          <div className="px-4 py-2 text-xs text-gray-400 italic">Wilayah tidak ditemukan</div>
-                        )}
+                      {availableRegions.filter((r) => r.toLowerCase().includes(regionSearch.toLowerCase())).length > 0 ? (
+                        availableRegions
+                          .filter((r) => r.toLowerCase().includes(regionSearch.toLowerCase()))
+                          .map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              onMouseDown={() => {
+                                setRegionSearch(r);
+                                setFormData((prev) => ({ ...prev, region: r }));
+                                setShowRegionDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-orange-50 hover:text-[#F26522] transition-colors"
+                            >
+                              {r}
+                            </button>
+                          ))
+                      ) : (
+                        <div className="px-4 py-2 text-xs text-gray-400 italic">Wilayah tidak ditemukan</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -461,6 +474,8 @@ export default function RegisterPage() {
         </div>
 
       </div>
+
+      <Footer />
     </div>
   );
 }
