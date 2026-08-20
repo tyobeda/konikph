@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Sparkles, AlertCircle, ChevronDown, HelpCircle, Quote, X, Edit3 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
+import { MaintenanceContent } from '@/app/maintenance/page';
 import SliderWidget, { SlideItem, SliderEffect } from '@/components/SliderWidget';
 
 /**
@@ -117,7 +118,12 @@ interface CustomPageContentProps {
 
 export default function CustomPageContent({ page }: CustomPageContentProps) {
   const router = useRouter();
-  const { currentUser } = useData();
+  const { currentUser, isModuleUnderMaintenance } = useData();
+
+  if (isModuleUnderMaintenance('pages')) {
+    return <MaintenanceContent />;
+  }
+
   const [activeFaq, setActiveFaq] = useState<{ [key: string]: boolean }>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 

@@ -26,6 +26,25 @@ import { ConfirmSuspendModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
 import { User } from '@/lib/types';
 import { getUserSlug } from '@/lib/slug';
+import { generateResetLinkAction } from '@/actions/resetRequest';
+import { formatPhoneNumber } from '@/lib/phone';
+
+const formatDateTime = (dateStr?: string) => {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  } catch (e) {
+    return dateStr;
+  }
+};
 
 export default function AdminCreatorsPage() {
   const { 
@@ -37,6 +56,7 @@ export default function AdminCreatorsPage() {
     deleteUser, 
     updateUser,
     resetRequests,
+    refreshResetRequests,
     completeResetRequest,
     deleteResetRequest
   } = useData();
@@ -51,6 +71,9 @@ export default function AdminCreatorsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    if (activeTab === 'resets') {
+      refreshResetRequests();
+    }
   }, [searchQuery, activeTab, statusFilter]);
 
   const [formData, setFormData] = useState({
@@ -112,14 +135,12 @@ export default function AdminCreatorsPage() {
   };
 
   const formatPhoneForWA = (phone: string) => {
-    let clean = phone.replace(/[^0-9]/g, '');
-    if (clean.startsWith('0')) {
-      clean = '62' + clean.slice(1);
-    }
-    return clean;
+    const formatted = formatPhoneNumber(phone);
+    return formatted.replace(/[^0-9]/g, '');
   };
 
   const pendingCreatorsCount = users.filter(u => u.status === 'Pending' || u.status === 'Pending Approval').length;
+  const pendingResetsCount = resetRequests.filter(r => (r.status || '').toLowerCase() === 'pending').length;
 
   const filteredCreators = users.filter((c) => {
     const matchesSearch =
@@ -154,6 +175,30 @@ export default function AdminCreatorsPage() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const handleSendResetLink = async (req: any) => {
+    try {
+      const res = await generateResetLinkAction(req.id);
+      let targetUrl = res?.resetUrl;
+      
+      if (!targetUrl && req.token) {
+        const origin = window.location.origin;
+        targetUrl = `${origin}/reset-password?token=${req.token}`;
+      }
+
+      if (targetUrl) {
+        const waPhone = formatPhoneForWA(req.phone);
+        const text = `Halo ${req.name},\n\nPermintaan reset kata sandi Anda di PKSart telah disetujui. Silakan klik tautan di bawah ini untuk membuat kata sandi baru Anda:\n\n👉 Tautan Reset Kata Sandi:\n${targetUrl}\n\n⚠️ Catatan: Tautan ini HANYA BERLAKU SELAMA 5 MENIT demi keamanan akun Anda.`;
+        const waUrl = `https://api.whatsapp.com/send?phone=${waPhone}&text=${encodeURIComponent(text)}`;
+        window.open(waUrl, '_blank');
+        completeResetRequest(req.id);
+      } else {
+        alert(res?.error || 'Gagal membuat link reset kata sandi.');
+      }
+    } catch (err: any) {
+      alert('Gagal membuat link reset: ' + err.message);
+    }
+  };
 
   return (
     <>
@@ -208,8 +253,13 @@ export default function AdminCreatorsPage() {
               ? 'bg-orange-50 text-[#F26522] border-orange-200'
               : 'bg-gray-100 text-gray-600 border-gray-200'
           }`}>
-            {resetRequests.filter((r) => r.status === 'Pending').length}
+            {resetRequests.length}
           </span>
+          {pendingResetsCount > 0 && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 animate-pulse">
+              {pendingResetsCount} Permintaan Baru
+            </span>
+          )}
         </button>
       </div>
 
@@ -297,7 +347,7 @@ export default function AdminCreatorsPage() {
                   <th className="py-3.5 px-4">Nama Lengkap</th>
                   <th className="py-3.5 px-4">Alamat Email</th>
                   <th className="py-3.5 px-4">Nomor WhatsApp</th>
-                  <th className="py-3.5 px-4">Tanggal Pengajuan</th>
+                  <th className="py-3.5 px-4">Waktu Pengajuan</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4 text-right">Aksi Admin</th>
                 </tr>
@@ -325,7 +375,7 @@ export default function AdminCreatorsPage() {
                           <span>{req.phone}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-gray-500 font-medium">{req.createdAt}</td>
+                      <td className="py-3.5 px-4 text-gray-700 font-mono text-xs">{formatDateTime(req.createdAt)}</td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                           req.status === 'Pending'
@@ -338,17 +388,13 @@ export default function AdminCreatorsPage() {
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {req.status === 'Pending' && (
-                            <a
-                              href={`https://api.whatsapp.com/send?phone=${formatPhoneForWA(req.phone)}&text=${encodeURIComponent(
-                                `Halo ${req.name},\n\nBerikut adalah Kata Sandi PKSart baru Anda setelah direset oleh Admin:\n\n👉 Kata Sandi Baru: pksart123\n\nSilakan gunakan kata sandi ini untuk masuk ke akun Anda di http://localhost:3000/login dan segera ubah kata sandi lama Anda melalui menu profil.`
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => completeResetRequest(req.id)}
+                            <button
+                              type="button"
+                              onClick={() => handleSendResetLink(req)}
                               className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm active:scale-95"
                             >
-                              <span>Kirim Sandi Baru ke WA</span>
-                            </a>
+                              <span>Kirim Link Reset 5-Menit ke WA</span>
+                            </button>
                           )}
                           <button
                             onClick={() => deleteResetRequest(req.id)}
@@ -590,6 +636,12 @@ export default function AdminCreatorsPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onBlur={(e) => {
+                    if (e.target.value) {
+                      setFormData(prev => ({ ...prev, phone: formatPhoneNumber(e.target.value) }));
+                    }
+                  }}
+                  placeholder="contoh: 081234567890 atau +6281234567890"
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
                   required
                 />

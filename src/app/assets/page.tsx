@@ -21,23 +21,26 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
+import { MaintenanceContent } from '@/app/maintenance/page';
+
 export default function AssetsPage() {
   const router = useRouter();
   const { artworks, brandKits, isBrandKitsLoaded, currentUser, isModuleUnderMaintenance } = useData();
+
+  if (isModuleUnderMaintenance('assets')) {
+    return <MaintenanceContent />;
+  }
+
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    if (isModuleUnderMaintenance('assets')) {
-      router.replace('/maintenance');
-      return;
-    }
     if (!currentUser) {
       router.replace('/login');
     }
-  }, [currentUser, router, isModuleUnderMaintenance]);
+  }, [currentUser, router]);
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
 

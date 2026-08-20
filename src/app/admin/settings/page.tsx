@@ -27,6 +27,7 @@ import {
   Upload,
   Wrench,
   Eye,
+  EyeOff,
   Layers,
   FileSpreadsheet,
   Filter,
@@ -38,11 +39,11 @@ import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
 import { getCustomPageBySlug, addCustomPage, updateCustomPage } from '@/actions/page';
-import { verifyAdminPasswordAction } from '@/actions/settings';
+import { verifyAdminPasswordAction, getServerSystemStats, exportBackupDataAction, importRestoreDataAction, updateSuperAdminCredentialsAction } from '@/actions/settings';
 
 export default function AdminSettingsPage() {
-  const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
-  const [activeTab, setActiveTab] = useState<'identity' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'filter' | 'danger'>('identity');
+  const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages, currentUser } = useData();
+  const [activeTab, setActiveTab] = useState<'identity' | 'credentials' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'filter' | 'danger'>('identity');
 
   const [siteName, setSiteName] = useState(siteSettings.siteName || '');
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription || '');
@@ -86,6 +87,39 @@ export default function AdminSettingsPage() {
   const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
   const [autoApproveArtworks, setAutoApproveArtworks] = useState(siteSettings.autoApproveArtworks !== false);
   const [allowCommentLinks, setAllowCommentLinks] = useState((siteSettings as any).allowCommentLinks !== false);
+
+  // Dynamic System & Server Storage Stats State
+  const [systemStats, setSystemStats] = useState<{
+    uploadsSizeMb: string;
+    uploadsSizeGb: string;
+    uploadsFileCount: number;
+    artworksCount: number;
+    usersCount: number;
+    twibbonsCount: number;
+    dbSizeMb: string;
+    totalMemGb: string;
+    usedMemGb: string;
+    ramUsagePercent: number;
+    procRssMb: number;
+    cpuCount: number;
+    cpuLoadPercent: number;
+  } | null>(null);
+  const [isFetchingStats, setIsFetchingStats] = useState(false);
+
+  const fetchSystemStats = async () => {
+    setIsFetchingStats(true);
+    const res = await getServerSystemStats();
+    if (res.success && res.data) {
+      setSystemStats(res.data as any);
+    }
+    setIsFetchingStats(false);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'resource') {
+      fetchSystemStats();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (siteSettings) {
@@ -163,6 +197,88 @@ export default function AdminSettingsPage() {
   const [dangerPasswordInput, setDangerPasswordInput] = useState('');
   const [dangerPasswordError, setDangerPasswordError] = useState('');
   const [isVerifyingDangerPassword, setIsVerifyingDangerPassword] = useState(false);
+
+  // Super Admin Credentials Update States
+  const [adminCurrentPassword, setAdminCurrentPassword] = useState('');
+  const [adminNewEmail, setAdminNewEmail] = useState('');
+  const [adminNewPassword, setAdminNewPassword] = useState('');
+  const [adminConfirmPassword, setAdminConfirmPassword] = useState('');
+  const [showAdminCurrentPassword, setShowAdminCurrentPassword] = useState(false);
+  const [showAdminNewPassword, setShowAdminNewPassword] = useState(false);
+  const [showAdminConfirmPassword, setShowAdminConfirmPassword] = useState(false);
+  const [isUpdatingCredentials, setIsUpdatingCredentials] = useState(false);
+  const [credentialsError, setCredentialsError] = useState('');
+
+  const handleUpdateSuperAdminCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCredentialsError('');
+
+    if (!adminCurrentPassword) {
+      setCredentialsError('Kata sandi saat ini (lama) wajib diisi untuk verifikasi.');
+      return;
+    }
+
+    if (!adminNewEmail.trim() && !adminNewPassword.trim()) {
+      setCredentialsError('Silakan isi email baru atau kata sandi baru yang ingin diubah.');
+      return;
+    }
+
+    if (adminNewPassword.trim()) {
+      if (adminNewPassword.length < 6) {
+        setCredentialsError('Kata sandi baru minimal 6 karakter.');
+        return;
+      }
+      if (adminNewPassword !== adminConfirmPassword) {
+        setCredentialsError('Konfirmasi kata sandi baru tidak cocok.');
+        return;
+      }
+    }
+
+    setIsUpdatingCredentials(true);
+    const res = await updateSuperAdminCredentialsAction({
+      currentPassword: adminCurrentPassword,
+      newEmail: adminNewEmail.trim() || undefined,
+      newPassword: adminNewPassword.trim() || undefined,
+    });
+    if (res && res.success) {
+      triggerToast('Kredensial Super Admin berhasil diperbarui!');
+      setAdminCurrentPassword('');
+      setAdminNewEmail('');
+      setAdminNewPassword('');
+      setAdminConfirmPassword('');
+      setCredentialsError('');
+    } else {
+      setCredentialsError(res?.error || 'Gagal memperbarui kredensial Super Admin.');
+    }
+  };
+
+  const [isSendingResetLink, setIsSendingResetLink] = useState(false);
+
+  const handleSendAdminResetLink = async () => {
+    setIsSendingResetLink(true);
+    const { addResetRequest, generateResetLinkAction } = await import('@/actions/resetRequest');
+    const adminEmail = currentUser?.email || 'admin@pks.art';
+    const adminPhone = currentUser?.phone || '+6281199887766';
+    const adminName = currentUser?.name || 'Super Admin PKSart';
+    
+    const res = await addResetRequest({ name: adminName, email: adminEmail, phone: adminPhone });
+
+    if (res.success && res.data) {
+      const genRes = await generateResetLinkAction(res.data.id);
+      setIsSendingResetLink(false);
+      if (genRes.success && genRes.resetUrl) {
+        triggerToast('Tautan Reset 5-Menit berhasil dibuat! Membuka halaman reset password...');
+        setTimeout(() => {
+          window.open(genRes.resetUrl, '_blank');
+        }, 800);
+      } else {
+        alert(genRes.error || 'Gagal membuat tautan reset.');
+      }
+    } else {
+      setIsSendingResetLink(false);
+      alert(res.error || 'Gagal mengajukan permintaan reset.');
+    }
+  };
 
   const handleUnlockDangerZone = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -471,14 +587,63 @@ export default function AdminSettingsPage() {
     triggerToast('Perubahan pengaturan Pop-up berhasil dibatalkan.');
   };
 
-  const handleCreateBackup = () => {
-    triggerToast('Mengunduh paket cadangan (backup_pksart_db.sql.gz)...');
+  const [isExportingBackup, setIsExportingBackup] = useState(false);
+  const [isRestoringBackup, setIsRestoringBackup] = useState(false);
+
+  const handleCreateBackup = async () => {
+    setIsExportingBackup(true);
+    triggerToast('Mengekstrak dan mengemas seluruh data database...');
+    try {
+      const res = await exportBackupDataAction();
+      if (res.success && res.data) {
+        const jsonStr = JSON.stringify(res.data, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const dateStr = new Date().toISOString().split('T')[0];
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pksart_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        triggerToast(`Backup berhasil diunduh! (${res.data.summary.totalArtworks} karya, ${res.data.summary.totalUsers} user).`);
+      } else {
+        alert(res?.error || 'Gagal mengekspor data backup.');
+      }
+    } catch (err: any) {
+      alert('Gagal mengekspor backup: ' + err.message);
+    } finally {
+      setIsExportingBackup(false);
+    }
   };
 
-  const handleRestoreFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      triggerToast(`Memulihkan data dari file "${file.name}"... Selesai!`);
+      if (!confirm(`Apakah Anda yakin ingin memulihkan data database dari file "${file.name}"?`)) {
+        return;
+      }
+      setIsRestoringBackup(true);
+      triggerToast('Membaca dan memproses file pemulihan cadangan...');
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const content = event.target?.result as string;
+        if (content) {
+          const res = await importRestoreDataAction(content);
+          setIsRestoringBackup(false);
+          if (res.success) {
+            triggerToast(res.message || 'Pemulihan data berhasil diselesaikan!');
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            alert(res.error || 'Gagal memulihkan data dari file.');
+          }
+        }
+      };
+      reader.readAsText(file);
     }
   };
 
@@ -552,19 +717,20 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Tab Menu */}
-        <div className="flex border-b border-gray-200 mb-8 overflow-x-auto no-scrollbar gap-6 text-sm font-bold">
+        <div className="flex border-b border-gray-200 mb-8 overflow-x-auto no-scrollbar gap-5 text-sm font-bold">
           <button onClick={() => setActiveTab('identity')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'identity' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Identitas Web</button>
+          <button onClick={() => setActiveTab('credentials')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'credentials' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}><KeyRound size={14} /> Akun & Sandi</button>
           <button onClick={() => setActiveTab('cta')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'cta' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Banner CTA</button>
-          <button onClick={() => setActiveTab('popup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'popup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Pop-up Pengumuman</button>
+          <button onClick={() => setActiveTab('popup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'popup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Pop-up</button>
           <button onClick={() => setActiveTab('maintenance')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'maintenance' ? 'text-amber-600 border-b-2 border-amber-600 font-bold' : 'text-gray-500 hover:text-amber-600'}`}>
-            <span>Mode Pemeliharaan</span>
+            <span>Maintenance</span>
             {maintenanceState.globalEnabled && (
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
             )}
           </button>
-          <button onClick={() => setActiveTab('resource')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'resource' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Storage & Server</button>
+          <button onClick={() => setActiveTab('resource')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'resource' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Server & Storage</button>
           <button onClick={() => setActiveTab('backup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'backup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}>Backup Data</button>
-          <button onClick={() => setActiveTab('filter')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'filter' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}><Filter size={14} /> Filter Komentar & Konten</button>
+          <button onClick={() => setActiveTab('filter')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'filter' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 hover:text-gray-900'}`}><Filter size={14} /> Filter Konten</button>
           <button onClick={() => setActiveTab('danger')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'danger' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-red-600'}`}><ShieldAlert size={14} /> Danger Zone</button>
         </div>
 
@@ -848,6 +1014,190 @@ export default function AdminSettingsPage() {
           </>
           )}
 
+          {activeTab === 'credentials' && (
+            <>
+              {/* Section: Pengaturan Akun & Kredensial Super Admin */}
+              <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
+                <div className="border-b border-gray-100 pb-4">
+                  <div className="flex items-center gap-2.5 text-gray-900">
+                    <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 text-[#F26522] flex items-center justify-center font-bold">
+                      <KeyRound size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-gray-900">
+                        Pengaturan Email & Kata Sandi Super Admin
+                      </h2>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Ubah email masuk dan kata sandi akun Administrator PKSart secara aman.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Current Admin Info Card */}
+                <div className="p-4 bg-gray-50/80 border border-gray-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#1e293b] text-white font-extrabold flex items-center justify-center text-xs shrink-0 ring-2 ring-orange-200">
+                      ADMIN
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                        <span>{currentUser?.name || 'Super Admin PKSart'}</span>
+                        <span className="px-2 py-0.5 bg-orange-100 text-[#F26522] text-[10px] font-black rounded-full uppercase">
+                          {currentUser?.role || 'Super Admin'}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-500 font-mono mt-0.5">
+                        Email Aktif: <strong className="text-gray-800">{currentUser?.email || 'admin@pks.art'}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-left sm:text-right text-[11px] text-gray-400 font-medium">
+                    <p>Status: <span className="text-emerald-600 font-bold">Terverifikasi & Aktif</span></p>
+                    <p>Akses: Penuh (Super Admin)</p>
+                  </div>
+                </div>
+
+                {credentialsError && (
+                  <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs font-bold text-red-700 flex items-start gap-2 animate-in fade-in">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>{credentialsError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleUpdateSuperAdminCredentials} className="space-y-5">
+                  
+                  {/* Field 1: Kata Sandi Saat Ini (Lama) */}
+                  <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl space-y-2">
+                    <label className="block text-xs font-extrabold text-amber-900 uppercase">
+                      1. Kata Sandi Saat Ini (Lama) <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-[11px] text-amber-800/80 font-medium">
+                      Wajib dimasukkan sebagai bukti verifikasi pemilik akun Super Admin sebelum dapat mengubah email atau kata sandi.
+                    </p>
+                    <div className="relative max-w-md mt-1">
+                      <Lock size={16} className="absolute left-3.5 top-3 text-amber-600/70" />
+                      <input
+                        type={showAdminCurrentPassword ? 'text' : 'password'}
+                        value={adminCurrentPassword}
+                        onChange={(e) => { setAdminCurrentPassword(e.target.value); setCredentialsError(''); }}
+                        placeholder="Masukkan kata sandi Admin saat ini"
+                        className="w-full bg-white border border-amber-300 text-gray-900 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] font-semibold"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminCurrentPassword(!showAdminCurrentPassword)}
+                        className="absolute right-3.5 top-3 text-gray-400 hover:text-[#F26522]"
+                      >
+                        {showAdminCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+
+                    <div className="pt-1 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={handleSendAdminResetLink}
+                        disabled={isSendingResetLink}
+                        className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      >
+                        <RefreshCw size={13} className={isSendingResetLink ? 'animate-spin' : ''} />
+                        <span>{isSendingResetLink ? 'Membuat Tautan Reset...' : 'Lupa Kata Sandi Lama? (Buat Tautan Reset 5-Menit)'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                    
+                    {/* Field 2: Alamat Email Baru */}
+                    <div className="space-y-2 bg-gray-50/60 p-4 rounded-2xl border border-gray-200">
+                      <label className="block text-xs font-bold text-gray-700 uppercase">
+                        2. Alamat Email Baru <span className="text-gray-400 font-normal">(Opsional)</span>
+                      </label>
+                      <p className="text-[11px] text-gray-500">
+                        Kosongkan jika hanya ingin mengganti kata sandi.
+                      </p>
+                      <input
+                        type="email"
+                        value={adminNewEmail}
+                        onChange={(e) => { setAdminNewEmail(e.target.value); setCredentialsError(''); }}
+                        placeholder="contoh: admin.baru@pks.art"
+                        className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                      />
+                    </div>
+
+                    {/* Field 3: Kata Sandi Baru */}
+                    <div className="space-y-2 bg-gray-50/60 p-4 rounded-2xl border border-gray-200">
+                      <label className="block text-xs font-bold text-gray-700 uppercase">
+                        3. Kata Sandi Baru <span className="text-gray-400 font-normal">(Opsional)</span>
+                      </label>
+                      <p className="text-[11px] text-gray-500">
+                        Kosongkan jika hanya ingin mengganti email login.
+                      </p>
+                      <div className="relative">
+                        <Lock size={16} className="absolute left-3.5 top-3 text-gray-400" />
+                        <input
+                          type={showAdminNewPassword ? 'text' : 'password'}
+                          value={adminNewPassword}
+                          onChange={(e) => { setAdminNewPassword(e.target.value); setCredentialsError(''); }}
+                          placeholder="Minimal 6 karakter"
+                          className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl pl-10 pr-10 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowAdminNewPassword(!showAdminNewPassword)}
+                          className="absolute right-3.5 top-3 text-gray-400 hover:text-[#F26522]"
+                        >
+                          {showAdminNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+
+                      {/* Konfirmasi Kata Sandi Baru */}
+                      {adminNewPassword.trim().length > 0 && (
+                        <div className="pt-2">
+                          <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                            Konfirmasi Kata Sandi Baru
+                          </label>
+                          <div className="relative">
+                            <Lock size={16} className="absolute left-3.5 top-3 text-gray-400" />
+                            <input
+                              type={showAdminConfirmPassword ? 'text' : 'password'}
+                              value={adminConfirmPassword}
+                              onChange={(e) => { setAdminConfirmPassword(e.target.value); setCredentialsError(''); }}
+                              placeholder="Ketik ulang kata sandi baru"
+                              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl pl-10 pr-10 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowAdminConfirmPassword(!showAdminConfirmPassword)}
+                              className="absolute right-3.5 top-3 text-gray-400 hover:text-[#F26522]"
+                            >
+                              {showAdminConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                  <div className="flex items-center justify-end pt-4 border-t border-gray-100">
+                    <button
+                      type="submit"
+                      disabled={isUpdatingCredentials}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50"
+                    >
+                      <Save size={16} />
+                      <span>{isUpdatingCredentials ? 'Menyimpan Kredensial Baru...' : 'Simpan Kredensial Super Admin'}</span>
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+            </>
+          )}
+
           {activeTab === 'cta' && (
             <>
           {/* Section 2: Pengaturan Banner CTA Beranda */}
@@ -869,13 +1219,13 @@ export default function AdminSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setCtaEnabled(!ctaEnabled)}
-                  className={`w-12 h-6 rounded-full p-0.5 transition-colors ${
+                  className={`w-12 h-7 rounded-full p-1 transition-colors relative shrink-0 ${
                     ctaEnabled ? 'bg-emerald-500' : 'bg-gray-300'
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                      ctaEnabled ? 'translate-x-6' : 'translate-x-0'
+                    className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${
+                      ctaEnabled ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
@@ -1101,13 +1451,13 @@ export default function AdminSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setPopupConfig({ ...popupConfig, isEnabled: !popupConfig.isEnabled })}
-                  className={`w-12 h-6 rounded-full p-0.5 transition-colors ${
+                  className={`w-12 h-7 rounded-full p-1 transition-colors relative shrink-0 ${
                     popupConfig.isEnabled ? 'bg-emerald-500' : 'bg-gray-300'
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                      popupConfig.isEnabled ? 'translate-x-6' : 'translate-x-0'
+                    className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${
+                      popupConfig.isEnabled ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
@@ -1435,15 +1785,19 @@ export default function AdminSettingsPage() {
                       </div>
                     </div>
 
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={maintenanceState.globalEnabled}
-                        onChange={(e) => setMaintenanceState({ ...maintenanceState, globalEnabled: e.target.checked })}
-                        className="sr-only peer"
+                    <button
+                      type="button"
+                      onClick={() => setMaintenanceState({ ...maintenanceState, globalEnabled: !maintenanceState.globalEnabled })}
+                      className={`w-12 h-7 rounded-full p-1 transition-colors relative shrink-0 ${
+                        maintenanceState.globalEnabled ? 'bg-amber-500' : 'bg-gray-300'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${
+                          maintenanceState.globalEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`}
                       />
-                      <div className="w-12 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500" />
-                    </label>
+                    </button>
                   </div>
                 </div>
 
@@ -1551,25 +1905,43 @@ export default function AdminSettingsPage() {
                       />
                     </label>
 
-                    {/* Module 6: Login & Registrasi */}
+                    {/* Module 6: Registrasi Member Baru */}
                     <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                      maintenanceState.modules?.auth ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                      maintenanceState.modules?.register ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
                     }`}>
                       <div>
-                        <p className="text-xs font-bold text-gray-900">Login & Registrasi</p>
-                        <p className="text-[10px] text-gray-500">`/login`, `/register`</p>
+                        <p className="text-xs font-bold text-gray-900">Registrasi Member Baru</p>
+                        <p className="text-[10px] text-gray-500">`/register`</p>
                       </div>
                       <input
                         type="checkbox"
-                        checked={!!maintenanceState.modules?.auth}
+                        checked={!!maintenanceState.modules?.register}
                         onChange={(e) => setMaintenanceState({
                           ...maintenanceState,
-                          modules: { ...maintenanceState.modules, auth: e.target.checked }
+                          modules: { ...maintenanceState.modules, register: e.target.checked }
                         })}
                         className="w-4 h-4 accent-[#F26522]"
                       />
                     </label>
 
+                    {/* Module 7: Halaman Informasi / CMS */}
+                    <label className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      maintenanceState.modules?.pages ? 'bg-orange-50/80 border-[#F26522]' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80'
+                    }`}>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Halaman Kustom CMS</p>
+                        <p className="text-[10px] text-gray-500">`/p/*`</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={!!maintenanceState.modules?.pages}
+                        onChange={(e) => setMaintenanceState({
+                          ...maintenanceState,
+                          modules: { ...maintenanceState.modules, pages: e.target.checked }
+                        })}
+                        className="w-4 h-4 accent-[#F26522]"
+                      />
+                    </label>
                   </div>
                 </div>
 
@@ -1649,67 +2021,125 @@ export default function AdminSettingsPage() {
           )}
 
           {activeTab === 'resource' && (
-            <>
-          {/* Section 3: Storage Usage & Server Resource Usage */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-6">
-              3. Kapasitas Penyimpanan & Sumber Daya Server (Storage & Resource Usage)
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              {/* Storage Usage Bar */}
-              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                    <HardDrive size={16} className="text-[#F26522]" />
-                    <span>Media Storage (File master/poster)</span>
-                  </span>
-                  <span className="text-xs font-mono font-bold text-gray-900">42.8 GB / 100 GB</span>
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-100 pb-4 gap-4">
+                <div>
+                  <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <HardDrive size={20} className="text-[#F26522]" />
+                    <span>Kapasitas Penyimpanan & Sumber Daya Server (Live Real-time Stats)</span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Pemantauan kapasitas folder publik uploads, ukuran database PostgreSQL, serta konsumsi memori CPU & RAM server Next.js.
+                  </p>
                 </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div className="bg-[#F26522] h-full rounded-full w-[42.8%]" />
-                </div>
-                <p className="text-[11px] text-gray-400">Terpakai 42.8% dari total kapasitas disk SSD</p>
+                <button
+                  type="button"
+                  onClick={fetchSystemStats}
+                  disabled={isFetchingStats}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={isFetchingStats ? 'animate-spin text-[#F26522]' : ''} />
+                  <span>{isFetchingStats ? 'Memuat Statistik...' : 'Segarkan Data (Refresh)'}</span>
+                </button>
               </div>
 
-              {/* Database Storage Bar */}
-              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                    <Database size={16} className="text-emerald-600" />
-                    <span>PostgreSQL Database</span>
-                  </span>
-                  <span className="text-xs font-mono font-bold text-gray-900">128.4 MB</span>
+              {isFetchingStats && !systemStats ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin" />
+                  <span className="text-xs font-bold text-gray-500">Membaca statistik sumber daya server...</span>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  
+                  {/* 1. Storage Usage Bar */}
+                  <div className="p-5 bg-gray-50/80 rounded-2xl border border-gray-200 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
+                        <HardDrive size={18} className="text-[#F26522]" />
+                        <span>Media Uploads Storage</span>
+                      </span>
+                      <span className="text-xs font-mono font-black text-gray-900">
+                        {systemStats ? `${systemStats.uploadsSizeMb} MB` : '0 MB'}
+                      </span>
+                    </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full w-[15.2%]" />
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-[#F26522] h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: systemStats
+                            ? `${Math.min(100, Math.max(5, (Number(systemStats.uploadsSizeMb) / 1024) * 10))}%`
+                            : '5%',
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
+                      <span>File Berkas Media: <strong className="text-gray-900">{systemStats?.uploadsFileCount || 0} file</strong></span>
+                      <span>Ukuran GB: <strong className="text-gray-900">{systemStats?.uploadsSizeGb || '0.00'} GB</strong></span>
+                    </div>
+                  </div>
+
+                  {/* 2. Database Storage Bar */}
+                  <div className="p-5 bg-gray-50/80 rounded-2xl border border-gray-200 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
+                        <Database size={18} className="text-emerald-600" />
+                        <span>PostgreSQL Database</span>
+                      </span>
+                      <span className="text-xs font-mono font-black text-gray-900">
+                        {systemStats ? `${systemStats.dbSizeMb} MB` : '0 MB'}
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: systemStats
+                            ? `${Math.min(100, Math.max(8, Number(systemStats.dbSizeMb) * 2))}%`
+                            : '8%',
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
+                      <span>Postingan Karya: <strong className="text-gray-900">{systemStats?.artworksCount || 0}</strong></span>
+                      <span>User / Member: <strong className="text-gray-900">{systemStats?.usersCount || 0}</strong></span>
+                    </div>
+                  </div>
+
+                  {/* 3. CPU & RAM Usage Bar */}
+                  <div className="p-5 bg-gray-50/80 rounded-2xl border border-gray-200 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
+                        <Cpu size={18} className="text-blue-600" />
+                        <span>Server Memory & CPU</span>
+                      </span>
+                      <span className="text-xs font-mono font-black text-gray-900">
+                        {systemStats ? `${systemStats.ramUsagePercent}% RAM` : '0% RAM'}
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: systemStats ? `${systemStats.ramUsagePercent}%` : '20%',
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1">
+                      <span>RAM Terpakai: <strong className="text-gray-900">{systemStats?.usedMemGb || 0} / {systemStats?.totalMemGb || 0} GB</strong></span>
+                      <span>Node RSS: <strong className="text-gray-900">{systemStats?.procRssMb || 0} MB</strong></span>
+                    </div>
+                  </div>
+
                 </div>
-                <p className="text-[11px] text-gray-400">1,482 karya & 384 user terindeks</p>
-              </div>
-
-              {/* CPU & RAM Usage Bar */}
-              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                    <Cpu size={16} className="text-blue-600" />
-                    <span>CPU & RAM Server</span>
-                  </span>
-                  <span className="text-xs font-mono font-bold text-gray-900">18% CPU • 2.4 GB RAM</span>
-                </div>
-
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div className="bg-blue-600 h-full rounded-full w-[28%]" />
-                </div>
-                <p className="text-[11px] text-gray-400">Node.js Next.js Runtime Normal</p>
-              </div>
-
+              )}
             </div>
-          </div>
-
-          </>
           )}
 
           {activeTab === 'backup' && (
@@ -1727,19 +2157,21 @@ export default function AdminSettingsPage() {
                 <div>
                   <div className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-1">
                     <FileArchive size={18} className="text-[#F26522]" />
-                    <span>Unduh Cadangan Lengkap (Backup SQL & Asset)</span>
+                    <span>Unduh Cadangan Database (.json)</span>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed mt-1">
-                    Buat dan unduh berkas arsip terkompresi berisi seluruh tabel PostgreSQL (User, Artwork, Like, Comment) dan media postingan.
+                    Ekstrak dan unduh file cadangan terkompresi berisi seluruh data pengguna, postingan karya, twibbon, kantor DPW, dan pengaturan situs.
                   </p>
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleCreateBackup}
-                  className="mt-4 w-full py-2.5 px-4 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                  disabled={isExportingBackup}
+                  className="mt-4 w-full py-2.5 px-4 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <Download size={16} />
-                  <span>Buat & Unduh Backup Now (.gz)</span>
+                  <Download size={16} className={isExportingBackup ? 'animate-bounce' : ''} />
+                  <span>{isExportingBackup ? 'Mengekstrak Data Backup...' : 'Buat & Unduh Backup Now (.json)'}</span>
                 </button>
               </div>
 
@@ -1748,20 +2180,21 @@ export default function AdminSettingsPage() {
                 <div>
                   <div className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-1">
                     <RefreshCw size={18} className="text-blue-600" />
-                    <span>Pulihkan Database dari File (Restore Database)</span>
+                    <span>Pulihkan Database dari File (.json)</span>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed mt-1">
-                    Unggah file cadangan (.sql / .json) untuk memulihkan seluruh struktur data dan arsip postingan karya.
+                    Unggah file cadangan PKSart (`.json`) untuk memulihkan seluruh record karya, pengguna, twibbon, dan konfigurasi situs ke database.
                   </p>
                 </div>
 
-                <label className="mt-4 w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
-                  <UploadCloud size={16} />
-                  <span>Pilih File Backup untuk Restore</span>
+                <label className={`mt-4 w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${isRestoringBackup ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <UploadCloud size={16} className={isRestoringBackup ? 'animate-spin' : ''} />
+                  <span>{isRestoringBackup ? 'Memulihkan Data Database...' : 'Pilih File Backup untuk Restore'}</span>
                   <input
                     type="file"
-                    accept=".sql,.json,.gz"
+                    accept=".json"
                     onChange={handleRestoreFile}
+                    disabled={isRestoringBackup}
                     className="hidden"
                   />
                 </label>

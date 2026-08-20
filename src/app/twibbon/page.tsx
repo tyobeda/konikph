@@ -19,6 +19,7 @@ import {
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
+import { MaintenanceContent } from '@/app/maintenance/page';
 import { compressImageFile } from '@/lib/imageCompressor';
 
 import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
@@ -27,11 +28,9 @@ export default function TwibbonGalleryPage() {
   const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance } = useData();
   const router = useRouter();
 
-  React.useEffect(() => {
-    if (isModuleUnderMaintenance('twibbon')) {
-      router.replace('/maintenance');
-    }
-  }, [isModuleUnderMaintenance, router]);
+  if (isModuleUnderMaintenance('twibbon')) {
+    return <MaintenanceContent />;
+  }
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'favorites'>('all');

@@ -62,7 +62,14 @@ export default function LoginPage() {
     }
   };
 
-  if (!isMounted || currentUser) {
+  const [forceShow, setForceShow] = useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setForceShow(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if ((!isMounted && !forceShow) || currentUser) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
         <div className="animate-pulse flex flex-col items-center gap-3">

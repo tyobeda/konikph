@@ -20,15 +20,15 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import { MaintenanceContent } from '@/app/maintenance/page';
+
 export default function CreatorsPage() {
   const router = useRouter();
   const { users, artworks, dpwList, isModuleUnderMaintenance } = useData();
 
-  React.useEffect(() => {
-    if (isModuleUnderMaintenance('creators')) {
-      router.replace('/maintenance');
-    }
-  }, [isModuleUnderMaintenance, router]);
+  if (isModuleUnderMaintenance('creators')) {
+    return <MaintenanceContent />;
+  }
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'creators' | 'dpw'>('creators');

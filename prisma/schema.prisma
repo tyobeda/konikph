@@ -230,12 +230,15 @@ model TwibbonFavorite {
 }
 
 model ResetRequest {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
   email     String
   phone     String
-  status    String   @default("Pending") // "Pending", "Selesai"
-  createdAt DateTime @default(now())
+  token     String?   @unique
+  expiresAt DateTime?
+  used      Boolean   @default(false)
+  status    String    @default("Pending") // "Pending", "Selesai", "Expired"
+  createdAt DateTime  @default(now())
 }
 
 

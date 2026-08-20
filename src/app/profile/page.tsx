@@ -29,6 +29,8 @@ import {
   XCircle,
   Plus,
 } from 'lucide-react';
+import { Footer } from '@/components/Footer';
+import { formatPhoneNumber } from '@/lib/phone';
 import { Header } from '@/components/Header';
 import { REGIONS } from '@/lib/data';
 import { useData } from '@/context/DataContext';
@@ -255,7 +257,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-5">
               <div className="relative group">
                 <img
-                  src={avatarPreview}
+                  src={avatarPreview || userData.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                   alt={userData.name}
                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-orange-100 shadow-md"
                 />
@@ -328,7 +330,12 @@ export default function ProfilePage() {
                     type="tel"
                     value={userData.phone}
                     onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
-                    placeholder="081299887766"
+                    onBlur={(e) => {
+                      if (e.target.value) {
+                        setUserData(prev => ({ ...prev, phone: formatPhoneNumber(e.target.value) }));
+                      }
+                    }}
+                    placeholder="081299887766 atau +6281299887766"
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
                     required
                   />
@@ -572,15 +579,19 @@ export default function ProfilePage() {
             
             {!resetSuccessMessage ? (
               <form 
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  addResetRequest({ name: resetName, email: resetEmail, phone: resetPhone });
+                  const res = await addResetRequest({ name: resetName, email: resetEmail, phone: resetPhone });
+                  if (res && res.success === false) {
+                    alert(res.error || 'Gagal mengirimkan permohonan reset.');
+                    return;
+                  }
                   setResetSuccessMessage(true);
                 }}
                 className="space-y-4 mt-4"
               >
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Permintaan reset kata sandi Anda akan dikirim ke Super Admin. Setelah disetujui, admin akan mengirimkan kata sandi baru Anda langsung via WhatsApp.
+                  Permintaan reset kata sandi Anda akan dikirim ke Super Admin. Setelah disetujui, admin akan mengirimkan **tautan reset kata sandi (berlaku 5 menit)** langsung via WhatsApp.
                 </p>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nama Lengkap</label>
@@ -608,6 +619,11 @@ export default function ProfilePage() {
                     type="tel"
                     value={resetPhone}
                     onChange={(e) => setResetPhone(e.target.value)}
+                    onBlur={(e) => {
+                      if (e.target.value) {
+                        setResetPhone(formatPhoneNumber(e.target.value));
+                      }
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                     required
                   />

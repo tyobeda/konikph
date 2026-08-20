@@ -20,6 +20,7 @@ import { PksLogo } from '@/components/PksLogo';
 import { REGIONS } from '@/lib/data';
 import { useData } from '@/context/DataContext';
 import { Footer } from '@/components/Footer';
+import { formatPhoneNumber } from '@/lib/phone';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function RegisterPage() {
 
   React.useEffect(() => {
     if (isMounted) {
-      if (isModuleUnderMaintenance('auth')) {
+      if (isModuleUnderMaintenance('register')) {
         router.replace('/maintenance');
         return;
       }
@@ -97,7 +98,7 @@ export default function RegisterPage() {
     // Sanitize user inputs first
     const sanitizedName = sanitize(formData.name);
     const sanitizedEmail = sanitize(formData.email);
-    const sanitizedPhone = sanitize(formData.phone);
+    const sanitizedPhone = formatPhoneNumber(sanitize(formData.phone));
     const sanitizedAddress = sanitize(formData.address);
     const sanitizedRegion = sanitize(regionSearch);
     const sanitizedGender = sanitize(formData.gender);
@@ -297,7 +298,12 @@ export default function RegisterPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="081234567890"
+                      onBlur={(e) => {
+                        if (e.target.value) {
+                          setFormData(prev => ({ ...prev, phone: formatPhoneNumber(e.target.value) }));
+                        }
+                      }}
+                      placeholder="contoh: 081234567890 atau +6281234567890"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
                       required
                     />

@@ -24,16 +24,15 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
+import { MaintenanceContent } from '@/app/maintenance/page';
 
 export default function HomePage() {
   const router = useRouter();
   const { artworks, users, dpwList, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
 
-  useEffect(() => {
-    if (isMounted && isModuleUnderMaintenance()) {
-      router.replace('/maintenance');
-    }
-  }, [isMounted, isModuleUnderMaintenance, router]);
+  if (isModuleUnderMaintenance()) {
+    return <MaintenanceContent />;
+  }
 
   const [activeCategory, setActiveCategory] = useState('Hikmah-Motivasi');
   const [selectedRegion, setSelectedRegion] = useState('');

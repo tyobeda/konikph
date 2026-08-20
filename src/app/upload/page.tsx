@@ -39,21 +39,23 @@ const getCurrentTimeString = () => {
   return `${hours}:${minutes}`;
 };
 
+import { MaintenanceContent } from '@/app/maintenance/page';
+
 export default function UploadPage() {
   const router = useRouter();
   const { addArtwork, currentUser, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
 
+  if (isModuleUnderMaintenance('upload')) {
+    return <MaintenanceContent />;
+  }
+
   React.useEffect(() => {
     if (isMounted) {
-      if (isModuleUnderMaintenance('upload')) {
-        router.replace('/maintenance');
-        return;
-      }
       if (!currentUser) {
         router.replace('/login');
       }
     }
-  }, [isMounted, currentUser, router, isModuleUnderMaintenance]);
+  }, [isMounted, currentUser, router]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

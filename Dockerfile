@@ -40,6 +40,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/reset_admin.js ./reset_admin.js
 
 # Copy full node_modules for Prisma CLI DB push & migrations
 COPY --from=deps /app/node_modules ./node_modules

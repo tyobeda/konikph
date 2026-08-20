@@ -11,7 +11,7 @@ import { getCustomPages, addCustomPage as dbAddPage, updateCustomPage as dbUpdat
 import { getArtworkReports, addArtworkReport as dbAddReport, resolveArtworkReport as dbResolveReport } from '@/actions/report';
 import { getBrandKits, addBrandKit as dbAddBrandKit, updateBrandKit as dbUpdateBrandKit, deleteBrandKit as dbDeleteBrandKit } from '@/actions/brandkit';
 import { getDBSiteSettings, updateDBSiteSettings } from '@/actions/settings';
-import { getResetRequests, addResetRequest as dbAddResetRequest, completeResetRequest as dbCompleteResetRequest, deleteResetRequest as dbDeleteResetRequest } from '@/actions/resetRequest';
+import { getResetRequests as dbGetResetRequests, addResetRequest as dbAddResetRequest, completeResetRequest as dbCompleteResetRequest, deleteResetRequest as dbDeleteResetRequest } from '@/actions/resetRequest';
 import { getClientCookie, setClientCookie, deleteClientCookie } from '@/lib/cookies';
 
 export interface TwibbonFrame {
@@ -127,6 +127,8 @@ export interface DataContextType {
         twibbon?: boolean;
         upload?: boolean;
         auth?: boolean;
+        register?: boolean;
+        pages?: boolean;
       };
       title?: string;
       description?: string;
@@ -135,7 +137,7 @@ export interface DataContextType {
     };
   };
   updateSiteSettings: (settings: Partial<DataContextType['siteSettings']>) => void;
-  isModuleUnderMaintenance: (moduleKey?: 'explore' | 'assets' | 'creators' | 'twibbon' | 'upload' | 'auth') => boolean;
+  isModuleUnderMaintenance: (moduleKey?: 'explore' | 'assets' | 'creators' | 'twibbon' | 'upload' | 'auth' | 'register' | 'pages') => boolean;
 
   // Hydration Mount State Indicator
   isMounted: boolean;
@@ -144,7 +146,8 @@ export interface DataContextType {
 
   // Reset Requests Management
   resetRequests: ResetRequest[];
-  addResetRequest: (data: { name: string; email: string; phone: string }) => void;
+  refreshResetRequests: () => Promise<void>;
+  addResetRequest: (data: { name: string; email: string; phone: string }) => Promise<any>;
   completeResetRequest: (id: string) => void;
   deleteResetRequest: (id: string) => void;
 
@@ -166,7 +169,7 @@ export const SUPER_ADMIN_USER: User = {
   id: 'superadmin_1',
   name: 'Super Admin PKSart',
   email: 'admin@pks.art',
-  phone: '081199887766',
+  phone: '+6281199887766',
   address: 'DPP PKS Official, Jakarta Selatan',
   region: 'DPP PKS Official',
   avatar: '/img/877859417715829.jpg',
@@ -377,7 +380,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         getDpwList(),
         getBrandKits(),
         getArtworkReports(),
-        getResetRequests(),
+        dbGetResetRequests(),
       ]).then(([twibbonsRes, dpwRes, brandKitsRes, reportsRes, resetsRes]) => {
         if (twibbonsRes.success && twibbonsRes.data) {
           setTwibbons(twibbonsRes.data as any);
@@ -839,14 +842,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     }
   };
 
-  const isModuleUnderMaintenance = (moduleKey?: 'explore' | 'assets' | 'creators' | 'twibbon' | 'upload' | 'auth'): boolean => {
+  const isModuleUnderMaintenance = (moduleKey?: 'explore' | 'assets' | 'creators' | 'twibbon' | 'upload' | 'auth' | 'register' | 'pages'): boolean => {
     const config = siteSettings?.maintenanceConfig;
     if (!config) return false;
-    if (currentUser?.role === 'Super Admin' && config.allowAdminBypass !== false) {
+    // Super Admin ALWAYS bypasses maintenance
+    if (currentUser?.role === 'Super Admin') {
       return false;
     }
     if (config.globalEnabled) return true;
-    if (moduleKey && config.modules && config.modules[moduleKey]) {
+    if (moduleKey && config.modules && (config.modules as any)[moduleKey]) {
       return true;
     }
     return false;
@@ -872,6 +876,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     }
   };
 
+  const refreshResetRequests = async () => {
+    const res = await dbGetResetRequests();
+    if (res && res.success && res.data) {
+      setResetRequests(res.data as any);
+    }
+  };
+
   const addResetRequest = async (data: { name: string; email: string; phone: string }) => {
     const tempId = 'req-' + Date.now();
     const tempReq: ResetRequest = {
@@ -888,6 +899,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     if (res.success && res.data) {
       setResetRequests((prev) => prev.map((r) => (r.id === tempId ? (res.data as any) : r)));
     }
+    return res;
   };
 
   const completeResetRequest = async (id: string) => {
@@ -1034,6 +1046,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         refreshUnreadNotifications,
 
         resetRequests,
+        refreshResetRequests,
         addResetRequest,
         completeResetRequest,
         deleteResetRequest,

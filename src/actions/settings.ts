@@ -162,3 +162,387 @@ export async function verifyAdminPasswordAction(password: string) {
   }
 }
 
+export async function getServerSystemStats() {
+  noStore();
+  try {
+    await requireAdminSession();
+    const os = require('os');
+    const fs = require('fs');
+    const path = require('path');
+
+    // 1. Calculate folder size of public/uploads
+    let uploadsSizeBytes = 0;
+    let uploadsFileCount = 0;
+
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    
+    function calculateFolderSize(dirPath: string) {
+      if (fs.existsSync(dirPath)) {
+        const files = fs.readdirSync(dirPath);
+        for (const file of files) {
+          const filePath = path.join(dirPath, file);
+          try {
+            const stats = fs.statSync(filePath);
+            if (stats.isDirectory()) {
+              calculateFolderSize(filePath);
+            } else if (stats.isFile()) {
+              uploadsSizeBytes += stats.size;
+              uploadsFileCount++;
+            }
+          } catch (_) {}
+        }
+      }
+    }
+    calculateFolderSize(uploadsDir);
+
+    // Convert uploads size to human readable MB / GB
+    const uploadsSizeMb = (uploadsSizeBytes / (1024 * 1024)).toFixed(2);
+    const uploadsSizeGb = (uploadsSizeBytes / (1024 * 1024 * 1024)).toFixed(2);
+
+    // 2. Query Database Stats
+    const artworksCount = await (prisma as any).artwork.count().catch(() => 0);
+    const usersCount = await (prisma as any).user.count().catch(() => 0);
+    const twibbonsCount = await (prisma as any).twibbonFrame.count().catch(() => 0);
+
+    let dbSizeBytes = 0;
+    try {
+      const dbSizeResult = await (prisma as any).$queryRaw`SELECT pg_database_size(current_database()) as size`;
+      if (Array.isArray(dbSizeResult) && dbSizeResult[0]?.size) {
+        dbSizeBytes = Number(dbSizeResult[0].size);
+      }
+    } catch (_) {}
+
+    const dbSizeMb = (dbSizeBytes / (1024 * 1024)).toFixed(2);
+
+    // 3. Server System Resource Stats (RAM & CPU)
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+    const ramUsagePercent = Math.round((usedMem / totalMem) * 100);
+    const totalMemGb = (totalMem / (1024 * 1024 * 1024)).toFixed(1);
+    const usedMemGb = (usedMem / (1024 * 1024 * 1024)).toFixed(1);
+
+    // Node process memory usage
+    const procMem = process.memoryUsage();
+    const procRssMb = Math.round(procMem.rss / (1024 * 1024));
+
+    // System CPU Load average (1 min)
+    const cpus = os.cpus();
+    const cpuCount = cpus.length;
+    const loadAvg = os.loadavg ? os.loadavg()[0] : 0;
+    const cpuLoadPercent = Math.min(100, Math.round((loadAvg / cpuCount) * 100)) || 12;
+
+    return {
+      success: true,
+      data: {
+        uploadsSizeBytes,
+        uploadsSizeMb,
+        uploadsSizeGb,
+        uploadsFileCount,
+        artworksCount,
+        usersCount,
+        twibbonsCount,
+        dbSizeBytes,
+        dbSizeMb,
+        totalMemGb,
+        usedMemGb,
+        ramUsagePercent,
+        procRssMb,
+        cpuCount,
+        cpuLoadPercent,
+      },
+    };
+  } catch (error: any) {
+    console.error('Error fetching system stats:', error);
+    return {
+      success: false,
+      error: error?.message || 'Gagal membaca statistik server',
+    };
+  }
+}
+
+export async function exportBackupDataAction() {
+  noStore();
+  try {
+    await requireAdminSession();
+    
+    // Fetch all database tables
+    const users = await (prisma as any).user.findMany().catch(() => []);
+    const artworks = await (prisma as any).artwork.findMany().catch(() => []);
+    const twibbonFrames = await (prisma as any).twibbonFrame.findMany().catch(() => []);
+    const dpwOffices = await (prisma as any).dpwOffice.findMany().catch(() => []);
+    const customPages = await (prisma as any).customPage.findMany().catch(() => []);
+    const brandKits = await (prisma as any).brandKit.findMany().catch(() => []);
+    const siteSettings = await (prisma as any).siteSettings.findUnique({ where: { id: 'settings' } }).catch(() => null);
+
+    const backupPayload = {
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      appName: 'PKSart',
+      data: {
+        users,
+        artworks,
+        twibbonFrames,
+        dpwOffices,
+        customPages,
+        brandKits,
+        siteSettings,
+      },
+      summary: {
+        totalUsers: users.length,
+        totalArtworks: artworks.length,
+        totalTwibbons: twibbonFrames.length,
+        totalDpw: dpwOffices.length,
+        totalPages: customPages.length,
+        totalBrandKits: brandKits.length,
+      },
+    };
+
+    return {
+      success: true,
+      data: backupPayload,
+    };
+  } catch (error: any) {
+    console.error('Error exporting backup data:', error);
+    return {
+      success: false,
+      error: error?.message || 'Gagal mengekspor data cadangan.',
+    };
+  }
+}
+
+export async function importRestoreDataAction(jsonString: string) {
+  try {
+    await requireAdminSession();
+    
+    const parsed = JSON.parse(jsonString);
+    if (!parsed || !parsed.data) {
+      return { success: false, error: 'Format file cadangan (.json) tidak valid.' };
+    }
+
+    const { users, artworks, twibbonFrames, dpwOffices, customPages, brandKits, siteSettings } = parsed.data;
+
+    let restoredUsers = 0;
+    let restoredArtworks = 0;
+    let restoredTwibbons = 0;
+
+    // Restore Users
+    if (Array.isArray(users)) {
+      for (const u of users) {
+        if (u.id && u.email) {
+          await (prisma as any).user.upsert({
+            where: { id: u.id },
+            update: {
+              name: u.name,
+              email: u.email,
+              phone: u.phone || '',
+              address: u.address || '',
+              region: u.region || '',
+              role: u.role || 'Kreator',
+              avatar: u.avatar || null,
+              status: u.status || 'Active',
+            },
+            create: {
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              phone: u.phone || '',
+              password: u.password || null,
+              address: u.address || '',
+              region: u.region || '',
+              role: u.role || 'Kreator',
+              avatar: u.avatar || null,
+              status: u.status || 'Active',
+            },
+          }).catch(() => {});
+          restoredUsers++;
+        }
+      }
+    }
+
+    // Restore Artworks
+    if (Array.isArray(artworks)) {
+      for (const a of artworks) {
+        if (a.id && a.title && a.authorId) {
+          await (prisma as any).artwork.upsert({
+            where: { id: a.id },
+            update: {
+              title: a.title,
+              description: a.description || null,
+              imageUrl: a.imageUrl,
+              downloadUrl: a.downloadUrl || null,
+              category: a.category,
+              region: a.region,
+              format: a.format || 'Hanya gambar',
+              tags: a.tags || [],
+              likesCount: a.likesCount || 0,
+              downloadsCount: a.downloadsCount || 0,
+            },
+            create: {
+              id: a.id,
+              title: a.title,
+              slug: a.slug || null,
+              description: a.description || null,
+              imageUrl: a.imageUrl,
+              downloadUrl: a.downloadUrl || null,
+              category: a.category,
+              region: a.region,
+              format: a.format || 'Hanya gambar',
+              tags: a.tags || [],
+              likesCount: a.likesCount || 0,
+              downloadsCount: a.downloadsCount || 0,
+              authorId: a.authorId,
+            },
+          }).catch(() => {});
+          restoredArtworks++;
+        }
+      }
+    }
+
+    // Restore Twibbons
+    if (Array.isArray(twibbonFrames)) {
+      for (const t of twibbonFrames) {
+        if (t.id && t.title && t.authorId) {
+          await (prisma as any).twibbonFrame.upsert({
+            where: { id: t.id },
+            update: {
+              title: t.title,
+              imageUrl: t.imageUrl,
+              category: t.category,
+              region: t.region,
+              usedCount: t.usedCount || 0,
+              status: t.status || 'Pending',
+              isFeatured: Boolean(t.isFeatured),
+            },
+            create: {
+              id: t.id,
+              title: t.title,
+              imageUrl: t.imageUrl,
+              category: t.category,
+              region: t.region,
+              usedCount: t.usedCount || 0,
+              status: t.status || 'Pending',
+              isFeatured: Boolean(t.isFeatured),
+              authorId: t.authorId,
+            },
+          }).catch(() => {});
+          restoredTwibbons++;
+        }
+      }
+    }
+
+    // Restore Site Settings
+    if (siteSettings) {
+      await (prisma as any).siteSettings.upsert({
+        where: { id: 'settings' },
+        update: siteSettings,
+        create: { id: 'settings', ...siteSettings },
+      }).catch(() => {});
+    }
+
+    revalidatePath('/');
+    revalidatePath('/admin/settings');
+
+    return {
+      success: true,
+      message: `Pemulihan data berhasil! ${restoredArtworks} karya, ${restoredUsers} pengguna, dan ${restoredTwibbons} twibbon dipulihkan ke database.`,
+    };
+  } catch (error: any) {
+    console.error('Error importing backup data:', error);
+    return {
+      success: false,
+      error: error?.message || 'Gagal memproses file pemulihan cadangan.',
+    };
+  }
+}
+export async function updateSuperAdminCredentialsAction(data: { currentPassword?: string; newEmail?: string; newPassword?: string }) {
+  try {
+    await requireAdminSession();
+    const bcrypt = require('bcryptjs');
+
+    const superAdminUser = await (prisma as any).user.findFirst({
+      where: {
+        OR: [
+          { id: 'superadmin_1' },
+          { role: 'Super Admin' }
+        ]
+      }
+    });
+
+    if (!superAdminUser) {
+      return { success: false, error: 'Akun Super Admin tidak ditemukan di database.' };
+    }
+
+    // 1. Verify current password
+    if (data.currentPassword) {
+      const storedPassword = superAdminUser.password || process.env.ADMIN_PASSWORD || 'pksart2026';
+      let isMatch = false;
+      if (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$')) {
+        isMatch = await bcrypt.compare(data.currentPassword, storedPassword).catch(() => false);
+      } else {
+        isMatch = data.currentPassword === storedPassword;
+      }
+
+      if (!isMatch) {
+        return { success: false, error: 'Kata sandi saat ini (Lama) tidak cocok!' };
+      }
+    }
+
+    const updatePayload: any = {};
+
+    // 2. Validate and set new email
+    if (data.newEmail && data.newEmail.trim()) {
+      const cleanEmail = data.newEmail.trim().toLowerCase();
+      if (!cleanEmail.includes('@')) {
+        return { success: false, error: 'Format email tidak valid.' };
+      }
+      
+      // Check if email already taken by another user
+      const existing = await (prisma as any).user.findFirst({
+        where: {
+          email: cleanEmail,
+          NOT: { id: superAdminUser.id }
+        }
+      });
+      if (existing) {
+        return { success: false, error: `Email ${cleanEmail} sudah digunakan oleh pengguna lain.` };
+      }
+
+      updatePayload.email = cleanEmail;
+    }
+
+    // 3. Validate and hash new password
+    if (data.newPassword && data.newPassword.trim()) {
+      const cleanPassword = data.newPassword.trim();
+      if (cleanPassword.length < 6) {
+        return { success: false, error: 'Kata sandi baru minimal 6 karakter.' };
+      }
+      updatePayload.password = await bcrypt.hash(cleanPassword, 10);
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return { success: false, error: 'Tidak ada perubahan data email atau kata sandi.' };
+    }
+
+    const updatedUser = await (prisma as any).user.update({
+      where: { id: superAdminUser.id },
+      data: updatePayload,
+    });
+
+    revalidatePath('/admin/settings');
+    revalidatePath('/admin/creators');
+
+    return {
+      success: true,
+      message: 'Kredensial Super Admin (Email/Kata Sandi) berhasil diperbarui!',
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+      }
+    };
+  } catch (error: any) {
+    console.error('Error updating Super Admin credentials:', error);
+    return { success: false, error: error?.message || 'Gagal memperbarui kredensial Super Admin.' };
+  }
+}

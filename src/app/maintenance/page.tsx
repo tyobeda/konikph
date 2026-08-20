@@ -7,25 +7,8 @@ import { Wrench, ShieldAlert, ArrowLeft, Clock, MessageSquare, RefreshCw, AlertT
 import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
 
-export default function MaintenancePage() {
-  const router = useRouter();
-  const { siteSettings, currentUser, isMounted } = useData();
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-
-  React.useEffect(() => {
-    if (isMounted) {
-      const isAnyMaintenance =
-        siteSettings?.maintenanceConfig?.globalEnabled ||
-        Object.values(siteSettings?.maintenanceConfig?.modules || {}).some(Boolean);
-
-      const isAdmin = currentUser?.role === 'Super Admin' || currentUser?.role?.includes('DPW');
-
-      // If site is NOT under maintenance (or admin is bypassing), redirect instantly to homepage
-      if (!isAnyMaintenance || (isAdmin && siteSettings?.maintenanceConfig?.allowAdminBypass)) {
-        router.replace('/');
-      }
-    }
-  }, [isMounted, siteSettings, currentUser, router]);
+export function MaintenanceContent() {
+  const { siteSettings, currentUser } = useData();
 
   const maintenance = siteSettings?.maintenanceConfig || {
     globalEnabled: true,
@@ -36,30 +19,11 @@ export default function MaintenancePage() {
     allowAdminBypass: true,
   };
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 600);
-  };
-
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
-        <div className="animate-pulse flex flex-col items-center gap-3 text-gray-700">
-          <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
-          <span className="text-sm font-semibold text-gray-500">Memuat status sistem...</span>
-        </div>
-      </div>
-    );
-  }
-
   const adminWa = (siteSettings?.adminWhatsapp || '6281199887766').replace(/[^0-9]/g, '');
   const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20PKSart,%20saya%20ingin%20menanyakan%20status%20pemeliharaan%20sistem.`;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-gray-800 flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
-      
+    <div className="min-h-screen bg-[#F8F9FA] text-gray-800 flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden z-50">
       {/* Light Background Gradients */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-orange-100/60 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-100/60 rounded-full blur-[100px] pointer-events-none" />
@@ -85,17 +49,30 @@ export default function MaintenancePage() {
           {maintenance.title || 'Mode Pemeliharaan Sistem'}
         </h1>
 
-        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">
+        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6 whitespace-pre-line">
           {maintenance.description || 'Kami sedang melakukan peningkatan performa dan perawatan sistem rutin demi kenyamanan bersama. Mohon maaf atas ketidaknyamanannya.'}
         </p>
 
         {/* Estimated Time Badge */}
         {maintenance.estimatedTime && (
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200/80 rounded-2xl text-xs font-bold text-amber-800 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200/80 rounded-2xl text-xs font-bold text-amber-800 shadow-xs mb-4">
             <Clock size={15} className="text-amber-600" />
             <span>{maintenance.estimatedTime}</span>
           </div>
         )}
+
+        {/* Hubungi Admin WA Button */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-2">
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#1fb958] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+          >
+            <MessageSquare size={16} />
+            <span>Tanyakan Admin via WhatsApp</span>
+          </a>
+        </div>
 
         {/* Admin Bypass Notification for logged in Super Admin */}
         {currentUser?.role === 'Super Admin' && (
@@ -115,7 +92,6 @@ export default function MaintenancePage() {
             </Link>
           </div>
         )}
-
       </div>
 
       {/* Footer */}
@@ -124,4 +100,36 @@ export default function MaintenancePage() {
       </div>
     </div>
   );
+}
+
+export default function MaintenancePage() {
+  const router = useRouter();
+  const { siteSettings, currentUser, isMounted } = useData();
+
+  React.useEffect(() => {
+    if (isMounted) {
+      const isAnyMaintenance =
+        siteSettings?.maintenanceConfig?.globalEnabled ||
+        Object.values(siteSettings?.maintenanceConfig?.modules || {}).some(Boolean);
+
+      const isAdmin = currentUser?.role === 'Super Admin' || currentUser?.role?.includes('DPW');
+
+      if (!isAnyMaintenance || (isAdmin && siteSettings?.maintenanceConfig?.allowAdminBypass)) {
+        router.replace('/');
+      }
+    }
+  }, [isMounted, siteSettings, currentUser, router]);
+
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
+        <div className="animate-pulse flex flex-col items-center gap-3 text-gray-700">
+          <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
+          <span className="text-sm font-semibold text-gray-500">Memuat status sistem...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return <MaintenanceContent />;
 }

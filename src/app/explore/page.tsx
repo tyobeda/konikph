@@ -23,15 +23,15 @@ import {
   Grid,
 } from 'lucide-react';
 
+import { MaintenanceContent } from '@/app/maintenance/page';
+
 export default function ExplorePage() {
   const router = useRouter();
   const { artworks, isModuleUnderMaintenance } = useData();
 
-  React.useEffect(() => {
-    if (isModuleUnderMaintenance('explore')) {
-      router.replace('/maintenance');
-    }
-  }, [isModuleUnderMaintenance, router]);
+  if (isModuleUnderMaintenance('explore')) {
+    return <MaintenanceContent />;
+  }
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Hikmah-Motivasi');

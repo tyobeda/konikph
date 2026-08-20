@@ -17,6 +17,7 @@ import {
 import dynamic from 'next/dynamic';
 import { PksLogo } from '@/components/PksLogo';
 import { useData, DpwOffice } from '@/context/DataContext';
+import { formatPhoneNumber } from '@/lib/phone';
 
 const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), {
   ssr: false,
@@ -419,7 +420,12 @@ export default function AdminDpwPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+62 813-7419-6152"
+                  onBlur={(e) => {
+                    if (e.target.value) {
+                      setFormData(prev => ({ ...prev, phone: formatPhoneNumber(e.target.value) }));
+                    }
+                  }}
+                  placeholder="contoh: 081374196152 atau +6281374196152"
                   className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
                 />
