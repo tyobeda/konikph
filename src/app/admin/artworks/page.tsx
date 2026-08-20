@@ -162,13 +162,13 @@ export default function AdminArtworksPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold overflow-x-auto">
+        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm overflow-x-auto">
           <button
             onClick={() => { setActiveTab('all'); setFilterStatus('all'); }}
             className={`pb-3 relative transition-all whitespace-nowrap ${
               activeTab === 'all'
-                ? 'text-[#F26522] border-b-2 border-[#F26522]'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
+                : 'text-gray-500 hover:text-gray-900 font-medium'
             }`}
           >
             <span>Semua Karya ({artworks.length})</span>
@@ -178,11 +178,11 @@ export default function AdminArtworksPage() {
             onClick={() => { setActiveTab('pending'); setFilterStatus('Pending'); }}
             className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'pending'
-                ? 'text-[#F26522] border-b-2 border-[#F26522]'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
+                : 'text-gray-500 hover:text-gray-900 font-medium'
             }`}
           >
-            <span>⏳ Menunggu Approval</span>
+            <span>Menunggu Approval</span>
             {pendingArtworksCount > 0 && (
               <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 animate-pulse">
                 {pendingArtworksCount} Karya Baru
@@ -194,11 +194,11 @@ export default function AdminArtworksPage() {
             onClick={() => setActiveTab('reports')}
             className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'reports'
-                ? 'text-[#F26522] border-b-2 border-[#F26522]'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
+                : 'text-gray-500 hover:text-gray-900 font-medium'
             }`}
           >
-            <span>🚩 Laporan Masuk</span>
+            <span>Laporan Masuk</span>
             {pendingReportsCount > 0 && (
               <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
                 {pendingReportsCount}
@@ -482,13 +482,15 @@ export default function AdminArtworksPage() {
                           <Eye size={16} />
                         </Link>
 
-                        <button
-                          onClick={() => handleOpenEdit(art)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit Postingan"
-                        >
-                          <Edit size={16} />
-                        </button>
+                        {(art.author?.id === 'superadmin_1' || art.author?.email?.toLowerCase() === 'admin@pks.art') && (
+                          <button
+                            onClick={() => handleOpenEdit(art)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit Postingan Saya"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
 
                         {art.status !== 'Disetujui' && (
                           <button

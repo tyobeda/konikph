@@ -25,6 +25,7 @@ import { PksLogo } from '@/components/PksLogo';
 import { ConfirmSuspendModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
 import { User } from '@/lib/types';
+import { getUserSlug } from '@/lib/slug';
 
 export default function AdminCreatorsPage() {
   const { 
@@ -170,16 +171,23 @@ export default function AdminCreatorsPage() {
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm font-bold">
+      <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm">
         <button
           onClick={() => setActiveTab('creators')}
-          className={`pb-3 relative transition-all flex items-center gap-1.5 ${
+          className={`pb-3 relative transition-all flex items-center gap-2 ${
             activeTab === 'creators'
-              ? 'text-[#F26522] border-b-2 border-[#F26522]'
-              : 'text-gray-500 hover:text-gray-900'
+              ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
+              : 'text-gray-500 hover:text-gray-900 font-medium'
           }`}
         >
-          <span>Desainer Terdaftar ({users.length})</span>
+          <span>Desainer Terdaftar</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+            activeTab === 'creators'
+              ? 'bg-orange-50 text-[#F26522] border-orange-200'
+              : 'bg-gray-100 text-gray-600 border-gray-200'
+          }`}>
+            {users.length}
+          </span>
           {pendingCreatorsCount > 0 && (
             <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
               {pendingCreatorsCount} Pendaftar Baru
@@ -188,18 +196,20 @@ export default function AdminCreatorsPage() {
         </button>
         <button
           onClick={() => setActiveTab('resets')}
-          className={`pb-3 relative transition-all flex items-center gap-1.5 ${
+          className={`pb-3 relative transition-all flex items-center gap-2 ${
             activeTab === 'resets'
-              ? 'text-[#F26522] border-b-2 border-[#F26522]'
-              : 'text-gray-500 hover:text-gray-900'
+              ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
+              : 'text-gray-500 hover:text-gray-900 font-medium'
           }`}
         >
-          <span>Permintaan Reset ({resetRequests.filter((r) => r.status === 'Pending').length})</span>
-          {resetRequests.filter((r) => r.status === 'Pending').length > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-              {resetRequests.filter((r) => r.status === 'Pending').length}
-            </span>
-          )}
+          <span>Permintaan Reset</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+            activeTab === 'resets'
+              ? 'bg-orange-50 text-[#F26522] border-orange-200'
+              : 'bg-gray-100 text-gray-600 border-gray-200'
+          }`}>
+            {resetRequests.filter((r) => r.status === 'Pending').length}
+          </span>
         </button>
       </div>
 
@@ -208,10 +218,10 @@ export default function AdminCreatorsPage() {
         <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs transition-all ${
               statusFilter === 'all'
-                ? 'bg-[#F26522] text-white shadow-sm'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                ? 'bg-[#F26522] text-white shadow-sm font-bold'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 font-medium'
             }`}
           >
             Semua ({users.length})
@@ -219,15 +229,15 @@ export default function AdminCreatorsPage() {
 
           <button
             onClick={() => setStatusFilter('pending')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 ${
               statusFilter === 'pending'
-                ? 'bg-amber-500 text-white shadow-sm'
-                : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
+                ? 'bg-amber-500 text-white shadow-sm font-bold'
+                : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium'
             }`}
           >
-            <span>⏳ Menunggu Approval</span>
+            <span>Menunggu Approval</span>
             {pendingCreatorsCount > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'pending' ? 'bg-white text-amber-600' : 'bg-amber-500 text-white'}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'pending' ? 'bg-white text-amber-600' : 'bg-amber-500 text-white'}`}>
                 {pendingCreatorsCount}
               </span>
             )}
@@ -235,24 +245,24 @@ export default function AdminCreatorsPage() {
 
           <button
             onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs transition-all ${
               statusFilter === 'active'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
+                ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium'
             }`}
           >
-            ✅ Disutujui / Aktif
+            Disutujui / Aktif
           </button>
 
           <button
             onClick={() => setStatusFilter('suspended')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs transition-all ${
               statusFilter === 'suspended'
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'bg-white text-red-700 border border-red-200 hover:bg-red-50'
+                ? 'bg-red-600 text-white shadow-sm font-bold'
+                : 'bg-white text-red-700 border border-red-200 hover:bg-red-50 font-medium'
             }`}
           >
-            🚫 Ditangguhkan
+            Ditangguhkan
           </button>
         </div>
       )}
@@ -265,9 +275,6 @@ export default function AdminCreatorsPage() {
             <h2 className="text-base font-extrabold text-gray-900">
               {activeTab === 'resets' ? 'Permintaan Reset Kata Sandi' : 'Daftar Desainer Terdaftar'}
             </h2>
-            <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
-              {activeTab === 'resets' ? filteredResets.length : filteredCreators.length} {activeTab === 'resets' ? 'Permintaan' : 'Akun'}
-            </span>
           </div>
 
           <div className="relative flex-1 max-w-xs">
@@ -276,7 +283,7 @@ export default function AdminCreatorsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama, email, atau DPW..."
+              placeholder="Cari nama, email, atau Wilayah..."
               className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
             />
           </div>
@@ -367,14 +374,18 @@ export default function AdminCreatorsPage() {
                     <tr key={creator.id} className="hover:bg-gray-50/60 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={creator.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
-                            alt={creator.name}
-                            className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 shrink-0"
-                          />
+                          <Link href={`/creators/${getUserSlug(creator)}`} target="_blank" className="shrink-0">
+                            <img
+                              src={creator.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
+                              alt={creator.name}
+                              className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 hover:ring-[#F26522] transition-all"
+                            />
+                          </Link>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-gray-900">{creator.name}</span>
+                              <Link href={`/creators/${getUserSlug(creator)}`} target="_blank" className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">
+                                {creator.name}
+                              </Link>
                               {creator.isVerified && (
                                 <span title="Verified Desainer PKS">
                                   <BadgeCheck size={16} className="text-[#F26522] fill-orange-50" />
@@ -416,7 +427,7 @@ export default function AdminCreatorsPage() {
                           {creator.status === 'Suspended' 
                             ? 'Suspended' 
                             : (creator.status === 'Pending' || creator.status === 'Pending Approval')
-                            ? '⏳ Menunggu Approval'
+                            ? 'Menunggu Approval'
                             : 'Aktif'}
                         </span>
                       </td>

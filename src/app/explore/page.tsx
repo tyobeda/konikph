@@ -232,9 +232,9 @@ export default function ExplorePage() {
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-xs font-bold rounded-xl px-3 py-2 focus:outline-none focus:border-[#F26522]"
               >
-                <option value="trending">🔥 Terpopuler (Banyak Disukai)</option>
-                <option value="downloads">📥 Paling Banyak Diunduh</option>
-                <option value="newest">🕒 Terbaru Diunggah</option>
+                <option value="trending">Terpopuler (Banyak Disukai)</option>
+                <option value="downloads">Paling Banyak Diunduh</option>
+                <option value="newest">Terbaru Diunggah</option>
               </select>
             </div>
 

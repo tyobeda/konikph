@@ -39,7 +39,7 @@ export default function ArtworkDetailContent() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { currentUser, artworks, updateArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport } = useData();
+  const { currentUser, artworks, updateArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport, incrementDownloadCount } = useData();
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -227,6 +227,9 @@ export default function ArtworkDetailContent() {
   };
 
   const handleDownloadTemplate = () => {
+    if (artwork) {
+      incrementDownloadCount(artwork.id);
+    }
     if (artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== '') {
       let finalUrl = artwork.downloadUrl;
       const driveRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\/(?:view|edit)/;
@@ -280,8 +283,7 @@ export default function ArtworkDetailContent() {
     (
       (artwork.author?.id && artwork.author.id === currentUser.id) ||
       (artwork.author?.email && artwork.author.email.toLowerCase() === currentUser.email?.toLowerCase()) ||
-      (artwork.author?.name && artwork.author.name === currentUser.name) ||
-      currentUser.role === 'Super Admin'
+      (artwork.author?.name && artwork.author.name === currentUser.name)
     )
   );
 
@@ -460,7 +462,10 @@ export default function ArtworkDetailContent() {
                       </h2>
                     </Link>
                     <p className="text-xs text-gray-500 font-medium">
-                      {(artwork.author?.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • Format {artwork.format || 'PSD/AI'}
+                      {(artwork.author?.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')}
+                      {artwork.format && !['Hanya gambar', 'Hanya Gambar', 'HANYA_GAMBAR', 'Gambar'].includes(artwork.format.trim()) && (
+                        ` • Format ${artwork.format}`
+                      )}
                     </p>
                   </div>
                 </div>
@@ -775,6 +780,7 @@ export default function ArtworkDetailContent() {
                 {/* 1. Unduh Gambar Preview Button (Always available) */}
                 <button
                   onClick={() => {
+                    incrementDownloadCount(artwork.id);
                     triggerToast(`Mengunduh pratinjau gambar JPG/PNG...`);
                     const link = document.createElement('a');
                     link.href = artwork.imageUrl;

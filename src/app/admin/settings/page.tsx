@@ -30,12 +30,15 @@ import {
   Layers,
   FileSpreadsheet,
   Filter,
+  Lock,
+  KeyRound,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
 import { getCustomPageBySlug, addCustomPage, updateCustomPage } from '@/actions/page';
+import { verifyAdminPasswordAction } from '@/actions/settings';
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages } = useData();
@@ -156,6 +159,29 @@ export default function AdminSettingsPage() {
 
   const [confirmInputText, setConfirmInputText] = useState('');
 
+  const [isDangerUnlocked, setIsDangerUnlocked] = useState(false);
+  const [dangerPasswordInput, setDangerPasswordInput] = useState('');
+  const [dangerPasswordError, setDangerPasswordError] = useState('');
+  const [isVerifyingDangerPassword, setIsVerifyingDangerPassword] = useState(false);
+
+  const handleUnlockDangerZone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dangerPasswordInput.trim()) return;
+    setIsVerifyingDangerPassword(true);
+    setDangerPasswordError('');
+
+    const res = await verifyAdminPasswordAction(dangerPasswordInput.trim());
+    setIsVerifyingDangerPassword(false);
+    if (res && res.success) {
+      setIsDangerUnlocked(true);
+      setDangerPasswordInput('');
+      setDangerPasswordError('');
+      triggerToast('Akses Zona Bahaya (Danger Zone) berhasil dibuka!');
+    } else {
+      setDangerPasswordError(res?.error || 'Kata sandi Super Admin salah!');
+    }
+  };
+
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3000);
@@ -262,7 +288,7 @@ export default function AdminSettingsPage() {
           const rawWords = text
             .split(/[\r\n,]+/)
             .map((w) => w.trim().toLowerCase())
-            .filter((w) => w.length > 0 && !w.startsWith('#'));
+            .filter((w) => w.length > 0 && !w.startsWith('#') && w !== 'kata_terlarang');
           
           if (rawWords.length === 0) {
             alert('File CSV kosong atau tidak memiliki kata terlarang yang valid.');
@@ -1859,81 +1885,143 @@ export default function AdminSettingsPage() {
 
           {activeTab === 'danger' && (
             <>
-          {/* Section 4: Danger Zone / Mass Delete Operations */}
-          <div className="bg-red-50/40 rounded-2xl p-6 border border-red-200 shadow-sm">
-            <div className="flex items-center gap-2 border-b border-red-200 pb-3 mb-6">
-              <ShieldAlert size={22} className="text-red-600" />
-              <h2 className="text-lg font-black text-red-900">
-                4. ZONA BAHAYA: Tindakan Hapus Massal (Danger Zone / Mass Delete)
-              </h2>
-            </div>
+              {!isDangerUnlocked ? (
+                /* 🔒 Password Protection Lock Screen */
+                <div className="bg-white rounded-3xl p-8 border border-red-200 shadow-sm max-w-md mx-auto text-center space-y-5 my-6 animate-in fade-in zoom-in-95">
+                  <div className="w-14 h-14 rounded-3xl bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-inner border border-red-100">
+                    <Lock size={28} />
+                  </div>
 
-            <p className="text-xs text-red-700 font-medium mb-6">
-              Tindakan di bawah ini bersifat permanen dan tidak dapat dibatalkan. Harap pastikan Anda telah mengunduh backup sebelum melakukan operasi ini.
-            </p>
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900">
+                      Akses Terkunci: Zona Bahaya
+                    </h2>
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                      Zona Bahaya (*Danger Zone*) berisi opsi hapus massal yang berisiko tinggi. Masukkan kata sandi Super Admin Anda untuk membuka akses halaman ini.
+                    </p>
+                  </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              
-              {/* Mass Delete Posts */}
-              <div className="bg-white p-4 rounded-xl border border-red-200 flex flex-col justify-between space-y-3">
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                    <ImageIcon size={16} className="text-red-500" />
-                    <span>Hapus Semua Postingan</span>
-                  </h3>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Menghapus seluruh postingan karya poster dan spanduk di database.
-                  </p>
+                  <form onSubmit={handleUnlockDangerZone} className="space-y-4 pt-2">
+                    <div className="text-left">
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5 flex items-center gap-1.5">
+                        <KeyRound size={14} className="text-red-500" />
+                        <span>Kata Sandi Super Admin</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={dangerPasswordInput}
+                        onChange={(e) => {
+                          setDangerPasswordInput(e.target.value);
+                          if (dangerPasswordError) setDangerPasswordError('');
+                        }}
+                        placeholder="Masukkan kata sandi Admin..."
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-2xl px-4 py-3 text-sm font-semibold focus:bg-white focus:outline-none focus:border-red-500 transition-all"
+                        required
+                        autoFocus
+                      />
+                      {dangerPasswordError && (
+                        <p className="text-xs font-bold text-red-600 mt-1.5 animate-bounce">
+                          {dangerPasswordError}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isVerifyingDangerPassword}
+                      className="w-full py-3 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-bold text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <Lock size={16} />
+                      <span>{isVerifyingDangerPassword ? 'Verifikasi Kata Sandi...' : 'Buka Akses Danger Zone'}</span>
+                    </button>
+                  </form>
                 </div>
-                <button
-                  onClick={() => openMassDeleteModal('posts')}
-                  className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors"
-                >
-                  Mass Delete Posts
-                </button>
-              </div>
+              ) : (
+                /* 🛡️ Danger Zone Operations (Unlocked) */
+                <div className="bg-red-50/40 rounded-2xl p-6 border border-red-200 shadow-sm animate-in fade-in">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-red-200 pb-3 mb-6 gap-3">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert size={22} className="text-red-600" />
+                      <h2 className="text-lg font-black text-red-900">
+                        4. ZONA BAHAYA: Tindakan Hapus Massal (Danger Zone / Mass Delete)
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsDangerUnlocked(false)}
+                      className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Lock size={13} />
+                      <span>Kunci Kembali</span>
+                    </button>
+                  </div>
 
-              {/* Mass Delete Users */}
-              <div className="bg-white p-4 rounded-xl border border-red-200 flex flex-col justify-between space-y-3">
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                    <Users size={16} className="text-red-500" />
-                    <span>Hapus Semua User / Member</span>
-                  </h3>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Menghapus seluruh akun desainer & member terdaftar (kecuali Super Admin).
+                  <p className="text-xs text-red-700 font-medium mb-6">
+                    Tindakan di bawah ini bersifat permanen dan tidak dapat dibatalkan. Harap pastikan Anda telah mengunduh backup sebelum melakukan operasi ini.
                   </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    
+                    {/* Mass Delete Posts */}
+                    <div className="bg-white p-4 rounded-xl border border-red-200 flex flex-col justify-between space-y-3">
+                      <div>
+                        <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                          <ImageIcon size={16} className="text-red-500" />
+                          <span>Hapus Semua Postingan</span>
+                        </h3>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          Menghapus seluruh postingan karya poster dan spanduk di database.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => openMassDeleteModal('posts')}
+                        className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Mass Delete Posts
+                      </button>
+                    </div>
+
+                    {/* Mass Delete Users */}
+                    <div className="bg-white p-4 rounded-xl border border-red-200 flex flex-col justify-between space-y-3">
+                      <div>
+                        <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                          <Users size={16} className="text-red-500" />
+                          <span>Hapus Semua User / Member</span>
+                        </h3>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          Menghapus seluruh akun desainer & member terdaftar (kecuali Super Admin).
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => openMassDeleteModal('users')}
+                        className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Mass Delete Users
+                      </button>
+                    </div>
+
+                    {/* Mass Delete All (Factory Reset) */}
+                    <div className="bg-white p-4 rounded-xl border-2 border-red-500 flex flex-col justify-between space-y-3">
+                      <div>
+                        <h3 className="text-xs font-black text-red-600 flex items-center gap-1.5">
+                          <AlertTriangle size={16} />
+                          <span>MASS DELETE ALL (RESET TOTAL)</span>
+                        </h3>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          Mengosongkan seluruh database (Karya, User, Komentar, Cache).
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => openMassDeleteModal('all')}
+                        className="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-lg transition-colors shadow-sm cursor-pointer"
+                      >
+                        RESET TOTAL SYSTEM
+                      </button>
+                    </div>
+
+                  </div>
                 </div>
-                <button
-                  onClick={() => openMassDeleteModal('users')}
-                  className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-lg transition-colors"
-                >
-                  Mass Delete Users
-                </button>
-              </div>
-
-              {/* Mass Delete All (Factory Reset) */}
-              <div className="bg-white p-4 rounded-xl border-2 border-red-500 flex flex-col justify-between space-y-3">
-                <div>
-                  <h3 className="text-xs font-black text-red-600 flex items-center gap-1.5">
-                    <AlertTriangle size={16} />
-                    <span>MASS DELETE ALL (RESET TOTAL)</span>
-                  </h3>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Mengosongkan seluruh database (Karya, User, Komentar, Cache).
-                  </p>
-                </div>
-                <button
-                  onClick={() => openMassDeleteModal('all')}
-                  className="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-lg transition-colors shadow-sm"
-                >
-                  RESET TOTAL SYSTEM
-                </button>
-              </div>
-
-            </div>
-          </div>
-
+              )}
             </>
           )}
 

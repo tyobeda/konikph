@@ -7,6 +7,7 @@ import { ArrowLeft, Bell, Heart, MessageCircle, AlertTriangle, ShieldCheck, Chec
 import { useData } from '@/context/DataContext';
 import { getNotifications, markAllAsRead } from '@/actions/notification';
 import { useEffect, useState } from 'react';
+import { Header } from '@/components/Header';
 
 function NotificationContent() {
   const searchParams = useSearchParams();
@@ -40,33 +41,39 @@ function NotificationContent() {
     }
   };
 
-  // Dummy notifications removed - now purely dynamic
-
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-20 pt-24">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[80px] pb-24 md:pb-8">
+      {fromParam !== 'admin' && <Header />}
+
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8 pt-2">
+          <div className="flex items-center gap-3">
             <Link 
               href={backHref} 
-              className="p-2.5 bg-white text-gray-600 hover:text-gray-900 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-100"
+              className="p-2.5 bg-white text-gray-600 hover:text-gray-900 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-200 shrink-0"
+              title="Kembali"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-                <Bell className="text-[#F26522]" size={24} />
-                Notifikasi
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                <Bell className="text-[#F26522]" size={22} />
+                <span>Notifikasi</span>
               </h1>
-              <p className="text-sm text-gray-500 mt-1">Pembaruan aktivitas dan informasi sistem</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 hidden sm:block">Pembaruan aktivitas dan informasi sistem</p>
             </div>
           </div>
           
-          <button onClick={handleMarkAllAsRead} className="text-sm font-bold text-[#F26522] hover:text-[#d85517] bg-orange-50 px-4 py-2 rounded-xl transition-colors">
-            Tandai semua dibaca
-          </button>
+          {currentUser && (
+            <button 
+              onClick={handleMarkAllAsRead} 
+              className="text-xs sm:text-sm font-bold text-[#F26522] hover:text-[#d85517] bg-orange-50/80 border border-orange-100 hover:bg-orange-100/80 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl transition-all whitespace-nowrap shadow-2xs shrink-0"
+            >
+              Tandai semua dibaca
+            </button>
+          )}
         </div>
 
         {/* Notifications List */}
@@ -149,7 +156,7 @@ function NotificationContent() {
           </div>
         )}
 
-      </div>
+      </main>
     </div>
   );
 }

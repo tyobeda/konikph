@@ -109,7 +109,7 @@ function LeafletMapInner() {
     <div className="w-full h-[360px] sm:h-[400px] rounded-3xl overflow-hidden relative shadow-sm border border-gray-200 bg-white [&_.leaflet-control-attribution]:hidden">
       
       {/* Overlay Badge Top Left */}
-      <div className="absolute top-4 left-4 z-[1000] bg-white/90 backdrop-blur-md text-gray-900 px-4 py-2.5 rounded-2xl border border-gray-200 shadow-md flex items-center gap-2.5">
+      <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md text-gray-900 px-4 py-2.5 rounded-2xl border border-gray-200 shadow-md flex items-center gap-2.5">
         <div className="w-2.5 h-2.5 rounded-full bg-[#F26522] animate-pulse" />
         <div>
           <h4 className="text-xs font-black tracking-wide text-gray-900 flex items-center gap-1.5">

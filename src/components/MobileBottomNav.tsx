@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Compass, PlusCircle, Layers, Users, User } from 'lucide-react';
 import { useData } from '@/context/DataContext';
+import { getUserSlug } from '@/lib/slug';
 
 export const MobileBottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -30,12 +31,14 @@ export const MobileBottomNav: React.FC = () => {
   // Hide on full-screen page builder editor
   if (pathname?.startsWith('/admin/pages/')) return null;
 
+  const profileHref = `/creators/${getUserSlug(currentUser)}`;
+
   const navItems = [
     { label: 'Beranda', href: '/', icon: Home },
     { label: 'Eksplorasi', href: '/explore', icon: Compass },
     { label: 'Unggah', href: '#', icon: PlusCircle, isHighlight: true },
     { label: 'Aset', href: '/assets', icon: Layers },
-    { label: 'Desainer', href: '/creators', icon: Users },
+    { label: 'Profil', href: profileHref, icon: User },
   ];
 
   return (
@@ -71,7 +74,7 @@ export const MobileBottomNav: React.FC = () => {
                     <span className="text-sm font-bold text-gray-800 whitespace-nowrap">Tambah Karya</span>
                   </Link>
                   <Link 
-                    href="/admin/twibbon"
+                    href="/twibbon"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50 active:bg-orange-100 transition-colors"
                   >

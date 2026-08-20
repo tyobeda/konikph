@@ -180,7 +180,10 @@ export default function HomePage() {
                       {heroFeaturedArtwork.author.name}
                     </p>
                     <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium">
-                      {(heroFeaturedArtwork.author.region || heroFeaturedArtwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • Format {heroFeaturedArtwork.format || 'PSD/AI'}
+                      {(heroFeaturedArtwork.author.region || heroFeaturedArtwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')}
+                      {heroFeaturedArtwork.format && !['Hanya gambar', 'Hanya Gambar', 'HANYA_GAMBAR', 'Gambar'].includes(heroFeaturedArtwork.format.trim()) && (
+                        ` • Format ${heroFeaturedArtwork.format}`
+                      )}
                     </p>
                   </div>
                 </div>

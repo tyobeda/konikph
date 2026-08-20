@@ -17,7 +17,7 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { currentUser, addArtworkReport, toggleLikeArtwork, updateArtwork } = useData();
+  const { currentUser, addArtworkReport, toggleLikeArtwork, updateArtwork, incrementDownloadCount } = useData();
   const userLiked = Boolean(
     currentUser && artwork.likedUserIds && artwork.likedUserIds.includes(currentUser.id)
   );
@@ -151,8 +151,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     (
       (artwork.author?.id && artwork.author.id === currentUser.id) ||
       (artwork.author?.email && artwork.author.email.toLowerCase() === currentUser.email?.toLowerCase()) ||
-      (artwork.author?.name && artwork.author.name === currentUser.name) ||
-      currentUser.role === 'Super Admin'
+      (artwork.author?.name && artwork.author.name === currentUser.name)
     )
   );
 
@@ -180,6 +179,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    incrementDownloadCount(artwork.id);
     alert(`Mengunduh karya "${artwork.title}" format (${artwork.format || 'PSD/AI'})...`);
   };
 

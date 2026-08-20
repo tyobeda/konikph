@@ -249,11 +249,11 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               <span>Buat Twibbon</span>
             </Link>
 
-            {/* Upload Button - Logged in users only */}
+            {/* Upload Button - Logged in users only (Desktop/Tablet) */}
             {isMounted && currentUser && (
               <Link
                 href="/upload"
-                className="inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
               >
                 <span>Unggah Karya</span>
               </Link>
@@ -378,20 +378,22 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
         </div>
 
         {/* Mobile Search Bar (Top Sticky Header) */}
-        <div className="md:hidden pb-3 pt-1">
-          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-            <div className="absolute left-3 text-gray-400 pointer-events-none">
-              <Search size={16} />
-            </div>
-            <input
-              type="text"
-              value={internalSearch}
-              onChange={handleSearchInput}
-              placeholder="Cari karya, desainer, atau daerah..."
-              className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none"
-            />
-          </form>
-        </div>
+        {pathname !== '/notifikasi' && (
+          <div className="md:hidden pb-3 pt-1">
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+              <div className="absolute left-3 text-gray-400 pointer-events-none">
+                <Search size={16} />
+              </div>
+              <input
+                type="text"
+                value={internalSearch}
+                onChange={handleSearchInput}
+                placeholder="Cari karya, desainer, atau daerah..."
+                className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none"
+              />
+            </form>
+          </div>
+        )}
       </div>
 
       </header>

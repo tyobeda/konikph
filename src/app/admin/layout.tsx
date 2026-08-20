@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 import {
   LayoutDashboard,
@@ -25,8 +25,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { siteSettings, isMounted, isSettingsLoaded, unreadNotificationCount } = useData();
+  const { currentUser, siteSettings, isMounted, isSettingsLoaded, unreadNotificationCount } = useData();
+
+  useEffect(() => {
+    if (isMounted) {
+      if (!currentUser || (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin')) {
+        router.replace('/');
+      }
+    }
+  }, [isMounted, currentUser, router]);
   const hasCustomAdminLogo = Boolean(
     siteSettings?.logoAdminUrl &&
     siteSettings.logoAdminUrl !== '/favicon.ico' &&
@@ -53,6 +62,10 @@ export default function AdminLayout({
   ];
 
   const currentPageLabel = navLinks.find((l) => l.href === pathname)?.label || 'Super Admin';
+
+  if (isMounted && (!currentUser || (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin'))) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row font-sans">

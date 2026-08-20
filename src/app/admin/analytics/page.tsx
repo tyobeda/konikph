@@ -245,28 +245,19 @@ export default function AdminAnalyticsPage() {
           <button
             onClick={() => fetchStats()}
             disabled={isLoading}
-            className="p-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-600 hover:text-gray-900 transition-colors shadow-sm"
+            className="p-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-600 hover:text-gray-900 transition-colors shadow-sm cursor-pointer"
             title="Refresh Data"
           >
             <RefreshCw size={16} className={isLoading ? 'animate-spin text-[#F26522]' : ''} />
           </button>
 
           <button
-            onClick={handleSeedData}
-            disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-xs font-bold rounded-xl transition-all shadow-sm disabled:opacity-50"
-          >
-            <Sparkles size={14} className={isLoading ? 'animate-spin' : ''} />
-            <span>{isLoading ? 'Menambahkan Data...' : '+ Simulasi 25 Kunjungan'}</span>
-          </button>
-
-
-          <button
             onClick={() => setShowClearModal(true)}
-            className="p-2.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-rose-600 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-rose-600 text-xs font-bold transition-all shadow-sm cursor-pointer"
             title="Bersihkan Log Analitik"
           >
-            <Trash2 size={16} />
+            <Trash2 size={15} />
+            <span>Bersihkan Log</span>
           </button>
         </div>
       </div>
@@ -357,76 +348,33 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Visual Chart: Daily Views & Visitors Trend */}
+      {/* Visual Chart: Daily Views & Visitors Trend (Sleek SVG Line Chart) */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <div>
             <h2 className="text-base font-extrabold text-gray-900">
-              Grafik Tren Kunjungan Harian
+              Grafik Tren Kunjungan Harian ({timeRange === 'today' ? 'Hari Ini' : timeRange === '7d' ? '7 Hari' : timeRange === '30d' ? '30 Hari' : 'Semua'})
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Perbandingan total tayangan halaman (*Page Views*) dan pengunjung unik per hari.
+              Visualisasi tren harian tayangan halaman (*Page Views*) dan pengunjung unik.
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold">
-            <div className="flex items-center gap-1.5 text-gray-600">
-              <span className="w-3 h-3 rounded bg-[#F26522] inline-block" />
+            <div className="flex items-center gap-1.5 text-gray-700">
+              <span className="w-3 h-3 rounded-full bg-[#F26522] inline-block shadow-xs" />
               <span>Page Views</span>
             </div>
-            <div className="flex items-center gap-1.5 text-gray-600">
-              <span className="w-3 h-3 rounded bg-blue-500 inline-block" />
+            <div className="flex items-center gap-1.5 text-gray-700">
+              <span className="w-3 h-3 rounded-full bg-blue-500 inline-block shadow-xs" />
               <span>Pengunjung Unik</span>
             </div>
           </div>
         </div>
 
-        {/* Bar Chart Representation */}
-        <div className="pt-4">
+        {/* SVG Line Chart Representation */}
+        <div className="pt-2">
           {stats?.viewsTrend && stats.viewsTrend.length > 0 ? (
-            <div className="grid grid-cols-7 gap-2 sm:gap-4 items-end h-56 pt-6 border-b border-gray-100 pb-2">
-              {stats.viewsTrend.map((item: any, idx: number) => {
-                const maxVal = Math.max(
-                  ...stats.viewsTrend.map((t: any) => t.views),
-                  10
-                );
-                const viewHeightPercent = Math.min(
-                  Math.round((item.views / maxVal) * 100),
-                  100
-                );
-                const visitorHeightPercent = Math.min(
-                  Math.round((item.visitors / maxVal) * 100),
-                  100
-                );
-
-                return (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-center gap-2 h-full justify-end group relative"
-                  >
-                    {/* Tooltip on Hover */}
-                    <div className="absolute -top-12 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-20 whitespace-nowrap">
-                      {item.date}: {item.views} Views ({item.visitors} Unik)
-                    </div>
-
-                    <div className="w-full flex items-end justify-center gap-1 h-full">
-                      {/* Bar Views */}
-                      <div
-                        style={{ height: `${Math.max(viewHeightPercent, 6)}%` }}
-                        className="w-1/2 max-w-[28px] bg-[#F26522] hover:bg-[#d85517] rounded-t-lg transition-all shadow-sm"
-                      />
-                      {/* Bar Visitors */}
-                      <div
-                        style={{ height: `${Math.max(visitorHeightPercent, 4)}%` }}
-                        className="w-1/2 max-w-[28px] bg-blue-500/80 hover:bg-blue-600 rounded-t-lg transition-all shadow-sm"
-                      />
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-500 truncate w-full text-center">
-                      {item.date}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <AnalyticsLineChart viewsTrend={stats.viewsTrend} timeRange={timeRange} />
           ) : (
             <div className="h-44 flex items-center justify-center text-xs text-gray-400 font-medium">
               Belum ada data grafik untuk periode ini.
@@ -827,6 +775,259 @@ export default function AdminAnalyticsPage() {
         </div>
       )}
 
+    </div>
+  );
+}
+
+// 📈 Custom Sleek SVG Line Chart Component with Smooth Curves & Hover Tooltips
+function AnalyticsLineChart({ viewsTrend, timeRange }: { viewsTrend: Array<{ date: string; views: number; visitors: number }>; timeRange: string }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  if (!viewsTrend || viewsTrend.length === 0) return null;
+
+  const width = 900;
+  const height = 220;
+  const paddingLeft = 40;
+  const paddingRight = 20;
+  const paddingTop = 20;
+  const paddingBottom = 35;
+
+  const chartW = width - paddingLeft - paddingRight;
+  const chartH = height - paddingTop - paddingBottom;
+
+  const maxVal = Math.max(
+    ...viewsTrend.map((d) => d.views),
+    ...viewsTrend.map((d) => d.visitors),
+    5
+  );
+
+  const pointsViews = viewsTrend.map((d, i) => {
+    const x = paddingLeft + (i / Math.max(viewsTrend.length - 1, 1)) * chartW;
+    const y = paddingTop + chartH - (d.views / maxVal) * chartH;
+    return { x, y, ...d };
+  });
+
+  const pointsVisitors = viewsTrend.map((d, i) => {
+    const x = paddingLeft + (i / Math.max(viewsTrend.length - 1, 1)) * chartW;
+    const y = paddingTop + chartH - (d.visitors / maxVal) * chartH;
+    return { x, y, ...d };
+  });
+
+  // Generate Smooth Bézier Curves
+  const makeSmoothPath = (pts: Array<{ x: number; y: number }>) => {
+    if (pts.length === 0) return '';
+    if (pts.length === 1) return `M ${pts[0].x},${pts[0].y}`;
+
+    let path = `M ${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const curr = pts[i];
+      const next = pts[i + 1];
+      const cp1x = curr.x + (next.x - curr.x) / 2;
+      const cp1y = curr.y;
+      const cp2x = curr.x + (next.x - curr.x) / 2;
+      const cp2y = next.y;
+      path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
+    }
+    return path;
+  };
+
+  const linePathViews = makeSmoothPath(pointsViews);
+  const linePathVisitors = makeSmoothPath(pointsVisitors);
+
+  const areaPathViews = `${linePathViews} L ${pointsViews[pointsViews.length - 1].x},${height - paddingBottom} L ${pointsViews[0].x},${height - paddingBottom} Z`;
+  const areaPathVisitors = `${linePathVisitors} L ${pointsVisitors[pointsVisitors.length - 1].x},${height - paddingBottom} L ${pointsVisitors[0].x},${height - paddingBottom} Z`;
+
+  // Grid Lines (3 levels)
+  const yTicks = [0, Math.round(maxVal / 2), maxVal];
+
+  // X-Axis Step (Label Skip for 30d/all)
+  const labelStep = viewsTrend.length > 20 ? 5 : viewsTrend.length > 10 ? 2 : 1;
+
+  const activePoint = hoverIndex !== null ? pointsViews[hoverIndex] : null;
+
+  return (
+    <div className="relative w-full overflow-hidden select-none">
+      {/* SVG Canvas */}
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full h-auto overflow-visible"
+        onMouseLeave={() => setHoverIndex(null)}
+      >
+        <defs>
+          {/* Page Views Area Gradient */}
+          <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#F26522" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#F26522" stopOpacity="0.0" />
+          </linearGradient>
+
+          {/* Visitors Area Gradient */}
+          <linearGradient id="visitorsGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Y-Axis Grid Lines & Ticks */}
+        {yTicks.map((val, idx) => {
+          const y = paddingTop + chartH - (val / maxVal) * chartH;
+          return (
+            <g key={idx}>
+              <line
+                x1={paddingLeft}
+                y1={y}
+                x2={width - paddingRight}
+                y2={y}
+                stroke="#E2E8F0"
+                strokeDasharray={idx === 0 ? undefined : '3 3'}
+                strokeWidth={idx === 0 ? 1.5 : 1}
+              />
+              <text
+                x={paddingLeft - 8}
+                y={y + 3}
+                fill="#94A3B8"
+                fontSize="10"
+                fontWeight="600"
+                textAnchor="end"
+              >
+                {val}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Gradient Areas */}
+        <path d={areaPathVisitors} fill="url(#visitorsGradient)" />
+        <path d={areaPathViews} fill="url(#viewsGradient)" />
+
+        {/* Smooth Trend Lines */}
+        <path
+          d={linePathVisitors}
+          fill="none"
+          stroke="#3B82F6"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={linePathViews}
+          fill="none"
+          stroke="#F26522"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* X-Axis Ticks & Dates */}
+        {pointsViews.map((pt, i) => {
+          const showLabel = i === 0 || i === pointsViews.length - 1 || i % labelStep === 0;
+          return (
+            <g key={i}>
+              {showLabel && (
+                <text
+                  x={pt.x}
+                  y={height - 10}
+                  fill="#64748B"
+                  fontSize="10"
+                  fontWeight="700"
+                  textAnchor="middle"
+                >
+                  {pt.date}
+                </text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* Hover Highlight Vertical Line & Dots */}
+        {hoverIndex !== null && (
+          <g className="transition-all duration-150">
+            {/* Vertical Guide Line */}
+            <line
+              x1={pointsViews[hoverIndex].x}
+              y1={paddingTop}
+              x2={pointsViews[hoverIndex].x}
+              y2={height - paddingBottom}
+              stroke="#F26522"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+            />
+
+            {/* Dot Visitors */}
+            <circle
+              cx={pointsVisitors[hoverIndex].x}
+              cy={pointsVisitors[hoverIndex].y}
+              r="5"
+              fill="#3B82F6"
+              stroke="#FFFFFF"
+              strokeWidth="2"
+              className="shadow-md"
+            />
+
+            {/* Dot Views */}
+            <circle
+              cx={pointsViews[hoverIndex].x}
+              cy={pointsViews[hoverIndex].y}
+              r="6"
+              fill="#F26522"
+              stroke="#FFFFFF"
+              strokeWidth="2.5"
+              className="shadow-md"
+            />
+          </g>
+        )}
+
+        {/* Transparent Interactive Mouse Touch Overlay */}
+        {pointsViews.map((pt, i) => {
+          const colW = chartW / Math.max(pointsViews.length - 1, 1);
+          const x = pt.x - colW / 2;
+          return (
+            <rect
+              key={i}
+              x={x}
+              y={paddingTop}
+              width={colW}
+              height={chartH}
+              fill="transparent"
+              onMouseEnter={() => setHoverIndex(i)}
+              className="cursor-pointer"
+            />
+          );
+        })}
+      </svg>
+
+      {/* Floating Hover Tooltip Card */}
+      {hoverIndex !== null && activePoint && (
+        <div
+          style={{
+            left: `${((activePoint.x) / width) * 100}%`,
+            top: '15px',
+          }}
+          className="absolute -translate-x-1/2 pointer-events-none z-30 bg-slate-900/95 backdrop-blur-md text-white text-xs p-3 rounded-2xl shadow-2xl border border-slate-700 min-w-[150px] animate-in fade-in zoom-in-95 duration-150"
+        >
+          <p className="font-extrabold text-[11px] text-slate-300 border-b border-slate-800 pb-1 mb-1.5 flex items-center justify-between">
+            <span>Tanggal</span>
+            <span className="text-white font-mono">{activePoint.date}</span>
+          </p>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-3 text-[11px]">
+              <span className="flex items-center gap-1.5 text-orange-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#F26522]" />
+                <span>Page Views</span>
+              </span>
+              <span className="font-black text-white">{pointsViews[hoverIndex].views}</span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 text-[11px]">
+              <span className="flex items-center gap-1.5 text-blue-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>Pengunjung Unik</span>
+              </span>
+              <span className="font-black text-white">{pointsVisitors[hoverIndex].visitors}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

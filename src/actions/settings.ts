@@ -140,3 +140,25 @@ export async function updateDBSiteSettings(data: any) {
     return { success: false, error: 'Failed to update settings' };
   }
 }
+
+export async function verifyAdminPasswordAction(password: string) {
+  try {
+    await requireAdminSession();
+    const expectedPassword = process.env.ADMIN_PASSWORD || 'pksart2026';
+    if (password === expectedPassword) {
+      return { success: true };
+    }
+    const superAdminUser = await (prisma as any).user.findUnique({
+      where: { id: 'superadmin_1' }
+    });
+    if (superAdminUser && superAdminUser.password) {
+      const bcrypt = require('bcryptjs');
+      const isMatch = await bcrypt.compare(password, superAdminUser.password).catch(() => false);
+      if (isMatch) return { success: true };
+    }
+    return { success: false, error: 'Kata sandi Admin yang Anda masukkan salah.' };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Verifikasi gagal' };
+  }
+}
+
