@@ -17,6 +17,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
 
@@ -34,6 +35,13 @@ export default function TwibbonGalleryPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'favorites'>('all');
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeFilter]);
 
   // Add Twibbon Template Modal States
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -159,7 +167,11 @@ export default function TwibbonGalleryPage() {
     return matchesSearch && matchesTab;
   });
 
-
+  const totalPages = Math.ceil(filteredTwibbons.length / ITEMS_PER_PAGE);
+  const paginatedTwibbons = filteredTwibbons.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
@@ -263,7 +275,7 @@ export default function TwibbonGalleryPage() {
               </div>
             ))}
           </div>
-        ) : filteredTwibbons.length === 0 ? (
+        ) : paginatedTwibbons.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-150 shadow-sm p-6 max-w-xl mx-auto">
             <div className="w-16 h-16 bg-purple-50 text-[#F26522] rounded-full flex items-center justify-center mb-4 shadow-sm">
               <ImageIcon size={30} />
@@ -293,77 +305,123 @@ export default function TwibbonGalleryPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredTwibbons.map((tw) => (
-              <div 
-                key={tw.id}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group flex flex-col relative"
-              >
-                {/* Favorite Heart Toggle Button Overlay */}
-                <button
-                  onClick={(e) => toggleFavorite(tw.id, e)}
-                  className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md text-gray-400 hover:text-red-500 transition-all active:scale-90"
-                  title={favorites.includes(tw.id) ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {paginatedTwibbons.map((tw) => (
+                <div 
+                  key={tw.id}
+                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group flex flex-col relative"
                 >
-                  <Heart 
-                    size={16} 
-                    className={favorites.includes(tw.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'} 
-                  />
+                  {/* Favorite Heart Toggle Button Overlay */}
+                  <button
+                    onClick={(e) => toggleFavorite(tw.id, e)}
+                    className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md text-gray-400 hover:text-red-500 transition-all active:scale-90"
+                    title={favorites.includes(tw.id) ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
+                  >
+                    <Heart 
+                      size={16} 
+                      className={favorites.includes(tw.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'} 
+                    />
+                  </button>
+
+                  {/* Checkered pattern background for transparent twibbons (Clickable to use twibbon) */}
+                  <Link 
+                    href={`/twibbon/${tw.slug || tw.id}`}
+                    className="relative aspect-square w-full bg-gray-50 flex items-center justify-center p-6 border-b border-gray-50/80 overflow-hidden cursor-pointer"
+                  >
+                    <div 
+                      className="absolute inset-0 opacity-5 pointer-events-none" 
+                      style={{
+                        backgroundImage: 'radial-gradient(#000 15%, transparent 16%), radial-gradient(#000 15%, transparent 16%)',
+                        backgroundSize: '16px 16px',
+                        backgroundPosition: '0 0, 8px 8px'
+                      }}
+                    />
+                    <img
+                      src={tw.imageUrl}
+                      alt={tw.title}
+                      className="w-full h-full object-contain drop-shadow-md group-hover:scale-[1.03] transition-transform duration-300"
+                    />
+                    <span className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      {tw.category}
+                    </span>
+                  </Link>
+
+                  {/* Details */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <Link href={`/twibbon/${tw.slug || tw.id}`}>
+                        <h3 className="text-sm font-extrabold text-gray-900 group-hover:text-[#F26522] transition-colors leading-snug line-clamp-1 cursor-pointer">
+                          {tw.title}
+                        </h3>
+                      </Link>
+                      <p className="text-xs text-gray-400 mt-0.5 font-medium">
+                        Wilayah: {tw.region}
+                      </p>
+                      
+                      {/* Used count */}
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100 mt-2">
+                        <Layers size={10} />
+                        <span>{tw.usedCount || 0}x digunakan</span>
+                      </span>
+                    </div>
+
+                    <Link
+                      href={`/twibbon/${tw.slug || tw.id}`}
+                      className="mt-3 w-full py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-extrabold rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <Sparkles size={13} />
+                      <span>Gunakan Bingkai</span>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 150, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                >
+                  &laquo; Sebelum
                 </button>
 
-                {/* Checkered pattern background for transparent twibbons (Clickable to use twibbon) */}
-                <Link 
-                  href={`/twibbon/${tw.slug || tw.id}`}
-                  className="relative aspect-square w-full bg-gray-50 flex items-center justify-center p-6 border-b border-gray-50/80 overflow-hidden cursor-pointer"
-                >
-                  <div 
-                    className="absolute inset-0 opacity-5 pointer-events-none" 
-                    style={{
-                      backgroundImage: 'radial-gradient(#000 15%, transparent 16%), radial-gradient(#000 15%, transparent 16%)',
-                      backgroundSize: '16px 16px',
-                      backgroundPosition: '0 0, 8px 8px'
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => {
+                      setCurrentPage(page);
+                      window.scrollTo({ top: 150, behavior: 'smooth' });
                     }}
-                  />
-                  <img
-                    src={tw.imageUrl}
-                    alt={tw.title}
-                    className="w-full h-full object-contain drop-shadow-md group-hover:scale-[1.03] transition-transform duration-300"
-                  />
-                  <span className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    {tw.category}
-                  </span>
-                </Link>
-
-                {/* Details */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <Link href={`/twibbon/${tw.slug || tw.id}`}>
-                      <h3 className="text-sm font-extrabold text-gray-900 group-hover:text-[#F26522] transition-colors leading-snug line-clamp-1 cursor-pointer">
-                        {tw.title}
-                      </h3>
-                    </Link>
-                    <p className="text-xs text-gray-400 mt-0.5 font-medium">
-                      Wilayah: {tw.region}
-                    </p>
-                    
-                    {/* Used count */}
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100 mt-2">
-                      <Layers size={10} />
-                      <span>{tw.usedCount || 0}x digunakan</span>
-                    </span>
-                  </div>
-
-                  <Link
-                    href={`/twibbon/${tw.slug || tw.id}`}
-                    className="mt-3 w-full py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-extrabold rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
+                    className={`w-9 h-9 rounded-xl text-xs font-extrabold transition-all border ${
+                      currentPage === page
+                        ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm scale-105'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
-                    <Sparkles size={13} />
-                    <span>Gunakan Bingkai</span>
-                  </Link>
-                </div>
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 150, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                >
+                  Lanjut &raquo;
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </main>
 
@@ -503,6 +561,9 @@ export default function TwibbonGalleryPage() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

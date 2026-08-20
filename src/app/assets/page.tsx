@@ -82,6 +82,13 @@ export default function AssetsPage() {
     alert(`Mengunduh paket "${title}"... Terima kasih!`);
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFormat, searchQuery]);
+
   // Filter artworks by master design formats
   const filteredAssets = artworks.filter((art) => {
     const matchesFormat =
@@ -94,6 +101,12 @@ export default function AssetsPage() {
 
     return matchesFormat && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
+  const paginatedAssets = filteredAssets.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
@@ -202,7 +215,11 @@ export default function AssetsPage() {
             <h2 className="text-base font-extrabold text-gray-900">
               Katalog File Master Postingan ({filteredAssets.length})
             </h2>
-            <p className="text-xs text-gray-500">Filter berdasarkan format file karya pengembang</p>
+            <p className="text-xs text-gray-500">
+              {totalPages > 1
+                ? `Menampilkan hal. ${currentPage} dari ${totalPages} (20 aset per halaman)`
+                : 'Filter berdasarkan format file karya pengembang'}
+            </p>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
@@ -235,12 +252,58 @@ export default function AssetsPage() {
         </div>
 
         {/* Assets Grid */}
-        {filteredAssets.length > 0 ? (
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {filteredAssets.map((artwork) => (
-              <ArtworkCard key={artwork.id} artwork={artwork} />
-            ))}
-          </div>
+        {paginatedAssets.length > 0 ? (
+          <>
+            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+              {paginatedAssets.map((artwork) => (
+                <ArtworkCard key={artwork.id} artwork={artwork} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                >
+                  &laquo; Sebelum
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => {
+                      setCurrentPage(page);
+                      window.scrollTo({ top: 400, behavior: 'smooth' });
+                    }}
+                    className={`w-9 h-9 rounded-xl text-xs font-extrabold transition-all border ${
+                      currentPage === page
+                        ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm scale-105'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                >
+                  Lanjut &raquo;
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center my-8">
             <FileCode size={48} className="mx-auto text-gray-300 mb-3" />

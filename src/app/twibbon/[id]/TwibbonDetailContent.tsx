@@ -125,23 +125,80 @@ export default function TwibbonDetailContent() {
     setIsDragging(false);
   };
 
-  // Touch Handlers for Smartphone (iOS & Android)
+  // Helper distance & angle math for multi-touch pinch-to-zoom & pinch-to-rotate
+  const [touchPinchStart, setTouchPinchStart] = useState<{
+    dist: number;
+    angle: number;
+    initialScale: number;
+    initialRotation: number;
+  } | null>(null);
+
+  const getTouchDistance = (t1: React.Touch, t2: React.Touch) => {
+    const dx = t2.clientX - t1.clientX;
+    const dy = t2.clientY - t1.clientY;
+    return Math.hypot(dx, dy);
+  };
+
+  const getTouchAngle = (t1: React.Touch, t2: React.Touch) => {
+    const dx = t2.clientX - t1.clientX;
+    const dy = t2.clientY - t1.clientY;
+    return (Math.atan2(dy, dx) * 180) / Math.PI;
+  };
+
+  // Touch Handlers for Smartphone (iOS & Android) with Multi-Touch Gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!photoUrl || e.touches.length === 0) return;
-    const touch = e.touches[0];
-    setIsDragging(true);
-    setDragStart({ x: touch.clientX - offsetX, y: touch.clientY - offsetY });
+
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setDragStart({ x: touch.clientX - offsetX, y: touch.clientY - offsetY });
+      setTouchPinchStart(null);
+    } else if (e.touches.length === 2) {
+      setIsDragging(false);
+      const dist = getTouchDistance(e.touches[0], e.touches[1]);
+      const angle = getTouchAngle(e.touches[0], e.touches[1]);
+      setTouchPinchStart({
+        dist,
+        angle,
+        initialScale: scale,
+        initialRotation: rotation,
+      });
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || e.touches.length === 0) return;
-    const touch = e.touches[0];
-    setOffsetX(touch.clientX - dragStart.x);
-    setOffsetY(touch.clientY - dragStart.y);
+    if (!photoUrl || e.touches.length === 0) return;
+
+    if (e.touches.length === 1 && isDragging) {
+      const touch = e.touches[0];
+      setOffsetX(touch.clientX - dragStart.x);
+      setOffsetY(touch.clientY - dragStart.y);
+    } else if (e.touches.length === 2 && touchPinchStart) {
+      const newDist = getTouchDistance(e.touches[0], e.touches[1]);
+      const newAngle = getTouchAngle(e.touches[0], e.touches[1]);
+
+      if (touchPinchStart.dist > 0) {
+        const scaleRatio = newDist / touchPinchStart.dist;
+        const targetScale = Math.min(Math.max(touchPinchStart.initialScale * scaleRatio, 0.5), 2.5);
+        setScale(targetScale);
+      }
+
+      const angleDiff = newAngle - touchPinchStart.angle;
+      let targetRotation = Math.round(touchPinchStart.initialRotation + angleDiff);
+      if (targetRotation > 180) targetRotation -= 360;
+      if (targetRotation < -180) targetRotation += 360;
+      setRotation(targetRotation);
+    }
   };
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      setTouchPinchStart(null);
+    }
+    if (e.touches.length === 0) {
+      setIsDragging(false);
+    }
   };
 
   const handleDownload = async () => {
@@ -346,14 +403,57 @@ export default function TwibbonDetailContent() {
             </div>
 
             {photoUrl && (
-              <p className="text-[11px] text-gray-600 mt-3 flex items-center gap-1 font-medium">
-                <Sparkles size={12} className="text-[#F26522]" />
-                <span>Geser & atur posisi foto Anda di dalam bingkai</span>
+              <p className="text-[11px] text-gray-600 mt-3 flex items-center gap-1 font-medium text-center">
+                <Sparkles size={12} className="text-[#F26522] shrink-0" />
+                <span>Geser 1 jari untuk posisi, 2 jari untuk zoom & rotasi foto</span>
               </p>
             )}
 
-            {/* Thumbnails Hasil Generate Terakhir */}
-            <div className="mt-5 w-full max-w-[340px] pt-4 border-t border-amber-200/40">
+            {/* 📱 UNGGAH FOTO & SLIDER (Tampilan Mobile: Di bawah canvas, di atas garis) */}
+            <div className="w-full max-w-[340px] mt-4 space-y-3 lg:hidden">
+              <div>
+                <label className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200/80 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all shadow-2xs">
+                  <Upload size={16} />
+                  <span>{photoUrl ? 'Ganti Foto Lain' : 'Pilih Foto Dari Perangkat'}</span>
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                </label>
+              </div>
+
+              {photoUrl && (
+                <div className="space-y-3 p-4 bg-white/90 backdrop-blur-sm rounded-2xl border border-amber-200/60 shadow-xs animate-in fade-in duration-300">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700">
+                    <span>Atur Ukuran</span>
+                    <span className="text-[#F26522]">{Math.round(scale * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.5"
+                    step="0.05"
+                    value={scale}
+                    onChange={(e) => setScale(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
+                  />
+
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 pt-1">
+                    <span>Putar</span>
+                    <span className="text-[#F26522]">{rotation}°</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-180"
+                    max="180"
+                    step="5"
+                    value={rotation}
+                    onChange={(e) => setRotation(parseInt(e.target.value, 10))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnails Hasil Generate Terakhir (Garis Pembatas) */}
+            <div className="mt-5 w-full max-w-[340px] pt-4 border-t border-amber-200/60">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-extrabold text-gray-600 uppercase tracking-wider">
                   Hasil Generate Terbaru
@@ -419,22 +519,20 @@ export default function TwibbonDetailContent() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            {/* 🖥️ UNGGAH FOTO & SLIDER (Tampilan Desktop Web: Di bawah info Oleh/Telah Digunakan) */}
+            <div className="hidden lg:block space-y-3">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
-                  Langkah 1: Unggah Foto
-                </label>
-                <label className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all">
+                <label className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200/80 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all shadow-2xs">
                   <Upload size={16} />
                   <span>{photoUrl ? 'Ganti Foto Lain' : 'Pilih Foto Dari Perangkat'}</span>
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                 </label>
               </div>
 
               {photoUrl && (
                 <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 animate-in fade-in duration-300">
                   <div className="flex items-center justify-between text-xs font-bold text-gray-700">
-                    <span>Atur Ukuran (Zoom)</span>
+                    <span>Atur Ukuran</span>
                     <span className="text-[#F26522]">{Math.round(scale * 100)}%</span>
                   </div>
                   <input
@@ -444,11 +542,11 @@ export default function TwibbonDetailContent() {
                     step="0.05"
                     value={scale}
                     onChange={(e) => setScale(parseFloat(e.target.value))}
-                    className="w-full accent-[#F26522] cursor-pointer"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
                   />
 
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 pt-2">
-                    <span>Putar (Rotasi)</span>
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 pt-1">
+                    <span>Putar</span>
                     <span className="text-[#F26522]">{rotation}°</span>
                   </div>
                   <input
@@ -458,7 +556,7 @@ export default function TwibbonDetailContent() {
                     step="5"
                     value={rotation}
                     onChange={(e) => setRotation(parseInt(e.target.value, 10))}
-                    className="w-full accent-[#F26522] cursor-pointer"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
                   />
                 </div>
               )}
@@ -468,7 +566,7 @@ export default function TwibbonDetailContent() {
               <button
                 onClick={handleDownload}
                 disabled={!photoUrl || isDownloading}
-                className="w-full py-3.5 px-6 bg-[#F26522] hover:bg-[#d85417] active:scale-[0.99] text-white text-sm font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 px-6 bg-[#F26522] hover:bg-[#d85417] active:scale-[0.99] text-white text-sm font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isDownloading ? (
                   <>
@@ -478,14 +576,14 @@ export default function TwibbonDetailContent() {
                 ) : (
                   <>
                     <Download size={18} />
-                    <span>Unduh Hasil Twibbon (PNG 1080x1080)</span>
+                    <span>Unduh Hasil Twibbon</span>
                   </>
                 )}
               </button>
 
               <button
                 onClick={handleShare}
-                className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Share2 size={14} />
                 <span>Salin Tautan Twibbon Ini</span>

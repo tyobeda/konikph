@@ -189,18 +189,20 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             <PksLogo size="md" />
 
             {/* Search Bar - Desktop */}
-            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 relative items-center">
-              <div className="absolute left-3.5 text-gray-400 pointer-events-none">
-                <Search size={18} />
-              </div>
-              <input
-                type="text"
-                value={internalSearch}
-                onChange={handleSearchInput}
-                placeholder="Cari karya, desainer, atau daerah..."
-                className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none transition-all"
-              />
-            </form>
+            {!pathname?.startsWith('/twibbon') && (
+              <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 relative items-center">
+                <div className="absolute left-3.5 text-gray-400 pointer-events-none">
+                  <Search size={18} />
+                </div>
+                <input
+                  type="text"
+                  value={internalSearch}
+                  onChange={handleSearchInput}
+                  placeholder="Cari karya, desainer, atau daerah..."
+                  className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none transition-all"
+                />
+              </form>
+            )}
           </div>
 
           {/* Desktop Navigation Links with Seamless Cross-Page Sliding Indicator */}
@@ -378,7 +380,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
         </div>
 
         {/* Mobile Search Bar (Top Sticky Header) */}
-        {pathname !== '/notifikasi' && (
+        {!pathname?.startsWith('/twibbon') && pathname !== '/notifikasi' && (
           <div className="md:hidden pb-3 pt-1">
             <form onSubmit={handleSearchSubmit} className="relative flex items-center">
               <div className="absolute left-3 text-gray-400 pointer-events-none">

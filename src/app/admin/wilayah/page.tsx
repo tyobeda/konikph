@@ -292,7 +292,7 @@ export default function AdminDpwPage() {
         {/* Pagination Bar */}
         <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
           <div className="text-gray-500 font-medium">
-            Menampilkan <span className="font-bold text-gray-800">{filteredDpw.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * itemsPerPage, filteredDpw.length)}</span> dari <span className="font-bold text-gray-800">{filteredDpw.length}</span> Wilayah DPW
+            Menampilkan <span className="font-bold text-gray-800">{filteredDpw.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * itemsPerPage, filteredDpw.length)}</span> dari <span className="font-bold text-gray-800">{filteredDpw.length}</span> Wilayah
           </div>
 
           <div className="flex items-center gap-1.5 font-bold">
@@ -422,6 +422,34 @@ export default function AdminDpwPage() {
                   placeholder="+62 813-7419-6152"
                   className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <span>EMAIL KOORDINATOR / WILAYAH</span>
+                  <span className="text-[10px] text-gray-400 font-normal lowercase">(tidak wajib)</span>
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="Contoh: dpw.sumbar@pks.id"
+                  className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <span>ALAMAT SEKRETARIAT</span>
+                  <span className="text-[10px] text-gray-400 font-normal lowercase">(tidak wajib)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Contoh: Jl. Ir. H. Juanda No. 51, Padang"
+                  className="w-full bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] focus:bg-white transition-all resize-none"
                 />
               </div>
             </form>

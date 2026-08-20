@@ -85,6 +85,19 @@ export default function ExplorePage() {
     return result;
   }, [artworks, activeCategory, selectedRegion, selectedFormat, searchQuery, sortBy]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, selectedRegion, selectedFormat, searchQuery, sortBy]);
+
+  const totalPages = Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE);
+  const paginatedArtworks = filteredAndSorted.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
@@ -247,16 +260,66 @@ export default function ExplorePage() {
             <Grid size={16} className="text-[#F26522]" />
             <span>Hasil Eksplorasi ({filteredAndSorted.length} Karya Ditemukan)</span>
           </h2>
-          <span className="text-xs text-gray-500">Menampilkan karya terverifikasi</span>
+          <span className="text-xs text-gray-500">
+            {totalPages > 1
+              ? `Halaman ${currentPage} dari ${totalPages} (20 per halaman)`
+              : 'Menampilkan karya terverifikasi'}
+          </span>
         </div>
 
         {/* GALLERY MASONRY GRID */}
-        {filteredAndSorted.length > 0 ? (
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {filteredAndSorted.map((artwork) => (
-              <ArtworkCard key={artwork.id} artwork={artwork} />
-            ))}
-          </div>
+        {paginatedArtworks.length > 0 ? (
+          <>
+            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+              {paginatedArtworks.map((artwork) => (
+                <ArtworkCard key={artwork.id} artwork={artwork} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 450, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                >
+                  &laquo; Sebelum
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => {
+                      setCurrentPage(page);
+                      window.scrollTo({ top: 450, behavior: 'smooth' });
+                    }}
+                    className={`w-9 h-9 rounded-xl text-xs font-extrabold transition-all border ${
+                      currentPage === page
+                        ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm scale-105'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 450, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                >
+                  Lanjut &raquo;
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center my-8">
             <FileCode size={48} className="mx-auto text-gray-300 mb-3" />
