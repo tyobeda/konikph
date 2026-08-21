@@ -32,7 +32,27 @@ export async function POST(req: NextRequest) {
 
     // ── Super Admin path ────────────────────────────────────────────────────
     if (cleanEmail === ADMIN_EMAIL) {
-      if (password !== ADMIN_PASSWORD) {
+      let isSuperAdminMatch = false;
+
+      // 1. Check against DB user superadmin_1
+      const superAdminUser = await prisma.user.findFirst({
+        where: { OR: [{ id: 'superadmin_1' }, { email: ADMIN_EMAIL }] }
+      });
+
+      if (superAdminUser && superAdminUser.password) {
+        if (superAdminUser.password.startsWith('$2a$') || superAdminUser.password.startsWith('$2b$')) {
+          isSuperAdminMatch = await bcrypt.compare(password, superAdminUser.password);
+        } else if (password === superAdminUser.password) {
+          isSuperAdminMatch = true;
+        }
+      }
+
+      // 2. Fallback check against ADMIN_PASSWORD env / default
+      if (!isSuperAdminMatch && password === ADMIN_PASSWORD) {
+        isSuperAdminMatch = true;
+      }
+
+      if (!isSuperAdminMatch) {
         return NextResponse.json({ success: false, message: 'Kata sandi Super Admin yang Anda masukkan salah.' }, { status: 401 });
       }
 
@@ -41,15 +61,15 @@ export async function POST(req: NextRequest) {
         success: true,
         message: 'Selamat datang Super Admin PKSart!',
         user: {
-          id: 'superadmin_1',
-          name: 'Super Admin PKSart',
+          id: superAdminUser?.id || 'superadmin_1',
+          name: superAdminUser?.name || 'Super Admin PKSart',
           email: ADMIN_EMAIL,
           role: 'Super Admin',
           isVerified: true,
-          avatar: '/img/877859417715829.jpg',
-          phone: '',
-          address: 'DPP PKS Official',
-          region: 'DPP PKS Official',
+          avatar: superAdminUser?.avatar || '/img/877859417715829.jpg',
+          phone: superAdminUser?.phone || '+6281199887766',
+          address: superAdminUser?.address || 'DPP PKS Official',
+          region: superAdminUser?.region || 'DPP PKS Official',
           status: 'Active',
         },
       });
