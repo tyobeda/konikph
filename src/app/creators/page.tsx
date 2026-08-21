@@ -98,7 +98,7 @@ export default function CreatorsPage() {
               }`}
             >
               <Building size={16} />
-              <span>Kantor Wilayah ({dpwList.length})</span>
+              <span>Wilayah / Chapter ({dpwList.length})</span>
             </button>
           </div>
 
@@ -227,9 +227,6 @@ export default function CreatorsPage() {
               >
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#F26522] font-black flex items-center justify-center text-sm border border-orange-100 shrink-0">
-                      {dpw.code.split('-')[1] || 'DPW'}
-                    </div>
                     <div>
                       <h3 className="font-extrabold text-base text-gray-900">{dpw.name}</h3>
                       <p className="text-xs text-gray-500 font-semibold">{dpw.code}</p>
@@ -241,18 +238,12 @@ export default function CreatorsPage() {
                       <Users size={14} className="text-[#F26522]" />
                       <span>Koordinator: {dpw.coordinator}</span>
                     </p>
-                    <p className="flex items-center gap-1.5 text-gray-500">
-                      <PhoneCall size={13} className="text-gray-400" />
-                      <span>{dpw.phone}</span>
-                    </p>
-                    <p className="flex items-center gap-1.5 text-gray-500">
-                      <Mail size={13} className="text-gray-400" />
-                      <span>{dpw.email}</span>
-                    </p>
-                    <p className="flex items-start gap-1.5 text-gray-500">
-                      <MapPin size={13} className="text-gray-400 shrink-0 mt-0.5" />
-                      <span>{dpw.address}</span>
-                    </p>
+                    {dpw.phone && (
+                      <p className="flex items-center gap-1.5 text-gray-500">
+                        <PhoneCall size={13} className="text-gray-400" />
+                        <span>{dpw.phone}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
