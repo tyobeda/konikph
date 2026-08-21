@@ -541,7 +541,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   };
 
   const toggleLikeArtwork = async (id: string) => {
-    const author = currentUser || SUPER_ADMIN_USER;
+    if (!currentUser) {
+      alert('Silakan login terlebih dahulu untuk menyukai karya.');
+      return;
+    }
+    const author = currentUser;
     const res = await dbToggleLikeArtwork(id, author.id);
     if (res && res.success) {
       setArtworks((prev) =>
@@ -571,8 +575,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
   };
 
   const addCommentToArtwork = async (id: string, content: string) => {
+    if (!currentUser) {
+      return { success: false, error: 'Silakan login terlebih dahulu untuk memberikan komentar.' };
+    }
     if (!content.trim()) return { success: false, error: 'Komentar tidak boleh kosong' };
-    const author = currentUser || SUPER_ADMIN_USER;
+    const author = currentUser;
 
     const res = await addCommentToArtworkDB(id, author.id, content.trim());
     
