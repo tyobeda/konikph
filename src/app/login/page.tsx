@@ -8,10 +8,11 @@ import { PksLogo } from '@/components/PksLogo';
 import { useData } from '@/context/DataContext';
 
 import { Footer } from '@/components/Footer';
+import { formatPhoneNumber } from '@/lib/phone';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginUser, currentUser, isMounted, isModuleUnderMaintenance } = useData();
+  const { loginUser, currentUser, isMounted, isModuleUnderMaintenance, addResetRequest } = useData();
 
   React.useEffect(() => {
     if (isMounted) {
@@ -36,6 +37,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Reset Password Request States
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetName, setResetName] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetPhone, setResetPhone] = useState('');
+  const [isSubmittingReset, setIsSubmittingReset] = useState(false);
+  const [resetSuccessMessage, setResetSuccessMessage] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,6 +157,19 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <div className="flex justify-end mt-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setResetEmail(email || '');
+                  setShowResetModal(true);
+                  setResetSuccessMessage(false);
+                }}
+                className="text-xs font-bold text-gray-500 hover:text-[#F26522] transition-colors"
+              >
+                Lupa Kata Sandi?
+              </button>
+            </div>
           </div>
 
           <button
@@ -189,6 +211,112 @@ export default function LoginPage() {
       </div>
 
       <Footer />
+
+      {/* Password Reset Request Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 relative animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-extrabold text-gray-900 mb-2 flex items-center gap-2">
+              <Lock size={18} className="text-[#F26522]" />
+              <span>Minta Reset Kata Sandi</span>
+            </h3>
+            
+            {!resetSuccessMessage ? (
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!resetEmail.trim() || !resetPhone.trim()) return;
+                  setIsSubmittingReset(true);
+                  const res = await addResetRequest({ name: resetName.trim() || 'Desainer', email: resetEmail.trim(), phone: resetPhone.trim() });
+                  setIsSubmittingReset(false);
+                  if (res && res.success === false) {
+                    alert(res.error || 'Gagal mengirimkan permohonan reset.');
+                    return;
+                  }
+                  setResetSuccessMessage(true);
+                }}
+                className="space-y-4 mt-4"
+              >
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Permintaan reset kata sandi Anda akan dikirim ke Admin. Setelah disetujui, admin akan mengirimkan **tautan reset kata sandi (berlaku 5 menit)** langsung ke WhatsApp Anda.
+                </p>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nama Lengkap (Opsional)</label>
+                  <input
+                    type="text"
+                    value={resetName}
+                    onChange={(e) => setResetName(e.target.value)}
+                    placeholder="Nama akun Anda"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Alamat Email <span className="text-red-500">*</span></label>
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="contoh: nama@pks.art"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nomor WhatsApp <span className="text-red-500">*</span></label>
+                  <input
+                    type="tel"
+                    value={resetPhone}
+                    onChange={(e) => setResetPhone(e.target.value)}
+                    onBlur={(e) => {
+                      if (e.target.value) {
+                        setResetPhone(formatPhoneNumber(e.target.value));
+                      }
+                    }}
+                    placeholder="081299887766 atau +6281299887766"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(false)}
+                    className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReset}
+                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isSubmittingReset ? 'Sending...' : 'Kirim Permintaan'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4 mt-4 text-center py-2">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                  ✓
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">Permintaan Dikirim!</h4>
+                <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto">
+                  Permintaan Anda berhasil diajukan ke admin. Silakan tunggu pemberitahuan pembaruan kata sandi baru dari admin yang akan dikirim langsung ke nomor WhatsApp <strong>{resetPhone}</strong> Anda.
+                </p>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(false)}
+                    className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition-colors w-full"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
