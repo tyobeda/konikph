@@ -162,7 +162,7 @@ export default function CreatorsPage() {
                           <span>{user.region}</span>
                         </p>
                         <span className="inline-block text-[10px] font-extrabold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5">
-                          {user.role || 'Desainer Official'}
+                          {user.role === 'Kreator' || user.role === 'Kreator PKS' || !user.role ? 'Desainer PKS' : user.role}
                         </span>
                       </div>
                     </div>
