@@ -20,7 +20,7 @@ import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
 import { GdriveTutorialModal } from '@/components/GdriveTutorialModal';
 import { CATEGORIES, REGIONS, ARTWORK_CATEGORIES } from '@/lib/data';
-import { useData, SUPER_ADMIN_USER } from '@/context/DataContext';
+import { useData } from '@/context/DataContext';
 
 // Helper to get current date (YYYY-MM-DD)
 const getCurrentDateString = () => {
@@ -135,7 +135,7 @@ export default function UploadPage() {
         region: currentUser?.region || region || 'DPP PKS Official',
         format: fileFormat,
         tags: parsedTags,
-        author: currentUser || SUPER_ADMIN_USER,
+        author: currentUser!,
         status: status as any,
         createdAt: combinedDateTime.toISOString(),
       });
