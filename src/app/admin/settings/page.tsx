@@ -33,6 +33,7 @@ import {
   Filter,
   Lock,
   KeyRound,
+  Trash2,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
@@ -84,6 +85,14 @@ export default function AdminSettingsPage() {
   const [ctaLinks, setCtaLinks] = useState<{ label: string; url: string }[]>(siteSettings.ctaLinks || []);
   const [ctaSocialText, setCtaSocialText] = useState(siteSettings.ctaSocialText || '');
   const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
+  const [ctaSocialLinks, setCtaSocialLinks] = useState<{ platform: string; label: string; url: string }[]>(siteSettings.ctaSocialLinks || [
+    { platform: 'instagram', label: '@pksart', url: 'https://instagram.com' },
+    { platform: 'facebook', label: 'PKS Art', url: 'https://facebook.com' },
+    { platform: 'youtube', label: 'PKS Art Official', url: 'https://youtube.com' },
+    { platform: 'tiktok', label: '@pksart', url: 'https://tiktok.com' },
+    { platform: 'twitter', label: '@pksart', url: 'https://twitter.com' },
+    { platform: 'threads', label: '@pksart', url: 'https://threads.net' },
+  ]);
   const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
   const [autoApproveArtworks, setAutoApproveArtworks] = useState(siteSettings.autoApproveArtworks !== false);
   const [allowCommentLinks, setAllowCommentLinks] = useState((siteSettings as any).allowCommentLinks !== false);
@@ -141,6 +150,9 @@ export default function AdminSettingsPage() {
       setCtaLinks(siteSettings.ctaLinks || []);
       setCtaSocialText(siteSettings.ctaSocialText || '');
       setCtaSocialUrl(siteSettings.ctaSocialUrl || '');
+      if (siteSettings.ctaSocialLinks && siteSettings.ctaSocialLinks.length > 0) {
+        setCtaSocialLinks(siteSettings.ctaSocialLinks);
+      }
       setAdminWhatsapp(siteSettings.adminWhatsapp || '6281199887766');
       setAutoApproveArtworks(siteSettings.autoApproveArtworks !== false);
       setAllowCommentLinks((siteSettings as any).allowCommentLinks !== false);
@@ -520,6 +532,7 @@ export default function AdminSettingsPage() {
       ctaLinks,
       ctaSocialText,
       ctaSocialUrl,
+      ctaSocialLinks,
     });
     setIsSaved(true);
     triggerToast('Pengaturan Banner CTA Beranda berhasil disimpan!');
@@ -1315,34 +1328,91 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              {/* Social Media Link */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-5 mt-2">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                    Teks Tautan Sosial (Medsos)
-                  </label>
-                  <input
-                    type="text"
-                    value={ctaSocialText}
-                    onChange={(e) => setCtaSocialText(e.target.value)}
-                    placeholder="misal: Follow @pksart"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+              {/* 📲 Multiple Social Media Links List Editor */}
+              <div className="border-t border-gray-100 pt-5 mt-2">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase">
+                      Tautan Sosial Media (Sosmed Icons & Links)
+                    </label>
+                    <p className="text-[11px] text-gray-400">
+                      Kelola icon sosmed (Instagram, Facebook, YouTube, TikTok, X/Twitter, Threads, WhatsApp, dll.)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCtaSocialLinks([...ctaSocialLinks, { platform: 'instagram', label: '@pksart', url: 'https://' }]);
+                    }}
+                    className="px-3 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm"
                     disabled={!ctaEnabled}
-                  />
+                  >
+                    <span>+ Tambah Sosmed</span>
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                    Tautan Sosial URL
-                  </label>
-                  <input
-                    type="text"
-                    value={ctaSocialUrl}
-                    onChange={(e) => setCtaSocialUrl(e.target.value)}
-                    placeholder="misal: #"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#F26522]"
-                    disabled={!ctaEnabled}
-                  />
+                <div className="space-y-2 max-w-4xl">
+                  {ctaSocialLinks.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 py-1 bg-gray-50/70 p-2 rounded-xl border border-gray-200">
+                      <select
+                        value={item.platform || 'instagram'}
+                        onChange={(e) => {
+                          const updated = [...ctaSocialLinks];
+                          updated[idx].platform = e.target.value;
+                          setCtaSocialLinks(updated);
+                        }}
+                        className="w-1/4 bg-white border border-gray-300 text-gray-900 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#F26522]"
+                        disabled={!ctaEnabled}
+                      >
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="twitter">Twitter / X</option>
+                        <option value="threads">Threads</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="website">Website / Link</option>
+                      </select>
+                      <input
+                        type="text"
+                        value={item.label}
+                        onChange={(e) => {
+                          const updated = [...ctaSocialLinks];
+                          updated[idx].label = e.target.value;
+                          setCtaSocialLinks(updated);
+                        }}
+                        placeholder="Label (misal: @pksart)"
+                        className="w-1/3 bg-white border border-gray-300 text-gray-900 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                        required
+                        disabled={!ctaEnabled}
+                      />
+                      <input
+                        type="text"
+                        value={item.url}
+                        onChange={(e) => {
+                          const updated = [...ctaSocialLinks];
+                          updated[idx].url = e.target.value;
+                          setCtaSocialLinks(updated);
+                        }}
+                        placeholder="URL Lengkap (https://...)"
+                        className="flex-1 bg-white border border-gray-300 text-gray-900 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                        required
+                        disabled={!ctaEnabled}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = ctaSocialLinks.filter((_, i) => i !== idx);
+                          setCtaSocialLinks(updated);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                        disabled={!ctaEnabled}
+                        title="Hapus Sosmed"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 

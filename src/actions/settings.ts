@@ -31,8 +31,16 @@ const DEFAULT_SETTINGS = {
     { label: 'Download', url: '#' },
     { label: 'Login/Upload', url: '/login' }
   ]),
-  ctaSocialText: 'Follow @pksart',
+  ctaSocialText: 'Follow Kami',
   ctaSocialUrl: '#',
+  ctaSocialLinks: JSON.stringify([
+    { platform: 'instagram', label: '@pksart', url: 'https://instagram.com' },
+    { platform: 'facebook', label: 'PKS Art', url: 'https://facebook.com' },
+    { platform: 'youtube', label: 'PKS Art Official', url: 'https://youtube.com' },
+    { platform: 'tiktok', label: '@pksart', url: 'https://tiktok.com' },
+    { platform: 'twitter', label: '@pksart', url: 'https://twitter.com' },
+    { platform: 'threads', label: '@pksart', url: 'https://threads.net' },
+  ]),
   adminWhatsapp: '6281199887766',
   allowCommentLinks: true,
   forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu'
@@ -49,15 +57,26 @@ export async function getDBSiteSettings() {
         data: DEFAULT_SETTINGS
       });
     }
-    // Parse ctaLinks & maintenanceConfig JSON strings back into objects
+    // Parse ctaLinks, ctaSocialLinks & maintenanceConfig JSON strings back into objects
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
+    let ctaSocialLinksParsed = [];
+    if (settings.ctaSocialLinks) {
+      try {
+        ctaSocialLinksParsed = JSON.parse(settings.ctaSocialLinks);
+      } catch (e) {}
+    } else {
+      try {
+        ctaSocialLinksParsed = JSON.parse(DEFAULT_SETTINGS.ctaSocialLinks);
+      } catch (e) {}
+    }
+
     let maintenanceConfigParsed = null;
     if (settings.maintenanceConfig) {
       try {
         maintenanceConfigParsed = JSON.parse(settings.maintenanceConfig);
       } catch (e) {}
     }
-    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
+    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, ctaSocialLinks: ctaSocialLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
   } catch (error) {
     console.error('Error fetching site settings:', error);
     return { success: false, error: 'Failed to fetch settings' };
@@ -85,6 +104,7 @@ export async function updateDBSiteSettings(data: any) {
     if (data.ctaBgUrl !== undefined) updateData.ctaBgUrl = data.ctaBgUrl;
     if (data.ctaEnabled !== undefined) updateData.ctaEnabled = Boolean(data.ctaEnabled);
     if (data.ctaLinks !== undefined) updateData.ctaLinks = JSON.stringify(data.ctaLinks);
+    if (data.ctaSocialLinks !== undefined) updateData.ctaSocialLinks = JSON.stringify(data.ctaSocialLinks);
     if (data.ctaSocialText !== undefined) updateData.ctaSocialText = data.ctaSocialText;
     if (data.ctaSocialUrl !== undefined) updateData.ctaSocialUrl = data.ctaSocialUrl;
     if (data.autoApproveArtworks !== undefined) updateData.autoApproveArtworks = Boolean(data.autoApproveArtworks);
@@ -117,6 +137,7 @@ export async function updateDBSiteSettings(data: any) {
         ctaBgUrl: data.ctaBgUrl || DEFAULT_SETTINGS.ctaBgUrl,
         ctaEnabled: data.ctaEnabled !== undefined ? Boolean(data.ctaEnabled) : true,
         ctaLinks: data.ctaLinks ? JSON.stringify(data.ctaLinks) : DEFAULT_SETTINGS.ctaLinks,
+        ctaSocialLinks: data.ctaSocialLinks ? JSON.stringify(data.ctaSocialLinks) : DEFAULT_SETTINGS.ctaSocialLinks,
         ctaSocialText: data.ctaSocialText || DEFAULT_SETTINGS.ctaSocialText,
         ctaSocialUrl: data.ctaSocialUrl || DEFAULT_SETTINGS.ctaSocialUrl,
         adminWhatsapp: data.adminWhatsapp || '6281199887766',

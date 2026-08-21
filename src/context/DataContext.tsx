@@ -114,6 +114,7 @@ export interface DataContextType {
     ctaLinks?: { label: string; url: string }[];
     ctaSocialText?: string;
     ctaSocialUrl?: string;
+    ctaSocialLinks?: { platform: string; label: string; url: string }[];
     adminWhatsapp?: string;
     autoApproveArtworks?: boolean;
     allowCommentLinks?: boolean;
