@@ -149,13 +149,23 @@ export async function updateDBSiteSettings(data: any) {
     });
     revalidatePath('/');
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
+    let ctaSocialLinksParsed = [];
+    if (settings.ctaSocialLinks) {
+      try {
+        ctaSocialLinksParsed = JSON.parse(settings.ctaSocialLinks);
+      } catch (e) {}
+    } else {
+      try {
+        ctaSocialLinksParsed = JSON.parse(DEFAULT_SETTINGS.ctaSocialLinks);
+      } catch (e) {}
+    }
     let maintenanceConfigParsed = null;
     if (settings.maintenanceConfig) {
       try {
         maintenanceConfigParsed = JSON.parse(settings.maintenanceConfig);
       } catch (e) {}
     }
-    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
+    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, ctaSocialLinks: ctaSocialLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
   } catch (error) {
     console.error('Error updating site settings:', error);
     return { success: false, error: 'Failed to update settings' };
