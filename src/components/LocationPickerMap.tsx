@@ -95,9 +95,9 @@ export default function LocationPickerMap({
           className="w-full h-full z-0"
         >
           <TileLayer
-            url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openfreemap.org">OpenStreetMap</a>'
-            maxZoom={19}
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+            attribution="Tiles &copy; Esri"
+            maxZoom={16}
           />
           <MapClickHandler />
           <Marker position={[position.lat, position.lng]} icon={customPinIcon} />

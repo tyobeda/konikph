@@ -140,11 +140,11 @@ function LeafletMapInner() {
         {/* Zoom Control Positioned Top Right */}
         <ZoomControl position="topright" />
 
-        {/* High-Contrast Clean Single-Tone Basemap (Stamen Toner Lite style via Stadia / OpenStreetMap) */}
+        {/* Clean Light Gray Basemap (Esri World Light Gray - 100% Free & Open) */}
         <TileLayer
-          url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openfreemap.org">OpenStreetMap</a>'
-          maxZoom={19}
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          attribution="Tiles &copy; Esri"
+          maxZoom={16}
         />
 
         {dpwList.map((dpw) => {
