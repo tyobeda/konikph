@@ -237,8 +237,8 @@ export default function LoginPage() {
                 }}
                 className="space-y-4 mt-4"
               >
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Permintaan reset kata sandi Anda akan dikirim ke Admin. Setelah disetujui, admin akan mengirimkan **tautan reset kata sandi (berlaku 5 menit)** langsung ke WhatsApp Anda.
+                <p className="text-xs text-gray-600 leading-relaxed bg-orange-50/70 p-3 rounded-xl border border-orange-100">
+                  Tautan reset kata sandi (berlaku <strong>5 menit</strong>) akan <strong>dikirimkan secara otomatis ke Inbox/Spam email Anda via Resend</strong>. Jika email belum kunjung tiba, Anda juga dapat langsung menghubungi Admin via WhatsApp.
                 </p>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nama Lengkap (Opsional)</label>
@@ -290,7 +290,7 @@ export default function LoginPage() {
                     disabled={isSubmittingReset}
                     className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmittingReset ? 'Sending...' : 'Kirim Permintaan'}
+                    {isSubmittingReset ? 'Mengirim...' : 'Kirim Reset via Email'}
                   </button>
                 </div>
               </form>
@@ -299,17 +299,37 @@ export default function LoginPage() {
                 <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
                   ✓
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">Permintaan Dikirim!</h4>
-                <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto">
-                  Permintaan Anda berhasil diajukan ke admin. Silakan tunggu pemberitahuan pembaruan kata sandi baru dari admin yang akan dikirim langsung ke nomor WhatsApp <strong>{resetPhone}</strong> Anda.
+                <h4 className="text-sm font-bold text-gray-900">Permintaan Berhasil Terkirim!</h4>
+                <p className="text-xs text-gray-600 leading-relaxed max-w-sm mx-auto">
+                  Sistem telah mengirimkan tautan reset kata sandi ke email <strong>{resetEmail}</strong> (Silakan cek folder <strong>Inbox & Spam</strong>).
                 </p>
+
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-left space-y-2 text-xs text-amber-900">
+                  <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                    <span>📱 Email belum kunjung sampai?</span>
+                  </p>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    Anda juga dapat langsung menghubungi Admin PKSart via WhatsApp untuk meminta verifikasi manual:
+                  </p>
+                  <a
+                    href={`https://wa.me/${(useData().siteSettings?.adminWhatsapp || '6281199887766').replace(/\D/g, '')}?text=${encodeURIComponent(
+                      `Halo Admin PKSart, saya meminta permohonan reset password untuk akun:\nNama: ${resetName || 'Desainer'}\nEmail: ${resetEmail}\nNo. HP: ${resetPhone}\n\nMohon bantuannya untuk kirim link reset password. Terima kasih!`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 mt-1"
+                  >
+                    <span>Hubungi Admin via WhatsApp</span>
+                  </a>
+                </div>
+
                 <div className="pt-2">
                   <button
                     type="button"
                     onClick={() => setShowResetModal(false)}
-                    className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition-colors w-full"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg transition-colors w-full"
                   >
-                    Tutup
+                    Selesai & Tutup
                   </button>
                 </div>
               </div>

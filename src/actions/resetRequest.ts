@@ -5,6 +5,7 @@ import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { checkRateLimit } from '@/lib/rateLimit';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { sendEmail } from '@/lib/mailer';
 
 export async function getResetRequests() {
   noStore();
@@ -87,9 +88,53 @@ export async function addResetRequest(data: { name: string; email: string; phone
       });
     });
 
+    // 3. Send Automatic Reset Password Email via SMTP
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    const emailName = data.name || 'Desainer PKSart';
+
+    // Fire email asynchronously in background
+    sendEmail({
+      to: cleanEmail,
+      subject: '🔒 Petunjuk Pemulihan Kata Sandi Akun PKSart Anda',
+      html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background-color: #ffffff; border: 1px solid #f0f0f0; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h2 style="color: #111827; font-size: 22px; font-weight: 800; margin: 0;">PKS<span style="color: #F26522;">art</span></h2>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Galeri Desain & Foto PKS Official</p>
+          </div>
+
+          <div style="padding: 20px; bg-color: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
+            <h3 style="color: #1f2937; font-size: 16px; margin-top: 0;">Halo ${emailName},</h3>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">
+              Kami menerima permintaan untuk mereset kata sandi akun desainer PKSart Anda.
+            </p>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">
+              Silakan klik tombol di bawah ini untuk membuat kata sandi baru. Tautan ini dibuat secara otomatis dan <strong>hanya berlaku selama 5 menit</strong> demi keamanan akun Anda.
+            </p>
+
+            <div style="text-align: center; margin: 24px 0;">
+              <a href="${resetUrl}" style="background-color: #F26522; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; text-decoration: none; border-radius: 10px; inline-block: true; box-shadow: 0 2px 4px rgba(242, 101, 34, 0.2);">
+                Reset Kata Sandi Sekarang
+              </a>
+            </div>
+
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.4; margin-bottom: 0;">
+              * Jika Anda tidak merasa meminta reset kata sandi, abaikan saja email ini. Akun Anda akan tetap aman.
+            </p>
+          </div>
+
+          <div style="border-t: 1px solid #f3f4f6; pt: 16px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} PKSart Official. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    }).catch(err => console.error('SMTP Email dispatch background error:', err));
+
     revalidatePath('/admin/creators');
     return {
       success: true,
+      message: 'Permohonan reset kata sandi berhasil dikirim! Silakan periksa kotak masuk/spam email Anda.',
       data: {
         ...request,
         createdAt: request.createdAt ? request.createdAt.toISOString() : new Date().toISOString(),
