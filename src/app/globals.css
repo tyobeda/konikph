@@ -118,7 +118,7 @@ body {
   transition: background 0.2s ease;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #CBD5E1; /* Slightly darker on hover */
-}
+/* Custom Scrollbar Styles */
+
+
 

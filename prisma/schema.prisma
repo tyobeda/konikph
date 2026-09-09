@@ -189,6 +189,7 @@ model SiteSettings {
   ctaSocialText   String?
   ctaSocialUrl    String?
   ctaLinks        String?  // Store serialized JSON array of links
+  ctaSocialLinks  String?  // Store serialized JSON array of multi social media links
   adminWhatsapp   String?  @default("6281199887766")
   maintenanceConfig String? // JSON string storing maintenance mode toggles and custom message
   autoApproveArtworks Boolean @default(true) // Whether uploaded artworks are automatically approved or require moderation

@@ -95,8 +95,9 @@ export default function LocationPickerMap({
           className="w-full h-full z-0"
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            subdomains="abcd"
+            url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openfreemap.org">OpenStreetMap</a>'
+            maxZoom={19}
           />
           <MapClickHandler />
           <Marker position={[position.lat, position.lng]} icon={customPinIcon} />

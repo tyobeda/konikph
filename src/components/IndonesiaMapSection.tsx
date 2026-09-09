@@ -140,10 +140,10 @@ function LeafletMapInner() {
         {/* Zoom Control Positioned Top Right */}
         <ZoomControl position="topright" />
 
-        {/* Minimalist Light Clean Tile Map */}
+        {/* High-Contrast Clean Single-Tone Basemap (Stamen Toner Lite style via Stadia / OpenStreetMap) */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
+          url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openfreemap.org">OpenStreetMap</a>'
           maxZoom={19}
         />
 
