@@ -518,25 +518,29 @@ export default function AdminSettingsPage() {
       }
     }
   };
-  const handleSaveCta = (e: React.FormEvent) => {
+  const handleSaveCta = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateSiteSettings({
-      ctaTitle,
-      ctaDescription,
-      ctaButtonText,
-      ctaButtonLink,
-      ctaLogoUrl: ctaLogoPreview,
-      ctaImageUrl: ctaImagePreview,
-      ctaBgUrl: ctaBgPreview,
-      ctaEnabled,
-      ctaLinks,
-      ctaSocialText,
-      ctaSocialUrl,
-      ctaSocialLinks,
-    });
-    setIsSaved(true);
-    triggerToast('Pengaturan Banner CTA Beranda berhasil disimpan!');
-    setTimeout(() => setIsSaved(false), 3000);
+    try {
+      await updateSiteSettings({
+        ctaTitle,
+        ctaDescription,
+        ctaButtonText,
+        ctaButtonLink,
+        ctaLogoUrl: ctaLogoPreview,
+        ctaImageUrl: ctaImagePreview,
+        ctaBgUrl: ctaBgPreview,
+        ctaEnabled,
+        ctaLinks,
+        ctaSocialText,
+        ctaSocialUrl,
+        ctaSocialLinks,
+      });
+      setIsSaved(true);
+      triggerToast('Pengaturan Banner CTA Beranda berhasil disimpan!');
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err: any) {
+      alert('Gagal menyimpan banner CTA: ' + (err?.message || 'Error'));
+    }
   };
 
   const [isSavingPopup, setIsSavingPopup] = useState(false);
