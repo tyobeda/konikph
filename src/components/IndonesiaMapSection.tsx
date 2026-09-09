@@ -140,11 +140,14 @@ function LeafletMapInner() {
         {/* Zoom Control Positioned Top Right */}
         <ZoomControl position="topright" />
 
-        {/* Clean Light Gray Basemap (Esri World Light Gray - 100% Free & Open) */}
+        {/* CARTO Positron Light Basemap */}
         <TileLayer
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-          attribution="Tiles &copy; Esri"
-          maxZoom={16}
+          url={`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png${
+            process.env.NEXT_PUBLIC_CARTO_API_KEY ? `?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}` : ''
+          }`}
+          subdomains="abcd"
+          attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          maxZoom={19}
         />
 
         {dpwList.map((dpw) => {
