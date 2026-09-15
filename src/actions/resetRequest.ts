@@ -5,6 +5,7 @@ import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { checkRateLimit } from '@/lib/rateLimit';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { headers } from 'next/headers';
 import { sendEmail } from '@/lib/mailer';
 
 export async function getResetRequests() {
@@ -89,7 +90,19 @@ export async function addResetRequest(data: { name: string; email: string; phone
     });
 
     // 3. Send Automatic Reset Password Email via SMTP
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+    try {
+      const headerList = await headers();
+      const host = headerList.get('host') || headerList.get('x-forwarded-host');
+      const proto = headerList.get('x-forwarded-proto') || 'https';
+      if (host) {
+        baseUrl = `${proto}://${host}`;
+      }
+    } catch (e) {
+      // Fallback
+    }
+    if (!baseUrl) baseUrl = 'https://art.pks.id';
+
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
     const emailName = data.name || 'Desainer PKSart';
 
@@ -195,7 +208,19 @@ export async function generateResetLinkAction(id: string) {
       return { success: false, error: 'Token gagal disimpan. Restart dev server lalu coba lagi.' };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+    try {
+      const headerList = await headers();
+      const host = headerList.get('host') || headerList.get('x-forwarded-host');
+      const proto = headerList.get('x-forwarded-proto') || 'https';
+      if (host) {
+        baseUrl = `${proto}://${host}`;
+      }
+    } catch (e) {
+      // Fallback
+    }
+    if (!baseUrl) baseUrl = 'https://art.pks.id';
+
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
     revalidatePath('/admin/creators');
