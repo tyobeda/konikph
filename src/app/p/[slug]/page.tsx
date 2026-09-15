@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!page) return {};
 
   const settings = await prisma.siteSettings.findFirst();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://art.pks.id';
   
   const rawOgUrl = (page as any).ogImageUrl || (settings as any)?.ogImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop';
   const ogImageUrl = rawOgUrl.startsWith('/') ? `${baseUrl}${rawOgUrl}` : rawOgUrl;

@@ -15,7 +15,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
   if (resendApiKey && resendApiKey.trim() !== '') {
     try {
       const resend = new Resend(resendApiKey);
-      const fromAddress = process.env.RESEND_FROM || 'PKSart Official <no-reply@pksart.site>';
+      const fromAddress = process.env.RESEND_FROM || 'PKSart Official <no-reply@art.pks.id>';
 
       const data = await resend.emails.send({
         from: fromAddress,

@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   });
 
   const settings = await prisma.siteSettings.findFirst();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://art.pks.id';
 
   if (!artwork) {
     return {

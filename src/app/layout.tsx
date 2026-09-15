@@ -21,7 +21,7 @@ import { getDBSiteSettings } from "@/actions/settings";
 export async function generateMetadata(): Promise<Metadata> {
   const settingsRes = await getDBSiteSettings();
   const settings = settingsRes?.data;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pksart.site';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://art.pks.id';
   
   const siteTitle = settings?.siteName || "PKSart - Galeri Desain & Foto PKS Official";
   const siteDesc = settings?.siteDescription || "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.";
