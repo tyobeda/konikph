@@ -27,7 +27,7 @@ npx tsc --noEmit
 ### 2. Deployment ke VPS via SSH
 Proyek menggunakan Docker Compose di VPS. Untuk mendeploy perubahan terbaru ke VPS:
 ```bash
-ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.133.155.196 "cd /var/www/pks.art && git pull origin main && docker compose build --no-cache && docker compose up -d"
+ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.133.155.196 "cd /home/ubuntu/pksart && git pull origin main && docker compose build --no-cache && docker compose up -d"
 ```
 > ⚠️ **Catatan Penting Deployment**: Setiap ada perubahan kode React/Next.js, pastikan selalu menggunakan flag `--no-cache` pada `docker compose build` di VPS agar artifacts minified Next.js ter-compile ulang dari source terbaru!
 
