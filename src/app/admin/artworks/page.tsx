@@ -25,6 +25,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { ARTWORK_CATEGORIES } from '@/lib/data';
@@ -36,6 +37,7 @@ export default function AdminArtworksPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
+  const [deletingArtwork, setDeletingArtwork] = useState<Artwork | null>(null);
 
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('');
@@ -46,7 +48,7 @@ export default function AdminArtworksPage() {
   const pendingReportsCount = artworkReports.filter((r) => r.status === 'Pending').length;
 
   const handleApprove = (id: string) => {
-    updateArtwork(id, { status: 'Disetujui' } as any);
+    updateArtwork(id, { status: 'Aktif' } as any);
   };
 
   const handleReject = (id: string) => {
@@ -57,9 +59,14 @@ export default function AdminArtworksPage() {
     updateArtwork(id, { isFeatured: !current });
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus karya ini dari sistem?')) {
-      deleteArtwork(id);
+  const handleDelete = (art: Artwork) => {
+    setDeletingArtwork(art);
+  };
+
+  const confirmDeleteArtwork = () => {
+    if (deletingArtwork) {
+      deleteArtwork(deletingArtwork.id);
+      setDeletingArtwork(null);
     }
   };
 
@@ -513,7 +520,7 @@ export default function AdminArtworksPage() {
                         )}
 
                         <button
-                          onClick={() => handleDelete(art.id)}
+                          onClick={() => handleDelete(art)}
                           className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Hapus Permanent"
                         >
@@ -696,6 +703,16 @@ export default function AdminArtworksPage() {
           </div>
         )}
 
-    </>
+        {/* Confirm Delete Artwork Modal */}
+        <ConfirmModal
+          isOpen={!!deletingArtwork}
+          title={`Hapus Karya "${deletingArtwork?.title}"?`}
+          message={`Apakah Anda yakin ingin menghapus karya "${deletingArtwork?.title}" secara permanen dari sistem? File dan data terkait akan terhapus.`}
+          confirmLabel="Ya, Hapus Permanen"
+          variant="danger"
+          onConfirm={confirmDeleteArtwork}
+          onCancel={() => setDeletingArtwork(null)}
+        />
+      </>
   );
 }

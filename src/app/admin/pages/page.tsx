@@ -15,11 +15,13 @@ import {
   Copy,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 
 export default function AdminPagesPage() {
   const router = useRouter();
   const { customPages, deleteCustomPage, addCustomPage } = useData();
   const [searchQuery, setSearchQuery] = useState('');
+  const [deletingPage, setDeletingPage] = useState<any | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -28,9 +30,14 @@ export default function AdminPagesPage() {
 
   if (!isMounted) return null;
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus halaman kustom ini?')) {
-      deleteCustomPage(id);
+  const handleDelete = (pageItem: any) => {
+    setDeletingPage(pageItem);
+  };
+
+  const confirmDeletePage = () => {
+    if (deletingPage) {
+      deleteCustomPage(deletingPage.id);
+      setDeletingPage(null);
     }
   };
 
@@ -174,7 +181,7 @@ export default function AdminPagesPage() {
                           <Edit size={14} />
                         </button>
                         <button
-                          onClick={() => handleDelete(page.id)}
+                          onClick={() => handleDelete(page)}
                           className="p-2 bg-gray-50 hover:bg-red-50 border border-gray-150 hover:border-red-100 text-gray-600 hover:text-red-500 rounded-xl shadow-sm transition-all"
                           title="Hapus Halaman"
                         >
@@ -189,6 +196,17 @@ export default function AdminPagesPage() {
           </table>
         </div>
       </div>
+
+      {/* Confirm Delete Custom Page Modal */}
+      <ConfirmModal
+        isOpen={!!deletingPage}
+        title={`Hapus Halaman "${deletingPage?.title}"?`}
+        message={`Apakah Anda yakin ingin menghapus halaman kustom "${deletingPage?.title}" ini dari sistem?`}
+        confirmLabel="Ya, Hapus Halaman"
+        variant="danger"
+        onConfirm={confirmDeletePage}
+        onCancel={() => setDeletingPage(null)}
+      />
     </>
   );
 }

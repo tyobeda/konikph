@@ -20,11 +20,13 @@ import {
 import { USERS } from '@/lib/data';
 import { useData, TwibbonFrame } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 
 export default function AdminTwibbonPage() {
   const { twibbons, addTwibbon, updateTwibbon, deleteTwibbon } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [deletingTwibbon, setDeletingTwibbon] = useState<TwibbonFrame | null>(null);
 
   // Modal State for Adding/Editing Twibbon
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -49,9 +51,14 @@ export default function AdminTwibbonPage() {
     updateTwibbon(id, { isFeatured: !current });
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus frame Twibbon ini dari sistem?')) {
-      deleteTwibbon(id);
+  const handleDelete = (tw: TwibbonFrame) => {
+    setDeletingTwibbon(tw);
+  };
+
+  const confirmDeleteTwibbon = () => {
+    if (deletingTwibbon) {
+      deleteTwibbon(deletingTwibbon.id);
+      setDeletingTwibbon(null);
     }
   };
 
@@ -330,7 +337,7 @@ export default function AdminTwibbonPage() {
                       )}
 
                       <button
-                        onClick={() => handleDelete(tw.id)}
+                        onClick={() => handleDelete(tw)}
                         className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title="Hapus Permanent"
                       >
@@ -504,6 +511,17 @@ export default function AdminTwibbonPage() {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Twibbon Frame Modal */}
+      <ConfirmModal
+        isOpen={!!deletingTwibbon}
+        title={`Hapus Twibbon "${deletingTwibbon?.title}"?`}
+        message={`Apakah Anda yakin ingin menghapus frame Twibbon "${deletingTwibbon?.title}" ini dari sistem secara permanen?`}
+        confirmLabel="Ya, Hapus Twibbon"
+        variant="danger"
+        onConfirm={confirmDeleteTwibbon}
+        onCancel={() => setDeletingTwibbon(null)}
+      />
     </>
   );
 }

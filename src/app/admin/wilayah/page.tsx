@@ -18,6 +18,7 @@ import dynamic from 'next/dynamic';
 import { PksLogo } from '@/components/PksLogo';
 import { useData, DpwOffice } from '@/context/DataContext';
 import { formatPhoneNumber } from '@/lib/phone';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 
 const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), {
   ssr: false,
@@ -33,6 +34,7 @@ export default function AdminDpwPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingDpw, setEditingDpw] = useState<DpwOffice | null>(null);
+  const [deletingDpw, setDeletingDpw] = useState<DpwOffice | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -50,9 +52,14 @@ export default function AdminDpwPage() {
     updateDpw(dpw.id, { isActive: nextState });
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus data wilayah ini dari sistem?')) {
-      deleteDpw(id);
+  const handleDelete = (dpw: DpwOffice) => {
+    setDeletingDpw(dpw);
+  };
+
+  const confirmDeleteDpw = () => {
+    if (deletingDpw) {
+      deleteDpw(deletingDpw.id);
+      setDeletingDpw(null);
     }
   };
 
@@ -268,7 +275,7 @@ export default function AdminDpwPage() {
                           </button>
 
                           <button
-                            onClick={() => handleDelete(dpw.id)}
+                            onClick={() => handleDelete(dpw)}
                             className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Hapus DPW"
                           >
@@ -462,6 +469,17 @@ export default function AdminDpwPage() {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete DPW Office Modal */}
+      <ConfirmModal
+        isOpen={!!deletingDpw}
+        title={`Hapus Data Wilayah "${deletingDpw?.name}"?`}
+        message={`Apakah Anda yakin ingin menghapus data kantor wilayah "${deletingDpw?.name}" dari sistem?`}
+        confirmLabel="Ya, Hapus Wilayah"
+        variant="danger"
+        onConfirm={confirmDeleteDpw}
+        onCancel={() => setDeletingDpw(null)}
+      />
     </>
   );
 }

@@ -65,6 +65,7 @@ export default function AdminCreatorsPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'suspended'>('all');
   const [editingCreator, setEditingCreator] = useState<User | null>(null);
   const [suspendingUser, setSuspendingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,9 +104,14 @@ export default function AdminCreatorsPage() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus akun desainer ini dari sistem?')) {
-      deleteUser(id);
+  const handleDelete = (creator: User) => {
+    setDeletingUser(creator);
+  };
+
+  const confirmDeleteUser = () => {
+    if (deletingUser) {
+      deleteUser(deletingUser.id);
+      setDeletingUser(null);
     }
   };
 
@@ -519,7 +525,7 @@ export default function AdminCreatorsPage() {
                             <Ban size={16} />
                           </button>
                           <button
-                            onClick={() => handleDelete(creator.id)}
+                            onClick={() => handleDelete(creator)}
                             className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Hapus Permanent Akun"
                           >
@@ -694,6 +700,16 @@ export default function AdminCreatorsPage() {
         isSuspending={suspendingUser?.status !== 'Suspended'}
         onConfirm={confirmSuspendUser}
         onCancel={() => setSuspendingUser(null)}
+      />
+
+      <ConfirmSuspendModal
+        isOpen={!!deletingUser}
+        title={`Hapus Akun ${deletingUser?.name}?`}
+        message={`Apakah Anda yakin ingin menghapus akun desainer "${deletingUser?.name}" secara permanen dari sistem? Seluruh data yang terkait akan terhapus.`}
+        confirmLabel="Ya, Hapus Permanen"
+        variant="danger"
+        onConfirm={confirmDeleteUser}
+        onCancel={() => setDeletingUser(null)}
       />
     </>
   );

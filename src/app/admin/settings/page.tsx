@@ -36,6 +36,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
 import { useData } from '@/context/DataContext';
 import { compressImageFile } from '@/lib/imageCompressor';
@@ -635,32 +636,40 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const [restoreFileState, setRestoreFileState] = useState<{ file: File; content: string } | null>(null);
+
   const handleRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!confirm(`Apakah Anda yakin ingin memulihkan data database dari file "${file.name}"?`)) {
-        return;
-      }
-      setIsRestoringBackup(true);
-      triggerToast('Membaca dan memproses file pemulihan cadangan...');
-
       const reader = new FileReader();
       reader.onload = async (event) => {
         const content = event.target?.result as string;
         if (content) {
-          const res = await importRestoreDataAction(content);
-          setIsRestoringBackup(false);
-          if (res.success) {
-            triggerToast(res.message || 'Pemulihan data berhasil diselesaikan!');
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
-          } else {
-            alert(res.error || 'Gagal memulihkan data dari file.');
-          }
+          setRestoreFileState({ file, content });
         }
       };
       reader.readAsText(file);
+      e.target.value = '';
+    }
+  };
+
+  const confirmRestoreDatabase = async () => {
+    if (!restoreFileState) return;
+    const { content } = restoreFileState;
+    setRestoreFileState(null);
+
+    setIsRestoringBackup(true);
+    triggerToast('Membaca dan memproses file pemulihan cadangan...');
+
+    const res = await importRestoreDataAction(content);
+    setIsRestoringBackup(false);
+    if (res.success) {
+      triggerToast(res.message || 'Pemulihan data berhasil diselesaikan!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      alert(res.error || 'Gagal memulihkan data dari file.');
     }
   };
 
@@ -2640,6 +2649,17 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         )}
+
+        {/* Confirm Restore Database Backup Modal */}
+        <ConfirmModal
+          isOpen={!!restoreFileState}
+          title={`Pulihkan Data Cadangan?`}
+          message={`Apakah Anda yakin ingin memulihkan seluruh data database dari file "${restoreFileState?.file.name}"? Data saat ini mungkin akan tertimpa.`}
+          confirmLabel="Ya, Pulihkan Data"
+          variant="warning"
+          onConfirm={confirmRestoreDatabase}
+          onCancel={() => setRestoreFileState(null)}
+        />
 
     </>
   );

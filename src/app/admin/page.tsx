@@ -37,7 +37,10 @@ const IndonesiaMapSection = dynamic(() => import('@/components/IndonesiaMapSecti
     </div>
   ),
 });
+import { PksLogo } from '@/components/PksLogo';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
+import { Artwork } from '@/lib/types';
 
 const ITEMS_PER_PAGE = 8;
 
@@ -46,6 +49,7 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletingArtwork, setDeletingArtwork] = useState<Artwork | null>(null);
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -59,9 +63,14 @@ export default function AdminDashboardPage() {
     updateArtwork(id, { status: 'Ditolak' } as any);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus karya ini dari sistem?')) {
-      deleteArtwork(id);
+  const handleDelete = (art: Artwork) => {
+    setDeletingArtwork(art);
+  };
+
+  const confirmDeleteArtwork = () => {
+    if (deletingArtwork) {
+      deleteArtwork(deletingArtwork.id);
+      setDeletingArtwork(null);
     }
   };
 
@@ -436,7 +445,17 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-        </div>
+        {/* Confirm Delete Artwork Modal */}
+        <ConfirmModal
+          isOpen={!!deletingArtwork}
+          title={`Hapus Karya "${deletingArtwork?.title}"?`}
+          message={`Apakah Anda yakin ingin menghapus karya "${deletingArtwork?.title}" secara permanen dari sistem? Seluruh data terkait karya ini akan terhapus.`}
+          confirmLabel="Ya, Hapus Permanen"
+          variant="danger"
+          onConfirm={confirmDeleteArtwork}
+          onCancel={() => setDeletingArtwork(null)}
+        />
+      </div>
     </>
   );
 }

@@ -24,6 +24,7 @@ import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { ARTWORK_CATEGORIES } from '@/lib/data';
 import { ConfirmUnsavedModal } from '@/components/ConfirmUnsavedModal';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 
 export default function MyArtworksPage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function MyArtworksPage() {
 
   const [filterTab, setFilterTab] = useState<'all' | 'Disetujui' | 'Pending' | 'Ditolak' | 'Dihapus'>('all');
   const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
+  const [deletingArtwork, setDeletingArtwork] = useState<Artwork | null>(null);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -52,9 +54,14 @@ export default function MyArtworksPage() {
 
   if (!isMounted) return null;
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus karya postingan ini?')) {
-      deleteArtwork(id);
+  const handleDelete = (art: Artwork) => {
+    setDeletingArtwork(art);
+  };
+
+  const confirmDeleteArtwork = () => {
+    if (deletingArtwork) {
+      deleteArtwork(deletingArtwork.id);
+      setDeletingArtwork(null);
     }
   };
 
@@ -275,7 +282,7 @@ export default function MyArtworksPage() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handleDelete(artwork.id);
+                      handleDelete(artwork);
                     }}
                     className="p-2 bg-white/90 hover:bg-white text-red-600 rounded-full shadow-lg backdrop-blur-md transition-all active:scale-95"
                     title="Hapus Postingan Karya"
@@ -476,6 +483,17 @@ export default function MyArtworksPage() {
           isOpen={showUnsavedModal}
           onDiscard={handleDiscardChanges}
           onKeepEditing={() => setShowUnsavedModal(false)}
+        />
+
+        {/* Confirm Delete Artwork Modal */}
+        <ConfirmModal
+          isOpen={!!deletingArtwork}
+          title={`Hapus Karya "${deletingArtwork?.title}"?`}
+          message={`Apakah Anda yakin ingin menghapus karya "${deletingArtwork?.title}" ini? Postingan akan dihapus secara permanen.`}
+          confirmLabel="Ya, Hapus Karya"
+          variant="danger"
+          onConfirm={confirmDeleteArtwork}
+          onCancel={() => setDeletingArtwork(null)}
         />
 
       </main>

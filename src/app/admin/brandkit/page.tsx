@@ -18,12 +18,14 @@ import {
   Link2,
 } from 'lucide-react';
 import { BrandKit } from '@/lib/types';
+import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 
 export default function AdminBrandKit() {
   const { brandKits, addBrandKit, updateBrandKit, deleteBrandKit, isBrandKitsLoaded } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingKit, setEditingKit] = useState<BrandKit | null>(null);
+  const [deletingKit, setDeletingKit] = useState<BrandKit | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -182,9 +184,14 @@ export default function AdminBrandKit() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus aset brand kit ini dari sistem?')) {
-      deleteBrandKit(id);
+  const handleDelete = (kit: BrandKit) => {
+    setDeletingKit(kit);
+  };
+
+  const confirmDeleteKit = () => {
+    if (deletingKit) {
+      deleteBrandKit(deletingKit.id);
+      setDeletingKit(null);
     }
   };
 
@@ -327,7 +334,7 @@ export default function AdminBrandKit() {
                             <Edit size={16} />
                           </button>
                           <button
-                            onClick={() => handleDelete(kit.id)}
+                            onClick={() => handleDelete(kit)}
                             className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Hapus Aset"
                           >
@@ -629,6 +636,17 @@ export default function AdminBrandKit() {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete BrandKit Asset Modal */}
+      <ConfirmModal
+        isOpen={!!deletingKit}
+        title={`Hapus Aset "${deletingKit?.title}"?`}
+        message={`Apakah Anda yakin ingin menghapus aset brand kit "${deletingKit?.title}" ini dari sistem?`}
+        confirmLabel="Ya, Hapus Aset"
+        variant="danger"
+        onConfirm={confirmDeleteKit}
+        onCancel={() => setDeletingKit(null)}
+      />
     </>
   );
 }

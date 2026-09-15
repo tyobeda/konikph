@@ -1,36 +1,75 @@
 'use client';
 
 import React from 'react';
-import { Ban, CheckCircle, X } from 'lucide-react';
+import { Ban, CheckCircle, Trash2, AlertTriangle, X } from 'lucide-react';
 
-interface ConfirmSuspendModalProps {
+interface ConfirmModalProps {
   isOpen: boolean;
   title?: string;
   message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  variant?: 'danger' | 'warning' | 'success';
   onConfirm: () => void;
   onCancel: () => void;
+  // Legacy prop backwards compatibility
   isSuspending?: boolean;
 }
 
-export const ConfirmSuspendModal: React.FC<ConfirmSuspendModalProps> = ({
+export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
   title,
   message,
   confirmLabel,
   cancelLabel = 'Batal',
+  variant,
   onConfirm,
   onCancel,
   isSuspending = true,
 }) => {
   if (!isOpen) return null;
 
-  const defaultTitle = isSuspending ? 'Konfirmasi Suspend' : 'Konfirmasi Aktifkan';
-  const defaultMessage = isSuspending 
-    ? 'Apakah Anda yakin ingin men-suspend desainer ini? Mereka tidak akan dapat mengunggah karya baru sampai diaktifkan kembali.'
-    : 'Apakah Anda yakin ingin mengaktifkan kembali desainer ini? Mereka akan dapat beraktivitas seperti semula.';
-  const defaultConfirmLabel = isSuspending ? 'Ya, Suspend' : 'Ya, Aktifkan';
+  // Determine effective variant
+  const effectiveVariant = variant || (isSuspending ? 'warning' : 'success');
+
+  const getIcon = () => {
+    switch (effectiveVariant) {
+      case 'danger':
+        return <Trash2 size={26} />;
+      case 'warning':
+        return <Ban size={26} />;
+      case 'success':
+        return <CheckCircle size={26} />;
+      default:
+        return <AlertTriangle size={26} />;
+    }
+  };
+
+  const getBadgeStyle = () => {
+    switch (effectiveVariant) {
+      case 'danger':
+        return 'bg-red-50 border-red-100 text-red-500';
+      case 'warning':
+        return 'bg-amber-50 border-amber-100 text-amber-500';
+      case 'success':
+        return 'bg-emerald-50 border-emerald-100 text-emerald-500';
+      default:
+        return 'bg-gray-50 border-gray-100 text-gray-500';
+    }
+  };
+
+  const getConfirmButtonStyle = () => {
+    switch (effectiveVariant) {
+      case 'danger':
+        return 'bg-red-600 hover:bg-red-700 shadow-red-100';
+      case 'warning':
+        return 'bg-amber-500 hover:bg-amber-600 shadow-amber-100';
+      case 'success':
+        return 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100';
+      default:
+        return 'bg-gray-800 hover:bg-black';
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -46,18 +85,16 @@ export const ConfirmSuspendModal: React.FC<ConfirmSuspendModalProps> = ({
         </button>
 
         {/* Icon Badge */}
-        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mx-auto mb-4 shadow-sm ${
-          isSuspending ? 'bg-amber-50 border-amber-100 text-amber-500' : 'bg-emerald-50 border-emerald-100 text-emerald-500'
-        }`}>
-          {isSuspending ? <Ban size={26} /> : <CheckCircle size={26} />}
+        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mx-auto mb-4 shadow-sm ${getBadgeStyle()}`}>
+          {getIcon()}
         </div>
 
         {/* Title & Message */}
         <h3 className="text-lg font-black text-gray-900 tracking-tight mb-1.5">
-          {title || defaultTitle}
+          {title || 'Konfirmasi'}
         </h3>
         <p className="text-xs text-gray-500 leading-relaxed mb-6 font-medium">
-          {message || defaultMessage}
+          {message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?'}
         </p>
 
         {/* Action Buttons */}
@@ -72,14 +109,15 @@ export const ConfirmSuspendModal: React.FC<ConfirmSuspendModalProps> = ({
           <button
             type="button"
             onClick={onConfirm}
-            className={`flex-1 py-2.5 px-4 text-white font-bold text-xs rounded-xl transition-all active:scale-95 ${
-              isSuspending ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'
-            }`}
+            className={`flex-1 py-2.5 px-4 text-white font-bold text-xs rounded-xl transition-all active:scale-95 shadow-md ${getConfirmButtonStyle()}`}
           >
-            {confirmLabel || defaultConfirmLabel}
+            {confirmLabel || 'Ya, Lanjutkan'}
           </button>
         </div>
       </div>
     </div>
   );
 };
+
+// Export alias for backwards compatibility
+export const ConfirmSuspendModal = ConfirmModal;
