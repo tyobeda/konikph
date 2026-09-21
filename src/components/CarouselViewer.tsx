@@ -172,12 +172,36 @@ export const CarouselViewer: React.FC<CarouselViewerProps> = ({
     ? 'transform 750ms cubic-bezier(0.76, 0, 0.24, 1)'
     : 'transform 300ms ease-out';
 
-  const content = (
+  const imageSlider = (
+    <div
+      className="flex w-full will-change-transform"
+      style={{
+        transition: transitionStyle,
+        transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
+      }}
+    >
+      {images.map((url, idx) => (
+        <div key={idx} className="w-full shrink-0 relative bg-gray-50 flex items-center justify-center pointer-events-none">
+          <img
+            src={url}
+            alt={`${altTitle} - Halaman ${idx + 1}`}
+            draggable={false}
+            className={`w-full h-auto object-contain block max-h-[85vh] select-none pointer-events-none transition-transform duration-300 ${
+              autoSlide ? 'group-hover:scale-[1.02]' : ''
+            } ${aspectRatioClassName}`}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+          />
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
     <div
       ref={containerRef}
       className={`relative w-full overflow-hidden group select-none ${
         autoSlide
-          ? 'cursor-pointer'
+          ? ''
           : isSingle
           ? ''
           : isDragging
@@ -191,28 +215,14 @@ export const CarouselViewer: React.FC<CarouselViewerProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Container for images */}
-      <div
-        className="flex w-full will-change-transform"
-        style={{
-          transition: transitionStyle,
-          transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
-        }}
-      >
-        {images.map((url, idx) => (
-          <div key={idx} className="w-full shrink-0 relative bg-gray-50 flex items-center justify-center pointer-events-none">
-            <img
-              src={url}
-              alt={`${altTitle} - Halaman ${idx + 1}`}
-              draggable={false}
-              className={`w-full h-auto object-contain block max-h-[85vh] select-none pointer-events-none transition-transform duration-300 ${
-                autoSlide ? 'group-hover:scale-[1.02]' : ''
-              } ${aspectRatioClassName}`}
-              loading={idx === 0 ? 'eager' : 'lazy'}
-            />
-          </div>
-        ))}
-      </div>
+      {/* If linkHref is provided, only wrap image slider so controls remain clickable */}
+      {linkHref ? (
+        <Link href={linkHref} className="block w-full h-full cursor-pointer">
+          {imageSlider}
+        </Link>
+      ) : (
+        imageSlider
+      )}
 
       {/* Multi-image Badge overlay top-right */}
       {!isSingle && (
@@ -252,39 +262,91 @@ export const CarouselViewer: React.FC<CarouselViewerProps> = ({
         </>
       )}
 
+      {/* Mini hover navigation arrows for Home & Explore cards */}
+      {!isSingle && autoSlide && (
+        <>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handlePrev();
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all z-30 shadow-md active:scale-90 cursor-pointer backdrop-blur-xs opacity-0 group-hover:opacity-100 pointer-events-auto"
+            title="Slide Sebelumnya"
+            aria-label="Slide Sebelumnya"
+          >
+            <ChevronLeft size={16} className="stroke-[2.5]" />
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleNext();
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all z-30 shadow-md active:scale-90 cursor-pointer backdrop-blur-xs opacity-0 group-hover:opacity-100 pointer-events-auto"
+            title="Slide Selanjutnya"
+            aria-label="Slide Selanjutnya"
+          >
+            <ChevronRight size={16} className="stroke-[2.5]" />
+          </button>
+        </>
+      )}
+
       {/* Round Dot Page Indicators Bottom */}
       {!isSingle && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full">
+        <div
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full pointer-events-auto shadow-sm"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
           {images.map((_, idx) => (
             <button
               key={idx}
               type="button"
-              onPointerDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setCurrentIndex(idx);
               }}
-              className={`rounded-full transition-all cursor-pointer ${
+              className={`transition-all cursor-pointer p-0.5 pointer-events-auto ${
                 currentIndex === idx
-                  ? 'w-2.5 h-2.5 bg-[#F26522] scale-110'
-                  : 'w-2 h-2 bg-white/60 hover:bg-white'
-              } ${autoSlide ? 'pointer-events-none' : 'pointer-events-auto'}`}
+                  ? 'w-4 h-2 bg-[#F26522] rounded-full scale-105'
+                  : 'w-2 h-2 bg-white/60 hover:bg-white rounded-full hover:scale-125'
+              }`}
               title={`Buka Halaman ${idx + 1}`}
+              aria-label={`Buka Halaman ${idx + 1}`}
             />
           ))}
         </div>
       )}
     </div>
   );
-
-  if (linkHref) {
-    return (
-      <Link href={linkHref} className="block w-full h-full">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
 };
