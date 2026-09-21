@@ -943,9 +943,9 @@ export default function ArtworkDetailContent() {
                       </button>
                     </div>
 
-                    {/* Dropdown menu */}
+                    {/* Dropdown menu (membuka ke atas agar tidak terpotong container card) */}
                     {showCarouselDownloadMenu && (
-                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 z-40 animate-in fade-in slide-in-from-top-1 duration-150 divide-y divide-gray-100">
+                      <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-2xl shadow-2xl border border-gray-200 py-1.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 divide-y divide-gray-100">
                         <button
                           type="button"
                           onClick={() => {
