@@ -51,6 +51,7 @@ model Artwork {
   author         User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes          Like[]
   comments       Comment[]
+  isFeatured     Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }

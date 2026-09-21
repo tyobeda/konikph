@@ -27,6 +27,7 @@ import {
   AtSign,
   Phone,
   Globe,
+  Layers,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
@@ -53,6 +54,37 @@ export default function HomePage() {
   const heroFeaturedArtwork = useMemo(() => {
     return artworks.find((a) => a.isFeatured) || artworks[0];
   }, [artworks]);
+
+  // Handle images for carousel hero banner (guarantee slide 1 / first image is displayed)
+  const heroImages = useMemo(() => {
+    if (!heroFeaturedArtwork) return [];
+    if (Array.isArray(heroFeaturedArtwork.imageUrls) && heroFeaturedArtwork.imageUrls.length > 0) {
+      const valid = heroFeaturedArtwork.imageUrls.filter(Boolean);
+      if (valid.length > 0) return valid;
+    }
+    if (heroFeaturedArtwork.imageUrl) {
+      return [heroFeaturedArtwork.imageUrl];
+    }
+    return ['/img/1315216787313421.jpg'];
+  }, [heroFeaturedArtwork]);
+
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+
+  // Reset slide index when featured artwork changes
+  useEffect(() => {
+    setHeroSlideIndex(0);
+  }, [heroFeaturedArtwork?.id]);
+
+  // Auto-slide effect if multiple images in carousel
+  useEffect(() => {
+    if (!heroImages || heroImages.length <= 1) return;
+    const timer = setInterval(() => {
+      setHeroSlideIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [heroImages]);
+
+  const currentHeroImage = heroImages[heroSlideIndex] || heroImages[0] || heroFeaturedArtwork?.imageUrl || '/img/1315216787313421.jpg';
 
   // Base list of items filtered instantly
   const baseFiltered = useMemo(() => {
@@ -142,17 +174,80 @@ export default function HomePage() {
             <div className="flex flex-col lg:grid lg:grid-cols-12 items-stretch lg:items-center">
               
               {/* Image Banner Preview (Top on Mobile, Right on Desktop) */}
-              <div className="order-1 lg:order-2 lg:col-span-5 relative h-56 sm:h-72 lg:h-full min-h-[220px] sm:min-h-[280px] overflow-hidden bg-slate-800">
-                <Image
-                  src={heroFeaturedArtwork.imageUrl}
-                  alt={heroFeaturedArtwork.title}
-                  fill
-                  priority
-                  unoptimized={heroFeaturedArtwork.imageUrl.startsWith('data:')}
-                  className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700"
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-gray-900/90 via-gray-900/30 to-transparent" />
+              <div className="order-1 lg:order-2 lg:col-span-5 relative h-56 sm:h-72 lg:h-full min-h-[220px] sm:min-h-[280px] overflow-hidden bg-slate-800 group">
+                <Link
+                  href={`/artwork/${heroFeaturedArtwork.slug || heroFeaturedArtwork.id}`}
+                  className="block w-full h-full relative"
+                >
+                  <Image
+                    key={currentHeroImage}
+                    src={currentHeroImage}
+                    alt={`${heroFeaturedArtwork.title}${heroImages.length > 1 ? ` - Slide ${heroSlideIndex + 1}` : ''}`}
+                    fill
+                    priority
+                    unoptimized={Boolean(currentHeroImage.startsWith('data:') || currentHeroImage.startsWith('/uploads/'))}
+                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-700"
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-gray-900/90 via-gray-900/30 to-transparent pointer-events-none" />
+                </Link>
+
+                {/* Carousel Indicator Badge & Navigation */}
+                {heroImages.length > 1 && (
+                  <>
+                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold rounded-full border border-white/10 shadow-sm pointer-events-none">
+                      <Layers size={13} className="text-[#F26522]" />
+                      <span>Carousel ({heroSlideIndex + 1}/{heroImages.length})</span>
+                    </div>
+
+                    {/* Dots indicator bottom right */}
+                    <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/10">
+                      {heroImages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setHeroSlideIndex(idx);
+                          }}
+                          className={`rounded-full transition-all cursor-pointer ${
+                            heroSlideIndex === idx
+                              ? 'w-4 h-1.5 bg-[#F26522]'
+                              : 'w-1.5 h-1.5 bg-white/50 hover:bg-white'
+                          }`}
+                          aria-label={`Slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Prev/Next Mini Arrow Buttons on Hover */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setHeroSlideIndex((prev) => (prev > 0 ? prev - 1 : heroImages.length - 1));
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-xs"
+                      aria-label="Previous Slide"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setHeroSlideIndex((prev) => (prev < heroImages.length - 1 ? prev + 1 : 0));
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-xs"
+                      aria-label="Next Slide"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Text Info Column (Bottom on Mobile, Left on Desktop) */}

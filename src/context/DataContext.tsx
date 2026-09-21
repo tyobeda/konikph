@@ -525,11 +525,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
               comments: serverArt.comments || a.comments || [],
             };
           }
+          if (updated.isFeatured === true) {
+            return { ...a, isFeatured: false };
+          }
           return a;
         })
       );
     } else {
-      setArtworks((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a)));
+      setArtworks((prev) =>
+        prev.map((a) => {
+          if (a.id === id) {
+            return { ...a, ...updated };
+          }
+          if (updated.isFeatured === true) {
+            return { ...a, isFeatured: false };
+          }
+          return a;
+        })
+      );
     }
   };
 

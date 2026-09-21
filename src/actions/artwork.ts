@@ -197,6 +197,15 @@ export async function updateArtwork(id: string, data: any) {
         updateData.imageUrls = [data.imageUrl];
       }
     }
+    if (data.isFeatured !== undefined) {
+      updateData.isFeatured = Boolean(data.isFeatured);
+      if (updateData.isFeatured) {
+        await prisma.artwork.updateMany({
+          where: { isFeatured: true, id: { not: id } },
+          data: { isFeatured: false },
+        }).catch(() => {});
+      }
+    }
     delete updateData.author;
     delete updateData.comments;
     delete updateData.likedUserIds;
