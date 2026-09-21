@@ -90,13 +90,16 @@ ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.1
 - `src/app/artwork/[id]/ArtworkDetailContent.tsx` — Detail karya & modal edit postingan karya.
 - `src/app/my-artworks/page.tsx` — Manajemen karya pribadi uploader & modal edit postingan.
 - `src/app/admin/artworks/page.tsx` — Dashboard admin untuk moderasi & edit metadata karya.
+- `src/components/CarouselViewer.tsx` — Komponen penampil carousel (auto-slide, swipe gesture, titik navigasi independen).
 - `src/components/Footer.tsx` — Komponen Footer global (*Made with ❤️ by NDS*).
 
 ---
 
 ## 💡 Status Terakhir Sebelum Handoff
+- ✅ **Hero Banner Carousel**: Banner karya trending (`heroFeaturedArtwork`) di Beranda kini mendukung karya carousel. Slide pertama dijamin langsung tampil, dilengkapi indikator slide/badge, dot navigasi, tombol panah geser, dan transisi auto-slide.
+- ✅ **Navigasi Carousel pada Kartu**: Titik navigasi (dots) pada kartu karya di Beranda dan Explore kini dapat diklik langsung untuk berpindah halaman slide tanpa memicu navigasi link ke halaman detail karya. Dilengkapi juga dengan mini hover arrows di desktop.
+- ✅ **Database & Schema**: Kolom `isFeatured` pada model `Artwork` di PostgreSQL dan Prisma sudah aktif dan tersinkronisasi.
 - ✅ Semua fitur terbaru sudah dites menggunakan `npx tsc --noEmit` dan berjalan lancar.
-- ✅ Server lokal berjalan di port `3000` (`http://localhost:3000`).
-- ✅ Versi Git terkini di-push ke branch `main`.
+- ✅ Versi Git terkini di-push ke branch `main` dan sukses dideploy ke VPS `43.133.155.196` (`pksart.site`).
 
 *Semoga sukses melanjutkan pengembangan proyek PKSart!* 🎨🔥
