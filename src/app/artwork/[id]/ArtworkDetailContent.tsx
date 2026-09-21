@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -28,6 +28,11 @@ import {
   ChevronDown,
   Loader2,
   Files,
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  UploadCloud,
+  Plus,
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { Header } from '@/components/Header';
@@ -419,6 +424,8 @@ export default function ArtworkDetailContent() {
     )
   );
 
+  const canEditArtwork = Boolean(isOwner || currentUser?.role === 'Super Admin');
+
   const handleOpenEditModal = () => {
     if (!artwork) return;
     const titleVal = artwork.title;
@@ -627,7 +634,7 @@ export default function ArtworkDetailContent() {
                         <Share2 size={16} /> <span className="text-xs">Bagikan ke Sosial Media</span>
                       </button>
 
-                      {isOwner ? (
+                      {canEditArtwork ? (
                         <button
                           onClick={() => {
                             setShowOptions(false);
