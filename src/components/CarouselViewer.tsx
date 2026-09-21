@@ -221,21 +221,27 @@ export const CarouselViewer: React.FC<CarouselViewerProps> = ({
           <button
             type="button"
             onClick={handlePrev}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all z-30 shadow-lg active:scale-90 cursor-pointer backdrop-blur-xs opacity-90 sm:opacity-0 sm:group-hover:opacity-100"
-            title="Halaman Sebelumnya"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/65 hover:bg-black/85 text-white flex items-center justify-center transition-all z-30 shadow-md active:scale-90 cursor-pointer backdrop-blur-xs select-none pointer-events-auto"
+            title="Slide Sebelumnya"
+            aria-label="Slide Sebelumnya"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={22} className="stroke-[2.5]" />
           </button>
 
           <button
             type="button"
             onClick={handleNext}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all z-30 shadow-lg active:scale-90 cursor-pointer backdrop-blur-xs opacity-90 sm:opacity-0 sm:group-hover:opacity-100"
-            title="Halaman Selanjutnya"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/65 hover:bg-black/85 text-white flex items-center justify-center transition-all z-30 shadow-md active:scale-90 cursor-pointer backdrop-blur-xs select-none pointer-events-auto"
+            title="Slide Selanjutnya"
+            aria-label="Slide Selanjutnya"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={22} className="stroke-[2.5]" />
           </button>
         </>
       )}

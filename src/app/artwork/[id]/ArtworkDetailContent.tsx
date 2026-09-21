@@ -27,6 +27,7 @@ import {
   Layers,
   ChevronDown,
   Loader2,
+  Files,
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { Header } from '@/components/Header';
@@ -267,6 +268,39 @@ export default function ArtworkDetailContent() {
     }
   };
 
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+
+  // Helper untuk mengunduh satu file gambar secara aman dengan blob trigger
+  const downloadSingleFile = async (url: string, filename: string) => {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const blob = await res.blob();
+        const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+        const finalName = filename.includes('.') ? filename : `${filename}.${ext}`;
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = finalName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        return true;
+      }
+    } catch (_) {}
+
+    // Fallback direct link
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return true;
+  };
+
   const handleDownloadCurrentImage = async () => {
     if (!artwork) return;
     const isCarousel = artwork.imageUrls && artwork.imageUrls.length > 1;
@@ -275,39 +309,44 @@ export default function ArtworkDetailContent() {
     const cleanTitle = artwork.title.replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
     
     incrementDownloadCount(artwork.id);
-    triggerToast(isCarousel ? `Mengunduh slide ke-${activeImageIndex + 1}...` : `Mengunduh pratinjau gambar JPG/PNG...`);
+    triggerToast(isCarousel ? `Mengunduh slide ke-${activeImageIndex + 1}...` : `Mengunduh gambar...`);
+
+    await downloadSingleFile(activeUrl, `${cleanTitle}${pageSuffix}`);
+  };
+
+  // Unduh SEMUA file langsung satu per satu (tanpa dikompres .ZIP)
+  const handleDownloadAllImagesDirect = async () => {
+    if (!artwork || !artwork.imageUrls || artwork.imageUrls.length === 0) return;
+    if (isDownloadingAll || isZipping) return;
+
+    setIsDownloadingAll(true);
+    incrementDownloadCount(artwork.id);
+    triggerToast(`Mengunduh ${artwork.imageUrls.length} gambar langsung...`);
+
+    const cleanTitle = artwork.title.replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
 
     try {
-      // Coba fetch sebagai blob agar browser men-download langsung dengan nama file yang benar
-      const res = await fetch(activeUrl);
-      if (res.ok) {
-        const blob = await res.blob();
-        const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `${cleanTitle}${pageSuffix}.${ext}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-        return;
+      for (let i = 0; i < artwork.imageUrls.length; i++) {
+        const url = artwork.imageUrls[i];
+        await downloadSingleFile(url, `${cleanTitle}_slide_${i + 1}`);
+        // Jeda waktu antar unduhan agar browser tidak memblokir multiple downloads
+        if (i < artwork.imageUrls.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 350));
+        }
       }
-    } catch (_) {}
-
-    // Fallback standard download link
-    const link = document.createElement('a');
-    link.href = activeUrl;
-    link.download = `${cleanTitle}${pageSuffix}.jpg`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      triggerToast(`Semua ${artwork.imageUrls.length} slide berhasil diunduh!`);
+    } catch (err) {
+      console.error('Error downloading all images directly:', err);
+      triggerToast('Gagal mengunduh beberapa gambar.');
+    } finally {
+      setIsDownloadingAll(false);
+      setShowCarouselDownloadMenu(false);
+    }
   };
 
   const handleDownloadAllImagesZip = async () => {
     if (!artwork || !artwork.imageUrls || artwork.imageUrls.length === 0) return;
-    if (isZipping) return;
+    if (isZipping || isDownloadingAll) return;
 
     setIsZipping(true);
     incrementDownloadCount(artwork.id);
@@ -342,7 +381,7 @@ export default function ArtworkDetailContent() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 
       triggerToast(`Semua slide berhasil diunduh dalam file ZIP!`);
     } catch (err) {
@@ -907,34 +946,52 @@ export default function ArtworkDetailContent() {
 
                     {/* Dropdown menu */}
                     {showCarouselDownloadMenu && (
-                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 z-40 animate-in fade-in slide-in-from-top-1 duration-150">
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 z-40 animate-in fade-in slide-in-from-top-1 duration-150 divide-y divide-gray-100">
                         <button
                           type="button"
                           onClick={() => {
                             setShowCarouselDownloadMenu(false);
                             handleDownloadCurrentImage();
                           }}
-                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
                         >
-                          <Download size={15} className="text-gray-500" />
-                          <span>Unduh <strong>Slide {activeImageIndex + 1}</strong> (JPG/PNG)</span>
+                          <Download size={15} className="text-gray-500 shrink-0" />
+                          <span>Unduh <strong>Slide {activeImageIndex + 1}</strong> Saja</span>
                         </button>
 
                         <button
                           type="button"
-                          disabled={isZipping}
+                          disabled={isDownloadingAll || isZipping}
+                          onClick={handleDownloadAllImagesDirect}
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-60 cursor-pointer"
+                        >
+                          {isDownloadingAll ? (
+                            <Loader2 size={15} className="animate-spin text-gray-700 shrink-0" />
+                          ) : (
+                            <Files size={15} className="text-gray-700 shrink-0" />
+                          )}
+                          <span>
+                            {isDownloadingAll
+                              ? 'Sedang Mengunduh...'
+                              : `Unduh Semua (${artwork.imageUrls.length} File Gambar Langsung)`}
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isZipping || isDownloadingAll}
                           onClick={handleDownloadAllImagesZip}
-                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-[#F26522] hover:bg-orange-50/60 flex items-center gap-2.5 transition-colors border-t border-gray-100 disabled:opacity-60"
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-[#F26522] hover:bg-orange-50/60 flex items-center gap-2.5 transition-colors disabled:opacity-60 cursor-pointer"
                         >
                           {isZipping ? (
-                            <Loader2 size={15} className="animate-spin text-[#F26522]" />
+                            <Loader2 size={15} className="animate-spin text-[#F26522] shrink-0" />
                           ) : (
-                            <Layers size={15} className="text-[#F26522]" />
+                            <Layers size={15} className="text-[#F26522] shrink-0" />
                           )}
                           <span>
                             {isZipping
                               ? 'Mengompres Semua Slide...'
-                              : `Unduh Semua Slide (${artwork.imageUrls.length} Gambar .ZIP)`}
+                              : `Unduh Paket ZIP (${artwork.imageUrls.length} Gambar)`}
                           </span>
                         </button>
                       </div>
