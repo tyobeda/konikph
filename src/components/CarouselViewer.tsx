@@ -31,6 +31,12 @@ export const CarouselViewer: React.FC<CarouselViewerProps> = ({
     onIndexChange?.(currentIndex);
   }, [currentIndex, onIndexChange]);
 
+  useEffect(() => {
+    if (images && images.length > 0 && currentIndex >= images.length) {
+      setCurrentIndex(Math.max(0, images.length - 1));
+    }
+  }, [images, currentIndex]);
+
   // Mouse and Touch Pointer Drag Support (Only active if autoSlide is false / in detail view)
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<number>(0);

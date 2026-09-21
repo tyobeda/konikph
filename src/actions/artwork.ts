@@ -185,6 +185,23 @@ export async function updateArtwork(id: string, data: any) {
     if (data.title) {
       updateData.slug = await generateUniqueArtworkSlug(data.title, id);
     }
+    if (data.createdAt) {
+      updateData.createdAt = new Date(data.createdAt);
+    }
+    if (Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
+      updateData.imageUrls = data.imageUrls;
+      updateData.imageUrl = data.imageUrl || data.imageUrls[0];
+    } else if (data.imageUrl) {
+      updateData.imageUrl = data.imageUrl;
+      if (!updateData.imageUrls || updateData.imageUrls.length === 0) {
+        updateData.imageUrls = [data.imageUrl];
+      }
+    }
+    delete updateData.author;
+    delete updateData.comments;
+    delete updateData.likedUserIds;
+    delete updateData.likes;
+    delete updateData.id;
 
     const artwork = await prisma.artwork.update({
       where: { id },

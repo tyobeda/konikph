@@ -1,9 +1,28 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag, Edit, Calendar, Clock, HelpCircle, Layers } from 'lucide-react';
+import {
+  Heart,
+  MessageSquare,
+  Download,
+  MoreVertical,
+  Share2,
+  Flag,
+  Edit,
+  Calendar,
+  Clock,
+  HelpCircle,
+  Layers,
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  X,
+  Plus,
+  AlertTriangle,
+} from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { getUserSlug } from '@/lib/slug';
@@ -41,6 +60,198 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [editTimeInput, setEditTimeInput] = useState('');
   const [initialEditSnapshot, setInitialEditSnapshot] = useState<string>('');
 
+  // Image & Carousel Management States for Edit Modal
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [draggedImgIndex, setDraggedImgIndex] = useState<number | null>(null);
+
+  // FLIP animation tracking for smooth image reordering
+  const editImgRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const prevImgPositionsRef = useRef<Map<string, DOMRect>>(new Map());
+  const draggedImgIndexRef = useRef<number | null>(null);
+  const lastImgSwapTimeRef = useRef<number>(0);
+
+  const snapshotImgPositions = () => {
+    const map = new Map<string, DOMRect>();
+    editImgRefs.current.forEach((el, url) => {
+      if (el) {
+        map.set(url, el.getBoundingClientRect());
+      }
+    });
+    prevImgPositionsRef.current = map;
+  };
+
+  useEffect(() => {
+    if (prevImgPositionsRef.current.size === 0) return;
+
+    editImgRefs.current.forEach((el, url) => {
+      if (!el) return;
+      const prevRect = prevImgPositionsRef.current.get(url);
+      if (!prevRect) return;
+
+      const currentRect = el.getBoundingClientRect();
+      const deltaX = prevRect.left - currentRect.left;
+      const deltaY = prevRect.top - currentRect.top;
+
+      if (deltaX !== 0 || deltaY !== 0) {
+        el.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+        el.style.transition = 'none';
+
+        el.getBoundingClientRect();
+
+        requestAnimationFrame(() => {
+          el.style.transition = 'transform 320ms cubic-bezier(0.2, 0, 0, 1)';
+          el.style.transform = '';
+        });
+      }
+    });
+
+    prevImgPositionsRef.current.clear();
+  }, [editImages]);
+
+  const handleImgDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedImgIndex(index);
+    draggedImgIndexRef.current = index;
+    e.dataTransfer.effectAllowed = 'move';
+
+    const blankImg = document.createElement('canvas');
+    blankImg.width = 1;
+    blankImg.height = 1;
+    e.dataTransfer.setDragImage(blankImg, 0, 0);
+  };
+
+  const handleImgDragEnter = (index: number) => {
+    const currentDragged = draggedImgIndexRef.current ?? draggedImgIndex;
+    if (currentDragged !== null && currentDragged !== index) {
+      const now = Date.now();
+      if (now - lastImgSwapTimeRef.current < 200) return;
+      lastImgSwapTimeRef.current = now;
+
+      snapshotImgPositions();
+      setEditImages((prev) => {
+        const updated = [...prev];
+        const [movedItem] = updated.splice(currentDragged, 1);
+        updated.splice(index, 0, movedItem);
+        return updated;
+      });
+      draggedImgIndexRef.current = index;
+      setDraggedImgIndex(index);
+    }
+  };
+
+  const handleImgDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleImgDragEnd = () => {
+    setDraggedImgIndex(null);
+    draggedImgIndexRef.current = null;
+  };
+
+  const handleImgDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDraggedImgIndex(null);
+    draggedImgIndexRef.current = null;
+  };
+
+  // Mobile Touch Drag Support
+  const handleImgTouchStart = (index: number) => {
+    setDraggedImgIndex(index);
+    draggedImgIndexRef.current = index;
+  };
+
+  const handleImgTouchMove = (e: React.TouchEvent) => {
+    const currentDragged = draggedImgIndexRef.current ?? draggedImgIndex;
+    if (currentDragged === null) return;
+
+    const now = Date.now();
+    if (now - lastImgSwapTimeRef.current < 220) return;
+
+    const touch = e.touches[0];
+    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dropCard = targetEl?.closest('[data-card-img-index]') as HTMLElement | null;
+
+    if (dropCard) {
+      const targetIndex = Number(dropCard.getAttribute('data-card-img-index'));
+      if (!isNaN(targetIndex) && targetIndex !== currentDragged) {
+        const rect = dropCard.getBoundingClientRect();
+        const horizontalMargin = rect.width * 0.2;
+        const verticalMargin = rect.height * 0.2;
+
+        const isInsideCoreZone =
+          touch.clientX >= rect.left + horizontalMargin &&
+          touch.clientX <= rect.right - horizontalMargin &&
+          touch.clientY >= rect.top + verticalMargin &&
+          touch.clientY <= rect.bottom - verticalMargin;
+
+        if (isInsideCoreZone) {
+          lastImgSwapTimeRef.current = now;
+          snapshotImgPositions();
+          setEditImages((prev) => {
+            const updated = [...prev];
+            const [movedItem] = updated.splice(currentDragged, 1);
+            updated.splice(targetIndex, 0, movedItem);
+            return updated;
+          });
+          draggedImgIndexRef.current = targetIndex;
+          setDraggedImgIndex(targetIndex);
+        }
+      }
+    }
+  };
+
+  const handleImgTouchEnd = () => {
+    setDraggedImgIndex(null);
+    draggedImgIndexRef.current = null;
+  };
+
+  const moveEditImage = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= editImages.length) return;
+    snapshotImgPositions();
+    setEditImages((prev) => {
+      const updated = [...prev];
+      const [item] = updated.splice(index, 1);
+      updated.splice(targetIndex, 0, item);
+      return updated;
+    });
+  };
+
+  const handleRemoveEditImage = (indexToRemove: number) => {
+    if (editImages.length <= 1) {
+      alert('Minimal harus menyisakan 1 foto karya.');
+      return;
+    }
+    snapshotImgPositions();
+    setEditImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleEditFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploadingImage(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Upload gagal');
+        uploadedUrls.push(data.url);
+      }
+      snapshotImgPositions();
+      setEditImages((prev) => [...prev, ...uploadedUrls]);
+    } catch (err: any) {
+      alert(err.message || 'Gagal upload file gambar.');
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
   const handleOpenEditModal = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -61,6 +272,11 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     const dateVal = `${yyyy}-${mm}-${dd}`;
     const timeVal = `${hh}:${min}`;
 
+    const initialImages = (Array.isArray(artwork.imageUrls) && artwork.imageUrls.length > 0)
+      ? [...artwork.imageUrls]
+      : (artwork.imageUrl ? [artwork.imageUrl] : []);
+    setEditImages(initialImages);
+
     setEditTitleInput(titleVal);
     setEditDescInput(descVal);
     setEditCategoryInput(catVal);
@@ -77,6 +293,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       dl: dlVal,
       date: dateVal,
       time: timeVal,
+      images: initialImages,
     }));
 
     setIsEditModalOpen(true);
@@ -91,6 +308,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       dl: editDownloadUrlInput,
       date: editDateInput,
       time: editTimeInput,
+      images: editImages,
     });
     return currentSnapshot !== initialEditSnapshot;
   };
@@ -116,6 +334,11 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    if (editImages.length === 0) {
+      alert('Silakan pilih minimal 1 foto karya.');
+      return;
+    }
+
     const hashtagsFromDesc = (editDescInput.match(/#[a-zA-Z0-9_-]+/g) || []).map((t) => t.trim());
     const parsedTags = Array.from(new Set(hashtagsFromDesc));
 
@@ -133,6 +356,8 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       format: editFormatInput,
       downloadUrl: editFormatInput === 'Hanya gambar' ? '' : editDownloadUrlInput,
       tags: parsedTags,
+      imageUrl: editImages[0],
+      imageUrls: editImages,
       ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
     });
 
@@ -379,7 +604,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-3xl max-w-xl sm:max-w-2xl w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 cursor-default max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
               <h3 className="text-xl font-extrabold text-gray-900">
@@ -393,6 +618,172 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               >
                 ✕
               </button>
+            </div>
+
+            {/* 🖼️ KELOLA FOTO / PRATINJAU CAROUSEL ARTWORK */}
+            <div className="mb-5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 uppercase flex items-center gap-2">
+                    <span>Foto / Pratinjau Artwork</span>
+                    {editImages.length > 1 && (
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-orange-100 text-[#F26522]">
+                        Carousel ({editImages.length} Slide)
+                      </span>
+                    )}
+                  </label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    {editImages.length > 1
+                      ? 'Tahan & seret foto atau gunakan tombol ◀ ▶ untuk atur urutan slide. Foto pertama adalah sampul utama.'
+                      : 'Foto karya Anda. Anda dapat menambahkan foto tambahan untuk membuat carousel.'}
+                  </p>
+                </div>
+              </div>
+
+              {editImages.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {editImages.map((url, idx) => {
+                      const isBeingDragged = draggedImgIndex === idx;
+
+                      return (
+                        <div
+                          key={`${url}-${idx}`}
+                          data-card-img-index={idx}
+                          ref={(el) => {
+                            if (el) {
+                              editImgRefs.current.set(url, el);
+                            } else {
+                              editImgRefs.current.delete(url);
+                            }
+                          }}
+                          draggable
+                          onDragStart={(e) => handleImgDragStart(e, idx)}
+                          onDragEnter={() => handleImgDragEnter(idx)}
+                          onDragOver={handleImgDragOver}
+                          onDragEnd={handleImgDragEnd}
+                          onDrop={handleImgDrop}
+                          onTouchStart={() => handleImgTouchStart(idx)}
+                          onTouchMove={handleImgTouchMove}
+                          onTouchEnd={handleImgTouchEnd}
+                          onTouchCancel={handleImgTouchEnd}
+                          className={`relative group rounded-2xl overflow-hidden border-2 cursor-grab active:cursor-grabbing aspect-square bg-gray-100 select-none will-change-transform touch-none transition-all duration-200 ease-out ${
+                            isBeingDragged
+                              ? 'scale-105 -translate-y-2 rotate-2 z-40 border-[#F26522] shadow-2xl ring-4 ring-[#F26522]/40 opacity-95'
+                              : 'border-gray-200 hover:border-[#F26522]/60 shadow-xs hover:shadow-md'
+                          }`}
+                        >
+                          <img
+                            src={url}
+                            alt={`Foto ${idx + 1}`}
+                            className="w-full h-full object-cover pointer-events-none"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+
+                          {/* Order Badge (1 Utama / 2 / 3...) */}
+                          <div className={`absolute top-2 left-2 flex items-center gap-1 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10 pointer-events-none transition-all ${
+                            idx === 0 ? 'bg-[#F26522] shadow-md' : 'bg-black/65'
+                          }`}>
+                            <GripVertical size={11} className="text-white/80" />
+                            <span>{idx + 1}</span>
+                            {idx === 0 && (
+                              <span className="text-[9px] font-black ml-0.5">★ Utama</span>
+                            )}
+                          </div>
+
+                          {/* Delete Photo Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveEditImage(idx);
+                            }}
+                            className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all shadow-md z-20"
+                            title="Hapus foto ini"
+                          >
+                            <X size={13} />
+                          </button>
+
+                          {/* Quick Shift Arrow Buttons (Mobile & Desktop) */}
+                          <div className="absolute inset-x-0 bottom-2 flex items-center justify-between px-2 z-20 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                            {idx > 0 ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveEditImage(idx, -1);
+                                }}
+                                className="w-6 h-6 rounded-full bg-black/75 hover:bg-[#F26522] text-white flex items-center justify-center shadow-md active:scale-110 transition-all"
+                                title="Geser ke kiri / urutan sebelumnya"
+                              >
+                                <ChevronLeft size={14} />
+                              </button>
+                            ) : <div className="w-6" />}
+
+                            {idx < editImages.length - 1 ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveEditImage(idx, 1);
+                                }}
+                                className="w-6 h-6 rounded-full bg-black/75 hover:bg-[#F26522] text-white flex items-center justify-center shadow-md active:scale-110 transition-all"
+                                title="Geser ke kanan / urutan berikutnya"
+                              >
+                                <ChevronRight size={14} />
+                              </button>
+                            ) : <div className="w-6" />}
+                          </div>
+
+                          {/* Desktop hover hint */}
+                          <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-black/60 text-white text-[9px] font-semibold text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            Tahan & Geser Urutan
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2">
+                  <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+                  <span>Belum ada foto yang dipilih. Silakan unggah minimal 1 foto karya.</span>
+                </div>
+              )}
+
+              {/* Upload / Add more photos button */}
+              <div className="relative border-2 border-dashed border-gray-200 hover:border-[#F26522] rounded-2xl p-4 flex flex-col items-center justify-center bg-gray-50/70 hover:bg-orange-50/20 transition-all cursor-pointer group">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleEditFileChange}
+                  disabled={isUploadingImage}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                />
+                <div className="flex items-center gap-2.5 text-gray-700 group-hover:text-[#F26522] transition-colors">
+                  {isUploadingImage ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin text-[#F26522]" />
+                      <span className="text-xs font-bold text-[#F26522]">Mengunggah foto...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-7 h-7 rounded-full bg-orange-100 text-[#F26522] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Plus size={16} className="stroke-[3]" />
+                      </div>
+                      <span className="text-xs font-bold">
+                        {editImages.length > 0 ? '+ Tambah Foto ke Carousel' : 'Unggah Foto Karya'}
+                      </span>
+                      <span className="text-[11px] text-gray-400 font-normal">
+                        (Maks. 5MB per file)
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
 
             <form onSubmit={handleSaveArtworkEdit} className="space-y-4">
