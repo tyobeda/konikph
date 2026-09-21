@@ -68,6 +68,7 @@ export default function ArtworkDetailContent() {
   const [commentError, setCommentError] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isZipping, setIsZipping] = useState(false);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   const [showCarouselDownloadMenu, setShowCarouselDownloadMenu] = useState(false);
   const carouselDownloadRef = useRef<HTMLDivElement>(null);
   
@@ -267,8 +268,6 @@ export default function ArtworkDetailContent() {
       handleDownloadCurrentImage();
     }
   };
-
-  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
   // Helper untuk mengunduh satu file gambar secara aman dengan blob trigger
   const downloadSingleFile = async (url: string, filename: string) => {
