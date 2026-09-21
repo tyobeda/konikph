@@ -143,6 +143,7 @@ export async function addArtwork(data: any) {
         slug: slug,
         description: data.description || '',
         imageUrl: data.imageUrl,
+        imageUrls: Array.isArray(data.imageUrls) && data.imageUrls.length > 0 ? data.imageUrls : [data.imageUrl],
         downloadUrl: data.downloadUrl,
         category: data.category,
         region: data.region,

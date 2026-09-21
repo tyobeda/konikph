@@ -20,6 +20,7 @@ export interface Artwork {
   slug?: string | null;
   description?: string | null;
   imageUrl: string;
+  imageUrls?: string[];
   downloadUrl?: string | null;
   category: string;
   region: string;

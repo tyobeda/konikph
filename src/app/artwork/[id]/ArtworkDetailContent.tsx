@@ -24,7 +24,11 @@ import {
   Calendar,
   Clock,
   AlertTriangle,
+  Layers,
+  ChevronDown,
+  Loader2,
 } from 'lucide-react';
+import JSZip from 'jszip';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ArtworkCard } from '@/components/ArtworkCard';
@@ -34,6 +38,7 @@ import { ShareModal } from '@/components/ShareModal';
 import { useData } from '@/context/DataContext';
 import { ARTWORK_CATEGORIES, REGIONS } from '@/lib/data';
 import { getUserSlug } from '@/lib/slug';
+import { CarouselViewer } from '@/components/CarouselViewer';
 
 export default function ArtworkDetailContent() {
   const params = useParams();
@@ -60,6 +65,10 @@ export default function ArtworkDetailContent() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
   const [commentError, setCommentError] = useState('');
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isZipping, setIsZipping] = useState(false);
+  const [showCarouselDownloadMenu, setShowCarouselDownloadMenu] = useState(false);
+  const carouselDownloadRef = useRef<HTMLDivElement>(null);
   
   // Edit Artwork Modal States for owner
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -96,6 +105,9 @@ export default function ArtworkDetailContent() {
     const handleClickOutside = (event: MouseEvent) => {
       if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
         setShowOptions(false);
+      }
+      if (carouselDownloadRef.current && !carouselDownloadRef.current.contains(event.target as Node)) {
+        setShowCarouselDownloadMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -251,13 +263,95 @@ export default function ArtworkDetailContent() {
         window.open(finalUrl, '_blank', 'noopener,noreferrer');
       }
     } else {
-      triggerToast(`Mengunduh pratinjau gambar JPG/PNG...`);
+      handleDownloadCurrentImage();
+    }
+  };
+
+  const handleDownloadCurrentImage = async () => {
+    if (!artwork) return;
+    const isCarousel = artwork.imageUrls && artwork.imageUrls.length > 1;
+    const activeUrl = isCarousel ? artwork.imageUrls![activeImageIndex] || artwork.imageUrl : artwork.imageUrl;
+    const pageSuffix = isCarousel ? `_slide_${activeImageIndex + 1}` : '_preview';
+    const cleanTitle = artwork.title.replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+    
+    incrementDownloadCount(artwork.id);
+    triggerToast(isCarousel ? `Mengunduh slide ke-${activeImageIndex + 1}...` : `Mengunduh pratinjau gambar JPG/PNG...`);
+
+    try {
+      // Coba fetch sebagai blob agar browser men-download langsung dengan nama file yang benar
+      const res = await fetch(activeUrl);
+      if (res.ok) {
+        const blob = await res.blob();
+        const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `${cleanTitle}${pageSuffix}.${ext}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback standard download link
+    const link = document.createElement('a');
+    link.href = activeUrl;
+    link.download = `${cleanTitle}${pageSuffix}.jpg`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadAllImagesZip = async () => {
+    if (!artwork || !artwork.imageUrls || artwork.imageUrls.length === 0) return;
+    if (isZipping) return;
+
+    setIsZipping(true);
+    incrementDownloadCount(artwork.id);
+    triggerToast(`Sedang menyiapkan ZIP (${artwork.imageUrls.length} gambar)...`);
+
+    try {
+      const zip = new JSZip();
+      const cleanTitle = artwork.title.replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+      const folder = zip.folder(cleanTitle) || zip;
+
+      const fetchPromises = artwork.imageUrls.map(async (url, idx) => {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const blob = await res.blob();
+            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+            const fileName = `${cleanTitle}_slide_${idx + 1}.${ext}`;
+            folder.file(fileName, blob);
+          }
+        } catch (err) {
+          console.error(`Gagal fetch slide ${idx + 1}:`, err);
+        }
+      });
+
+      await Promise.all(fetchPromises);
+
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      const blobUrl = URL.createObjectURL(zipContent);
       const link = document.createElement('a');
-      link.href = artwork.imageUrl;
-      link.download = `${artwork.title.replace(/\s+/g, '_')}_preview.jpg`;
+      link.href = blobUrl;
+      link.download = `${cleanTitle}_semua_slide.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+
+      triggerToast(`Semua slide berhasil diunduh dalam file ZIP!`);
+    } catch (err) {
+      console.error('Error generating zip:', err);
+      triggerToast('Gagal membuat ZIP, mengunduh slide saat ini...');
+      handleDownloadCurrentImage();
+    } finally {
+      setIsZipping(false);
+      setShowCarouselDownloadMenu(false);
     }
   };
 
@@ -432,13 +526,21 @@ export default function ArtworkDetailContent() {
 
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-start">
           <div className="lg:col-span-7 relative p-2 sm:p-4 w-full flex items-center justify-center bg-gray-50/50">
-            <div className="relative max-w-full flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-white">
-              <img
-                src={artwork.imageUrl}
-                alt={artwork.title}
-                className="w-full h-auto max-h-[75vh] object-contain block rounded-2xl"
-              />
-              <div className="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider">
+            <div className="relative max-w-full w-full flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-white">
+              {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
+                <CarouselViewer
+                  images={artwork.imageUrls}
+                  altTitle={artwork.title}
+                  onIndexChange={setActiveImageIndex}
+                />
+              ) : (
+                <img
+                  src={artwork.imageUrl}
+                  alt={artwork.title}
+                  className="w-full h-auto max-h-[75vh] object-contain block rounded-2xl"
+                />
+              )}
+              <div className="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider pointer-events-none">
                 {artwork.category}
               </div>
             </div>
@@ -777,23 +879,76 @@ export default function ArtworkDetailContent() {
               </div>
 
               <div className="space-y-2">
-                {/* 1. Unduh Gambar Preview Button (Always available) */}
-                <button
-                  onClick={() => {
-                    incrementDownloadCount(artwork.id);
-                    triggerToast(`Mengunduh pratinjau gambar JPG/PNG...`);
-                    const link = document.createElement('a');
-                    link.href = artwork.imageUrl;
-                    link.download = `${artwork.title.replace(/\s+/g, '_')}_preview.jpg`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="w-full py-3 px-5 bg-gray-900 hover:bg-black active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
-                >
-                  <Download size={17} />
-                  <span>Unduh Gambar (JPG/PNG)</span>
-                </button>
+                {/* 1. Unduh Gambar Preview Button (Carousel-aware with single slide & ZIP download options) */}
+                {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
+                  <div className="relative" ref={carouselDownloadRef}>
+                    <div className="flex rounded-xl shadow-sm overflow-hidden bg-gray-900 text-white">
+                      {/* Main action: download slide currently in view */}
+                      <button
+                        type="button"
+                        onClick={handleDownloadCurrentImage}
+                        className="flex-1 py-3 px-4 hover:bg-black active:scale-[0.99] text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2"
+                        title={`Unduh Slide ${activeImageIndex + 1} (${activeImageIndex + 1} dari ${artwork.imageUrls.length})`}
+                      >
+                        <Download size={17} />
+                        <span>Unduh Slide Ini ({activeImageIndex + 1}/{artwork.imageUrls.length})</span>
+                      </button>
+
+                      {/* Dropdown toggle for options */}
+                      <button
+                        type="button"
+                        onClick={() => setShowCarouselDownloadMenu(!showCarouselDownloadMenu)}
+                        className="px-3 border-l border-gray-700 hover:bg-black active:bg-gray-800 transition-colors flex items-center justify-center text-white"
+                        title="Pilihan Download Slide"
+                      >
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${showCarouselDownloadMenu ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+
+                    {/* Dropdown menu */}
+                    {showCarouselDownloadMenu && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 z-40 animate-in fade-in slide-in-from-top-1 duration-150">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCarouselDownloadMenu(false);
+                            handleDownloadCurrentImage();
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                        >
+                          <Download size={15} className="text-gray-500" />
+                          <span>Unduh <strong>Slide {activeImageIndex + 1}</strong> (JPG/PNG)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isZipping}
+                          onClick={handleDownloadAllImagesZip}
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-[#F26522] hover:bg-orange-50/60 flex items-center gap-2.5 transition-colors border-t border-gray-100 disabled:opacity-60"
+                        >
+                          {isZipping ? (
+                            <Loader2 size={15} className="animate-spin text-[#F26522]" />
+                          ) : (
+                            <Layers size={15} className="text-[#F26522]" />
+                          )}
+                          <span>
+                            {isZipping
+                              ? 'Mengompres Semua Slide...'
+                              : `Unduh Semua Slide (${artwork.imageUrls.length} Gambar .ZIP)`}
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleDownloadCurrentImage}
+                    className="w-full py-3 px-5 bg-gray-900 hover:bg-black active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                  >
+                    <Download size={17} />
+                    <span>Unduh Gambar (JPG/PNG)</span>
+                  </button>
+                )}
 
                 {/* 2. Buka / Unduh File Master Button (If master url is present) */}
                 {artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== '' && (

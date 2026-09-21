@@ -37,6 +37,7 @@ model Artwork {
   slug           String?   @unique
   description    String?
   imageUrl       String
+  imageUrls      String[]  @default([])
   downloadUrl    String?
   category       String // e.g. "Poster", "Spanduk", "Social Media", "Infografis", "Templat"
   region         String // e.g. "DPW Jabar", "DKI", "DIY", "Sumut", "Nasional"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -15,6 +15,10 @@ import {
   Calendar,
   Clock,
   HelpCircle,
+  GripVertical,
+  Move,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
@@ -45,9 +49,29 @@ export default function UploadPage() {
   const router = useRouter();
   const { addArtwork, currentUser, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
 
-  if (isModuleUnderMaintenance('upload')) {
-    return <MaintenanceContent />;
-  }
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Hikmah-Motivasi');
+  const [region, setRegion] = useState(REGIONS[1] || 'Wilayah Jawa Barat');
+  const [fileFormat, setFileFormat] = useState('Hanya gambar');
+  const [downloadUrl, setDownloadUrl] = useState('');
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [publishDate, setPublishDate] = useState(getCurrentDateString());
+  const [publishTime, setPublishTime] = useState(getCurrentTimeString());
+  const [compressionInfo, setCompressionInfo] = useState<CompressionResult | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isPendingModeration, setIsPendingModeration] = useState(false);
+  const [isGdriveTutorialOpen, setIsGdriveTutorialOpen] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // FLIP animation tracking for smooth shifting/pushed effects
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const prevPositionsRef = useRef<Map<string, DOMRect>>(new Map());
+  const draggedIndexRef = useRef<number | null>(null);
+  const lastSwapTimeRef = useRef<number>(0);
 
   React.useEffect(() => {
     if (isMounted) {
@@ -57,33 +81,25 @@ export default function UploadPage() {
     }
   }, [isMounted, currentUser, router]);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Hikmah-Motivasi');
-  const [region, setRegion] = useState(REGIONS[1] || 'Wilayah Jawa Barat');
-  const [fileFormat, setFileFormat] = useState('Hanya gambar');
-  const [downloadUrl, setDownloadUrl] = useState('');
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [publishDate, setPublishDate] = useState(getCurrentDateString());
-  const [publishTime, setPublishTime] = useState(getCurrentTimeString());
-  const [compressionInfo, setCompressionInfo] = useState<CompressionResult | null>(null);
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isPendingModeration, setIsPendingModeration] = useState(false);
-  const [isGdriveTutorialOpen, setIsGdriveTutorialOpen] = useState(false);
+  if (isModuleUnderMaintenance('upload')) {
+    return <MaintenanceContent />;
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
       setIsCompressing(true);
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Upload gagal');
-        setPreviewUrl(data.url);
+        const uploadedUrls: string[] = [];
+        for (const file of files) {
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error || 'Upload gagal');
+          uploadedUrls.push(data.url);
+        }
+        setPreviewUrls(prev => [...prev, ...uploadedUrls]);
       } catch (err: any) {
         alert(err.message || 'Gagal upload file gambar.');
       } finally {
@@ -92,11 +108,174 @@ export default function UploadPage() {
     }
   };
 
+  const snapshotPositions = () => {
+    const map = new Map<string, DOMRect>();
+    itemRefs.current.forEach((el, url) => {
+      if (el) {
+        map.set(url, el.getBoundingClientRect());
+      }
+    });
+    prevPositionsRef.current = map;
+  };
+
+  useLayoutEffect(() => {
+    if (prevPositionsRef.current.size === 0) return;
+
+    itemRefs.current.forEach((el, url) => {
+      if (!el) return;
+      const prevRect = prevPositionsRef.current.get(url);
+      if (!prevRect) return;
+
+      const currentRect = el.getBoundingClientRect();
+      const deltaX = prevRect.left - currentRect.left;
+      const deltaY = prevRect.top - currentRect.top;
+
+      if (deltaX !== 0 || deltaY !== 0) {
+        // Invert: apply inverse transform immediately without transition
+        el.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+        el.style.transition = 'none';
+
+        // Force reflow
+        el.getBoundingClientRect();
+
+        // Play: smoothly animate to new origin (0, 0, 0)
+        requestAnimationFrame(() => {
+          el.style.transition = 'transform 320ms cubic-bezier(0.2, 0, 0, 1)';
+          el.style.transform = '';
+        });
+      }
+    });
+
+    prevPositionsRef.current.clear();
+  }, [previewUrls]);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    draggedIndexRef.current = index;
+    e.dataTransfer.effectAllowed = 'move';
+
+    // Hilangkan bayangan ghost duplicate bawaan browser
+    // Dengan menyetel drag image transparan 1x1 pixel
+    const blankImg = document.createElement('canvas');
+    blankImg.width = 1;
+    blankImg.height = 1;
+    e.dataTransfer.setDragImage(blankImg, 0, 0);
+  };
+
+  const handleDragEnter = (index: number) => {
+    const currentDragged = draggedIndexRef.current ?? draggedIndex;
+    if (currentDragged !== null && currentDragged !== index) {
+      const now = Date.now();
+      if (now - lastSwapTimeRef.current < 200) return;
+      lastSwapTimeRef.current = now;
+
+      snapshotPositions();
+      setPreviewUrls(prev => {
+        const updated = [...prev];
+        const [movedItem] = updated.splice(currentDragged, 1);
+        updated.splice(index, 0, movedItem);
+        return updated;
+      });
+      draggedIndexRef.current = index;
+      setDraggedIndex(index);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    draggedIndexRef.current = null;
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDraggedIndex(null);
+    draggedIndexRef.current = null;
+    setDragOverIndex(null);
+  };
+
+  // Mobile Touch Support for Drag and Drop
+  const handleTouchStart = (index: number) => {
+    setDraggedIndex(index);
+    draggedIndexRef.current = index;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentDragged = draggedIndexRef.current ?? draggedIndex;
+    if (currentDragged === null) return;
+
+    // Debounce to prevent rapid flickers/loops
+    const now = Date.now();
+    if (now - lastSwapTimeRef.current < 220) return;
+
+    const touch = e.touches[0];
+    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dropCard = targetEl?.closest('[data-preview-index]') as HTMLElement | null;
+
+    if (dropCard) {
+      const targetIndex = Number(dropCard.getAttribute('data-preview-index'));
+      if (!isNaN(targetIndex) && targetIndex !== currentDragged) {
+        // Cek apakah jari benar-benar sudah masuk ke area inti (deadzone tolerance)
+        // Hindari pemicu swap jika hanya menyentuh tepian/border (padding 20%)
+        const rect = dropCard.getBoundingClientRect();
+        const horizontalMargin = rect.width * 0.2;
+        const verticalMargin = rect.height * 0.2;
+
+        const isInsideCoreZone =
+          touch.clientX >= rect.left + horizontalMargin &&
+          touch.clientX <= rect.right - horizontalMargin &&
+          touch.clientY >= rect.top + verticalMargin &&
+          touch.clientY <= rect.bottom - verticalMargin;
+
+        if (isInsideCoreZone) {
+          lastSwapTimeRef.current = now;
+          snapshotPositions();
+          setPreviewUrls(prev => {
+            const updated = [...prev];
+            const [movedItem] = updated.splice(currentDragged, 1);
+            updated.splice(targetIndex, 0, movedItem);
+            return updated;
+          });
+          draggedIndexRef.current = targetIndex;
+          setDraggedIndex(targetIndex);
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setDraggedIndex(null);
+    draggedIndexRef.current = null;
+    setDragOverIndex(null);
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= previewUrls.length) return;
+    snapshotPositions();
+    setPreviewUrls(prev => {
+      const updated = [...prev];
+      const [item] = updated.splice(index, 1);
+      updated.splice(targetIndex, 0, item);
+      return updated;
+    });
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    snapshotPositions();
+    setPreviewUrls(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
   const resetForm = () => {
     setTitle('');
     setDescription('');
     setDownloadUrl('');
-    setPreviewUrl(null);
+    setPreviewUrls([]);
     setFileFormat('Hanya gambar');
     setPublishDate(getCurrentDateString());
     setPublishTime(getCurrentTimeString());
@@ -106,6 +285,10 @@ export default function UploadPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (previewUrls.length === 0) {
+      alert('Silakan pilih minimal 1 foto/gambar pratinjau.');
+      return;
+    }
     setIsSubmitting(true);
 
     const requiresModeration = siteSettings?.autoApproveArtworks === false && currentUser?.role !== 'Super Admin';
@@ -129,7 +312,8 @@ export default function UploadPage() {
       addArtwork({
         title,
         description,
-        imageUrl: previewUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800',
+        imageUrl: previewUrls[0] || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800',
+        imageUrls: previewUrls,
         downloadUrl: downloadUrl || '#',
         category,
         region: currentUser?.region || region || 'DPP PKS Official',
@@ -221,47 +405,142 @@ export default function UploadPage() {
               
               {/* Image Upload Area */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  File Pratinjau / Preview Artwork <span className="text-red-500">*</span>
+                <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center justify-between">
+                  <span>File Pratinjau / Preview Artwork (Carousel) <span className="text-red-500">*</span></span>
+                  <span className="text-xs font-normal text-gray-500">Pilih 1 atau lebih gambar untuk postingan carousel</span>
                 </label>
-                <div className="relative border-2 border-dashed border-gray-300 hover:border-[#F26522] rounded-2xl p-6 flex flex-col items-center justify-center bg-gray-50/50 transition-all group cursor-pointer min-h-[220px]">
+
+                {previewUrls.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between text-xs font-semibold text-gray-500 px-1">
+                      <span>Urutan Foto ({previewUrls.length}):</span>
+                      <span className="text-[11px] text-[#F26522] font-bold">💡 Tahan & geser foto atau tekan tombol ◀ ▶ untuk atur urutan</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {previewUrls.map((url, idx) => {
+                        const isBeingDragged = draggedIndex === idx;
+
+                        return (
+                          <div
+                            key={url}
+                            data-preview-index={idx}
+                            ref={(el) => {
+                              if (el) {
+                                itemRefs.current.set(url, el);
+                              } else {
+                                itemRefs.current.delete(url);
+                              }
+                            }}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, idx)}
+                            onDragEnter={() => handleDragEnter(idx)}
+                            onDragOver={handleDragOver}
+                            onDragEnd={handleDragEnd}
+                            onDrop={handleDrop}
+                            onTouchStart={() => handleTouchStart(idx)}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            onTouchCancel={handleTouchEnd}
+                            className={`relative group rounded-xl overflow-hidden border-2 cursor-grab active:cursor-grabbing aspect-square bg-gray-100 select-none will-change-transform touch-none transition-all duration-200 ease-out ${
+                              isBeingDragged
+                                ? 'scale-108 -translate-y-2.5 rotate-2 z-40 border-[#F26522] shadow-[0_20px_35px_-10px_rgba(242,101,34,0.35),0_12px_20px_-8px_rgba(0,0,0,0.25)] ring-4 ring-[#F26522]/50 opacity-95'
+                                : 'border-gray-200 hover:border-[#F26522]/70 shadow-xs hover:shadow-md'
+                            }`}
+                          >
+                            <img
+                              src={url}
+                              alt={`Preview ${idx + 1}`}
+                              className={`w-full h-full object-cover pointer-events-none transition-all duration-200 ${
+                                isBeingDragged ? 'brightness-105 contrast-105' : ''
+                              }`}
+                            />
+
+                            {/* Drag handle icon indicator */}
+                            <div className={`absolute top-1.5 left-1.5 flex items-center gap-1 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10 pointer-events-none transition-colors duration-200 ${
+                              isBeingDragged ? 'bg-[#F26522] shadow-md scale-105' : 'bg-black/65'
+                            }`}>
+                              <GripVertical size={11} className={isBeingDragged ? 'text-white' : 'text-gray-300'} />
+                              <span>{idx + 1}</span>
+                              {idx === 0 && (
+                                <span className={`text-[9px] font-black ml-0.5 ${isBeingDragged ? 'text-white' : 'text-[#F26522]'}`}>★ Utama</span>
+                              )}
+                            </div>
+                            
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeImage(idx);
+                              }}
+                              className="absolute top-1.5 right-1.5 bg-red-600/90 text-white p-1 rounded-full opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-20"
+                              title="Hapus Foto Ini"
+                            >
+                              ✕
+                            </button>
+
+                            {/* Mobile Quick-Shift Arrow Buttons (Sangat mudah ditekan di HP) */}
+                            <div className="sm:hidden absolute inset-x-0 bottom-1 flex items-center justify-between px-1.5 z-20">
+                              {idx > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    moveImage(idx, -1);
+                                  }}
+                                  className="w-6 h-6 rounded-full bg-black/75 backdrop-blur-xs text-white flex items-center justify-center shadow-md active:bg-[#F26522] active:scale-110 transition-transform"
+                                  title="Geser ke kiri"
+                                >
+                                  <ChevronLeft size={14} />
+                                </button>
+                              ) : <div className="w-6" />}
+
+                              {idx < previewUrls.length - 1 ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    moveImage(idx, 1);
+                                  }}
+                                  className="w-6 h-6 rounded-full bg-black/75 backdrop-blur-xs text-white flex items-center justify-center shadow-md active:bg-[#F26522] active:scale-110 transition-transform"
+                                  title="Geser ke kanan"
+                                >
+                                  <ChevronRight size={14} />
+                                </button>
+                              ) : <div className="w-6" />}
+                            </div>
+
+                            {/* Desktop hover hint */}
+                            <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-black/50 text-white text-[9px] font-semibold text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              Tahan & Geser Urutan
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="relative border-2 border-dashed border-gray-300 hover:border-[#F26522] rounded-2xl p-6 flex flex-col items-center justify-center bg-gray-50/50 transition-all group cursor-pointer min-h-[160px]">
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
 
-                  {previewUrl ? (
-                    <div className="relative w-full flex flex-col items-center justify-center">
-                      <img
-                        src={previewUrl}
-                        alt="Preview Upload"
-                        className="max-h-[280px] rounded-xl object-contain shadow-md mb-2"
-                      />
-                      {compressionInfo && (
-                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                          {compressionInfo.isCompressed ? (
-                            <span>Kompresi Sukses: {Math.round(compressionInfo.originalSizeMb * 1024)}kb → {Math.round(compressionInfo.compressedSizeMb * 1024)}kb (Maks 2048kb)</span>
-                          ) : (
-                            <span>{Math.round(compressionInfo.compressedSizeMb * 1024)}kb (Maks 2048kb)</span>
-                          )}
-                        </div>
-                      )}
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-orange-50 text-[#F26522] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <UploadCloud size={24} />
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center text-center">
-                      <div className="w-14 h-14 rounded-full bg-orange-50 text-[#F26522] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <UploadCloud size={28} />
-                      </div>
-                      <p className="text-sm font-bold text-gray-800">
-                        {isCompressing ? 'Mengompresi gambar (Max 2MB)...' : 'Klik untuk unggah atau seret file gambar ke sini'}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Batas file: Maksimal 2MB (Otomatis dikompresi kualitas tinggi agar web super cepat)
-                      </p>
-                    </div>
-                  )}
+                    <p className="text-sm font-bold text-gray-800">
+                      {isCompressing ? 'Mengompresi gambar...' : previewUrls.length > 0 ? '+ Tambah Foto Lainnya' : 'Klik atau seret file gambar ke sini'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Bisa memilih lebih dari satu foto untuk postingan carousel. Maksimal 2MB per gambar.
+                    </p>
+                  </div>
                 </div>
               </div>
 

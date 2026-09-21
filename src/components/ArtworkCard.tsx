@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag, Edit, Calendar, Clock, HelpCircle } from 'lucide-react';
+import { Heart, MessageSquare, Download, MoreVertical, Share2, Flag, Edit, Calendar, Clock, HelpCircle, Layers } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
 import { getUserSlug } from '@/lib/slug';
@@ -11,6 +11,7 @@ import { ShareModal } from './ShareModal';
 
 import { ConfirmUnsavedModal } from './ConfirmUnsavedModal';
 import { GdriveTutorialModal } from './GdriveTutorialModal';
+import { CarouselViewer } from './CarouselViewer';
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -189,33 +190,45 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     <>
       <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
-      <Link href={artworkPath} className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
+      <div className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
         <div className="relative w-full overflow-hidden">
-          {/* Subtle loading placeholder background that matches masonry height */}
-          {!isImgLoaded && (
-            <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+          {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
+            <CarouselViewer
+              images={artwork.imageUrls}
+              altTitle={artwork.title}
+              autoSlide={true}
+              autoSlideInterval={3200}
+              linkHref={artworkPath}
+            />
+          ) : (
+            <Link href={artworkPath} className="block relative w-full overflow-hidden">
+              {/* Subtle loading placeholder background that matches masonry height */}
+              {!isImgLoaded && (
+                <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+              )}
+              <Image
+                src={imgSrc}
+                alt={artwork.title}
+                width={600}
+                height={800}
+                onLoad={() => setIsImgLoaded(true)}
+                onError={() => {
+                  setImgSrc(fallbackImage);
+                  setIsImgLoaded(true);
+                }}
+                unoptimized={imgSrc.startsWith('data:')}
+                className={`w-full h-auto object-contain block group-hover:scale-[1.02] transition-all duration-300 ${
+                  isImgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              />
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
           )}
-          <Image
-            src={imgSrc}
-            alt={artwork.title}
-            width={600}
-            height={800}
-            onLoad={() => setIsImgLoaded(true)}
-            onError={() => {
-              setImgSrc(fallbackImage);
-              setIsImgLoaded(true);
-            }}
-            unoptimized={imgSrc.startsWith('data:')}
-            className={`w-full h-auto object-contain block group-hover:scale-[1.02] transition-all duration-300 ${
-              isImgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-            }`}
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           
           {/* Category & Tags Badge overlay */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1 max-w-[85%] z-10">
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1 max-w-[85%] z-10 pointer-events-none">
             <div className="bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
               {artwork.category}
             </div>
@@ -226,7 +239,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
             )}
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* Card Footer Info */}
       <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
