@@ -336,7 +336,7 @@ export default function HomePage() {
 
           <Link
             href="/explore"
-            className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-[#F26522] hover:text-[#d85417] flex items-center gap-1 transition-colors"
           >
             <span>Eksplorasi</span>
             <ArrowRight size={14} />

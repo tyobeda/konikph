@@ -190,7 +190,7 @@ export default function CreatorPublicProfilePage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">{creator.name}</h1>
-                  {creator.isVerified && (
+                  {(creator.isVerified || creator.role === 'Super Admin') && (
                     <span title="Verified Desainer PKS">
                       <BadgeCheck size={20} className="text-[#F26522] fill-orange-50" />
                     </span>

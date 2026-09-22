@@ -153,7 +153,7 @@ export default function CreatorsPage() {
                               {user.name}
                             </h3>
                           </Link>
-                          {user.isVerified !== false && (
+                          {Boolean(user.isVerified || user.role === 'Super Admin') && (
                             <BadgeCheck size={18} className="text-[#F26522] shrink-0" />
                           )}
                         </div>

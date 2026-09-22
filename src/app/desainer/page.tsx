@@ -178,7 +178,7 @@ export default function DesainerPage() {
                               {item.user.name}
                             </h3>
                           </Link>
-                          {item.user.isVerified !== false && (
+                          {Boolean(item.user.isVerified || item.user.role === 'Super Admin') && (
                             <BadgeCheck size={18} className="text-[#F26522] shrink-0" />
                           )}
                         </div>
@@ -291,7 +291,7 @@ export default function DesainerPage() {
                         <Link href={`/creators/${getUserSlug(item.user)}`} className="hover:text-[#F26522] transition-colors truncate">
                           <p className="text-sm font-bold text-gray-900 flex items-center gap-1 truncate">
                             <span className="truncate">{item.user.name}</span>
-                            {item.user.isVerified !== false && (
+                            {Boolean(item.user.isVerified || item.user.role === 'Super Admin') && (
                               <BadgeCheck size={14} className="text-[#F26522] shrink-0" />
                             )}
                           </p>

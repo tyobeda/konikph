@@ -22,6 +22,8 @@ import {
   X,
   Plus,
   AlertTriangle,
+  Trash2,
+  BadgeCheck,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
@@ -29,6 +31,7 @@ import { getUserSlug } from '@/lib/slug';
 import { ShareModal } from './ShareModal';
 
 import { ConfirmUnsavedModal } from './ConfirmUnsavedModal';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GdriveTutorialModal } from './GdriveTutorialModal';
 import { CarouselViewer } from './CarouselViewer';
 
@@ -37,7 +40,7 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { currentUser, addArtworkReport, toggleLikeArtwork, updateArtwork, incrementDownloadCount } = useData();
+  const { currentUser, addArtworkReport, toggleLikeArtwork, updateArtwork, deleteArtwork, incrementDownloadCount } = useData();
   const userLiked = Boolean(
     currentUser && artwork.likedUserIds && artwork.likedUserIds.includes(currentUser.id)
   );
@@ -48,6 +51,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [isGdriveTutorialOpen, setIsGdriveTutorialOpen] = useState(false);
 
@@ -361,6 +365,9 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
     });
 
+    if (editImages[0]) {
+      setImgSrc(editImages[0]);
+    }
     setIsEditModalOpen(false);
   };
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -370,7 +377,10 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     if (currentUser && artwork.likedUserIds) {
       setIsLiked(artwork.likedUserIds.includes(currentUser.id));
     }
-  }, [artwork.likesCount, artwork.likedUserIds, currentUser]);
+    if (artwork.imageUrl) {
+      setImgSrc(artwork.imageUrl);
+    }
+  }, [artwork.likesCount, artwork.likedUserIds, artwork.imageUrl, currentUser]);
 
   const isOwner = Boolean(
     currentUser &&
@@ -380,6 +390,21 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       (artwork.author?.name && artwork.author.name === currentUser.name)
     )
   );
+
+  const isSuperAdmin = Boolean(
+    currentUser && (
+      currentUser.role === 'Super Admin' ||
+      currentUser.role === 'Admin' ||
+      currentUser.role?.toLowerCase() === 'super admin' ||
+      currentUser.role?.toLowerCase() === 'admin' ||
+      currentUser.role?.toLowerCase().includes('admin') ||
+      currentUser.email?.toLowerCase() === 'admin@pks.art' ||
+      currentUser.id === 'superadmin_1'
+    )
+  );
+
+  const canEditArtwork = Boolean(isOwner);
+  const canDeleteArtwork = Boolean(isOwner || isSuperAdmin);
 
   const artworkPath = `/artwork/${artwork.slug || artwork.id}`;
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${artworkPath}` : '';
@@ -475,12 +500,19 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
 
             <div className="min-w-0 flex flex-col justify-center">
               {/* Creator Name Link to Creator Profile */}
-              <Link 
-                href={`/creators/${getUserSlug(artwork.author)}`}
-                className="text-xs sm:text-sm font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors leading-tight"
-              >
-                {artwork.author.name}
-              </Link>
+              <div className="flex items-center gap-1 min-w-0">
+                <Link 
+                  href={`/creators/${getUserSlug(artwork.author)}`}
+                  className="text-xs sm:text-sm font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors leading-tight"
+                >
+                  {artwork.author.name}
+                </Link>
+                {(artwork.author?.isVerified || artwork.author?.role === 'Super Admin') && (
+                  <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
+                    <BadgeCheck size={14} className="text-[#F26522] fill-orange-50" />
+                  </span>
+                )}
+              </div>
 
               {/* Like & Comment Stats */}
               <div className="flex items-center gap-2.5 text-xs text-gray-400 font-medium mt-0.5">
@@ -530,14 +562,28 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 >
                   <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
                 </button>
-                {isOwner ? (
+                {canEditArtwork && (
                   <button
                     onClick={handleOpenEditModal}
                     className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center gap-2.5 text-blue-600 font-bold transition-colors"
                   >
                     <Edit size={15} /> <span className="text-xs">Edit Artwork</span>
                   </button>
-                ) : (
+                )}
+                {canDeleteArtwork && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowDropdown(false);
+                      setIsDeleteModalOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+                  >
+                    <Trash2 size={15} /> <span className="text-xs">Hapus Artwork</span>
+                  </button>
+                )}
+                {!isOwner && (
                   <button
                     onClick={(e) => { 
                       e.preventDefault(); 
@@ -581,7 +627,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 <Link
                   key={idx}
                   href={`/explore?q=${encodeURIComponent(tag)}`}
-                  className="text-[11px] font-bold text-[#F26522] hover:underline bg-orange-50 hover:bg-orange-100 px-2 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] font-bold text-[#F26522] hover:text-[#d85417] bg-orange-50 hover:bg-orange-100 px-2 py-0.5 rounded-md transition-colors"
                 >
                   {formattedTag}
                 </Link>
@@ -973,6 +1019,19 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       <GdriveTutorialModal
         isOpen={isGdriveTutorialOpen}
         onClose={() => setIsGdriveTutorialOpen(false)}
+      />
+
+      {/* Confirm Delete Artwork Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        title="Hapus Karya?"
+        message={`Apakah Anda yakin ingin menghapus karya "${artwork.title}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Ya, Hapus"
+        onConfirm={() => {
+          deleteArtwork(artwork.id);
+          setIsDeleteModalOpen(false);
+        }}
+        onCancel={() => setIsDeleteModalOpen(false)}
       />
     </>
   );

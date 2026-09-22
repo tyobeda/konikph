@@ -50,7 +50,7 @@ export interface DataContextType {
   // Artworks
   artworks: Artwork[];
   addArtwork: (art: Omit<Artwork, 'id' | 'likesCount' | 'commentsCount' | 'downloadsCount' | 'stampsCount'> & { createdAt?: string | Date }) => Promise<void> | void;
-  updateArtwork: (id: string, updated: Partial<Artwork>) => void;
+  updateArtwork: (id: string, updated: Partial<Artwork>) => Promise<any>;
   deleteArtwork: (id: string) => void;
   toggleLikeArtwork: (id: string) => void;
   incrementDownloadCount: (id: string) => void;
@@ -545,6 +545,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         })
       );
     }
+    return res;
   };
 
   const deleteArtwork = async (id: string) => {

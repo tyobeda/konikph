@@ -19,6 +19,7 @@ import {
   MoreVertical,
   Flag,
   Edit,
+  BadgeCheck,
   Copy,
   ExternalLink,
   Calendar,
@@ -50,11 +51,26 @@ export default function ArtworkDetailContent() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { currentUser, artworks, updateArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport, incrementDownloadCount } = useData();
+  const { currentUser, artworks, updateArtwork, deleteArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport, incrementDownloadCount } = useData();
 
   const [isMounted, setIsMounted] = useState(false);
 
   const artwork = artworks.find((item) => item.id === id || item.slug === id);
+
+  const isSuperAdmin = Boolean(
+    currentUser && (
+      currentUser.role === 'Super Admin' ||
+      currentUser.role === 'Admin' ||
+      currentUser.role?.toLowerCase() === 'super admin' ||
+      currentUser.role?.toLowerCase() === 'admin' ||
+      currentUser.role?.toLowerCase().includes('admin') ||
+      currentUser.email?.toLowerCase() === 'admin@pks.art' ||
+      currentUser.id === 'superadmin_1'
+    )
+  );
+
+  const [isDeleteArtworkModalOpen, setIsDeleteArtworkModalOpen] = useState(false);
+  const [isDeletingArtwork, setIsDeletingArtwork] = useState(false);
 
   const [likesCount, setLikesCount] = useState(artwork?.likesCount || 0);
   const [isLiked, setIsLiked] = useState(false);
@@ -391,7 +407,6 @@ export default function ArtworkDetailContent() {
       (author.id && author.id === currentUser.id) ||
       (author.name && author.name === currentUser.name)
     );
-    const isSuperAdmin = currentUser?.role === 'Super Admin';
     return Boolean(isOwner || isSuperAdmin);
   };
 
@@ -617,9 +632,24 @@ export default function ArtworkDetailContent() {
     )
   );
 
-  const canEditArtwork = Boolean(isOwner || currentUser?.role === 'Super Admin');
+  const canEditArtwork = Boolean(isOwner);
+  const canDeleteArtwork = Boolean(isOwner || isSuperAdmin);
 
-
+  const handleDeleteArtwork = async () => {
+    if (!artwork) return;
+    setIsDeletingArtwork(true);
+    try {
+      await deleteArtwork(artwork.id);
+      triggerToast('Karya berhasil dihapus');
+      router.push('/explore');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menghapus karya');
+    } finally {
+      setIsDeletingArtwork(false);
+      setIsDeleteArtworkModalOpen(false);
+    }
+  };
 
   const handleOpenEditModal = () => {
     if (!artwork) return;
@@ -648,9 +678,10 @@ export default function ArtworkDetailContent() {
     setEditTitleInput(titleVal);
     setEditDescInput(descVal);
     setEditCategoryInput(catVal);
+    setEditRegionInput(artwork.region || artwork.author?.region || '');
     setEditFormatInput(formatVal);
     setEditDownloadUrlInput(dlVal);
-    setEditTagsInput(artwork.tags ? artwork.tags.join(' ') : '');
+    setEditTagsInput(artwork.tags && artwork.tags.length > 0 ? artwork.tags.join(', ') : '');
     setEditDateInput(dateVal);
     setEditTimeInput(timeVal);
 
@@ -658,8 +689,10 @@ export default function ArtworkDetailContent() {
       title: titleVal,
       desc: descVal,
       cat: catVal,
+      region: artwork.region || artwork.author?.region || '',
       fmt: formatVal,
       dl: dlVal,
+      tags: artwork.tags && artwork.tags.length > 0 ? artwork.tags.join(', ') : '',
       date: dateVal,
       time: timeVal,
       images: initialImages,
@@ -673,8 +706,10 @@ export default function ArtworkDetailContent() {
       title: editTitleInput,
       desc: editDescInput,
       cat: editCategoryInput,
+      region: editRegionInput,
       fmt: editFormatInput,
       dl: editDownloadUrlInput,
+      tags: editTagsInput,
       date: editDateInput,
       time: editTimeInput,
       images: editImages,
@@ -718,7 +753,7 @@ export default function ArtworkDetailContent() {
       updatedCreatedAt = new Date(editDateInput).toISOString();
     }
 
-    await updateArtwork(artwork.id, {
+    const res = await updateArtwork(artwork.id, {
       title: editTitleInput,
       description: editDescInput,
       category: editCategoryInput,
@@ -729,6 +764,10 @@ export default function ArtworkDetailContent() {
       imageUrls: editImages,
       ...(updatedCreatedAt ? { createdAt: updatedCreatedAt as any } : {}),
     });
+
+    if (res && res.success && res.artwork && res.artwork.slug && res.artwork.slug !== id) {
+      router.replace(`/artwork/${res.artwork.slug}`);
+    }
 
     setIsEditModalOpen(false);
     triggerToast('Karya berhasil diperbarui!');
@@ -789,9 +828,11 @@ export default function ArtworkDetailContent() {
           </div>
         )}
 
-        <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-start">
-          <div className="lg:col-span-7 relative p-2 sm:p-4 w-full flex items-center justify-center bg-gray-50/50">
-            <div className="relative max-w-full w-full flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-white">
+        {/* Main Artwork Showcase & Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* Left: Freestanding Photo Media (No padding container) */}
+          <div className="lg:col-span-7 w-full flex items-center justify-center">
+            <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-gray-100/60 flex items-center justify-center">
               {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
                 <CarouselViewer
                   images={artwork.imageUrls}
@@ -802,13 +843,14 @@ export default function ArtworkDetailContent() {
                 <img
                   src={artwork.imageUrl}
                   alt={artwork.title}
-                  className="w-full h-auto max-h-[75vh] object-contain block rounded-2xl"
+                  className="w-full h-auto max-h-[85vh] object-contain block rounded-2xl sm:rounded-3xl"
                 />
               )}
             </div>
           </div>
 
-          <div className="lg:col-span-5 p-4 sm:p-5 lg:p-6 flex flex-col justify-between bg-white self-stretch border-t lg:border-t-0 lg:border-l border-gray-100">
+          {/* Right: Info Card Container */}
+          <div className="lg:col-span-5 p-5 sm:p-6 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -823,11 +865,18 @@ export default function ArtworkDetailContent() {
                     />
                   </Link>
                   <div>
-                    <Link href={`/creators/${getUserSlug(artwork.author)}`}>
-                      <h2 className="text-sm font-extrabold text-gray-900 leading-snug hover:text-[#F26522] transition-colors">
-                        {artwork.author?.name || 'Desainer PKS'}
-                      </h2>
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <Link href={`/creators/${getUserSlug(artwork.author)}`}>
+                        <h2 className="text-sm font-extrabold text-gray-900 leading-snug hover:text-[#F26522] transition-colors">
+                          {artwork.author?.name || 'Desainer PKS'}
+                        </h2>
+                      </Link>
+                      {(artwork.author?.isVerified || artwork.author?.role === 'Super Admin') && (
+                        <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
+                          <BadgeCheck size={16} className="text-[#F26522] fill-orange-50" />
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 font-medium">
                       {(artwork.author?.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')}
                       {artwork.format && !['Hanya gambar', 'Hanya Gambar', 'HANYA_GAMBAR', 'Gambar'].includes(artwork.format.trim()) && (
@@ -854,7 +903,7 @@ export default function ArtworkDetailContent() {
                         <Share2 size={16} /> <span className="text-xs">Bagikan ke Sosial Media</span>
                       </button>
 
-                      {canEditArtwork ? (
+                      {canEditArtwork && (
                         <button
                           onClick={() => {
                             setShowOptions(false);
@@ -864,7 +913,21 @@ export default function ArtworkDetailContent() {
                         >
                           <Edit size={16} /> <span className="text-xs">Edit Artwork</span>
                         </button>
-                      ) : (
+                      )}
+
+                      {canDeleteArtwork && (
+                        <button
+                          onClick={() => {
+                            setShowOptions(false);
+                            setIsDeleteArtworkModalOpen(true);
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+                        >
+                          <Trash2 size={16} /> <span className="text-xs">Hapus Artwork</span>
+                        </button>
+                      )}
+
+                      {!isOwner && (
                         <button
                           onClick={() => { 
                             setShowOptions(false); 
@@ -910,7 +973,7 @@ export default function ArtworkDetailContent() {
                       <Link
                         key={idx}
                         href={`/explore?q=${encodeURIComponent(tag)}`}
-                        className="text-xs font-bold text-[#F26522] hover:underline bg-orange-50 hover:bg-orange-100 px-2.5 py-0.5 rounded-md transition-colors"
+                        className="text-xs font-bold text-[#F26522] hover:text-[#d85417] bg-orange-50 hover:bg-orange-100 px-2.5 py-0.5 rounded-md transition-colors"
                       >
                         {formattedTag}
                       </Link>
@@ -968,8 +1031,13 @@ export default function ArtworkDetailContent() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <Link href={`/creators/${getUserSlug(author)}`}>
-                              <span className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">{author.name} - {(author.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
+                              <span className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">{author.name}</span>
                             </Link>
+                            {(author.isVerified || author.role === 'Super Admin') && (
+                              <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
+                                <BadgeCheck size={13} className="text-[#F26522] fill-orange-50" />
+                              </span>
+                            )}
                             {comment.isEdited && (
                               <span className="text-[10px] text-gray-400 font-normal italic">(disunting)</span>
                             )}
@@ -1620,6 +1688,16 @@ export default function ArtworkDetailContent() {
         isOpen={showUnsavedModal}
         onDiscard={handleDiscardChanges}
         onKeepEditing={() => setShowUnsavedModal(false)}
+      />
+
+      {/* Confirm Delete Artwork Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteArtworkModalOpen}
+        title="Hapus Karya Ini?"
+        message={`Apakah Anda yakin ingin menghapus karya "${artwork.title}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel={isDeletingArtwork ? 'Menghapus...' : 'Ya, Hapus Karya'}
+        onConfirm={handleDeleteArtwork}
+        onCancel={() => setIsDeleteArtworkModalOpen(false)}
       />
     </div>
   );
