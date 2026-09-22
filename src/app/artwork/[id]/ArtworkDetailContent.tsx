@@ -805,9 +805,6 @@ export default function ArtworkDetailContent() {
                   className="w-full h-auto max-h-[75vh] object-contain block rounded-2xl"
                 />
               )}
-              <div className="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider pointer-events-none">
-                {artwork.category}
-              </div>
             </div>
           </div>
 
@@ -892,50 +889,57 @@ export default function ArtworkDetailContent() {
                 </div>
               </div>
 
-              <div className="py-4 border-b border-gray-100 space-y-2.5">
-                <h1 className="text-lg font-black text-gray-900 leading-tight">
+              <div className="pt-4 pb-3 border-b border-gray-100 space-y-2">
+                <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
                   {artwork.title}
                 </h1>
+
+                {/* Category & Tags Badges directly below title */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  {artwork.category && (
+                    <Link
+                      href={`/explore?category=${encodeURIComponent(artwork.category)}`}
+                      className="bg-[#3f3f46] hover:bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-full transition-colors"
+                    >
+                      {artwork.category}
+                    </Link>
+                  )}
+                  {artwork.tags && artwork.tags.length > 0 && artwork.tags.map((tag: string, idx: number) => {
+                    const formattedTag = tag.startsWith('#') ? tag : `#${tag}`;
+                    return (
+                      <Link
+                        key={idx}
+                        href={`/explore?q=${encodeURIComponent(tag)}`}
+                        className="text-xs font-bold text-[#F26522] hover:underline bg-orange-50 hover:bg-orange-100 px-2.5 py-0.5 rounded-md transition-colors"
+                      >
+                        {formattedTag}
+                      </Link>
+                    );
+                  })}
+                </div>
+
                 {artwork.description && (
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-1">
-                    <p className="text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line">
-                      {!isDescExpanded && artwork.description.length > 100
-                        ? `${artwork.description.slice(0, 100)}...`
-                        : artwork.description}
-                    </p>
-                    {artwork.description.length > 100 && (
+                  <div className="pt-2 text-xs sm:text-sm text-gray-700 leading-relaxed font-normal whitespace-pre-line">
+                    {!isDescExpanded && artwork.description.length > 250
+                      ? `${artwork.description.slice(0, 250)}...`
+                      : artwork.description}
+                    {artwork.description.length > 250 && (
                       <button
                         onClick={() => setIsDescExpanded(!isDescExpanded)}
-                        className="text-xs font-bold text-[#F26522] hover:underline cursor-pointer inline-block mt-0.5"
+                        className="text-xs font-bold text-[#F26522] hover:underline cursor-pointer block mt-1"
                       >
                         {isDescExpanded ? 'Sembunyikan' : 'Lihat selengkapnya'}
                       </button>
                     )}
                   </div>
                 )}
-
-                {/* Hashtags Section */}
-                {artwork.tags && artwork.tags.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-xs font-bold text-gray-400 mr-1">Hashtags:</span>
-                    {artwork.tags.map((tag: string, idx: number) => (
-                      <Link
-                        key={idx}
-                        href={`/explore?q=${encodeURIComponent(tag)}`}
-                        className="text-xs font-bold text-[#F26522] bg-orange-50 border border-orange-100 hover:bg-[#F26522] hover:text-white px-2.5 py-1 rounded-full transition-all shadow-2xs"
-                      >
-                        {tag}
-                      </Link>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
-            <div suppressHydrationWarning className="flex-1 py-4 overflow-y-auto max-h-[260px] lg:max-h-[320px] space-y-3 pr-1 my-2">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                <MessageSquare size={14} className="text-[#F26522]" />
-                <span>Komentar ({currentComments.length})</span>
+            <div suppressHydrationWarning className="flex-1 py-3 overflow-y-auto max-h-[220px] lg:max-h-[260px] space-y-2.5 pr-1 my-2">
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                <MessageSquare size={15} className="text-[#F26522]" />
+                <span>KOMENTAR ({currentComments.length})</span>
               </h3>
 
               {currentComments.length === 0 ? (
@@ -1068,9 +1072,9 @@ export default function ArtworkDetailContent() {
               )}
             </div>
 
-            <div className="pt-3 border-t border-gray-100 space-y-1.5">
-              <form onSubmit={handleAddComment} className="flex gap-2">
-                <div className="flex-1 min-w-0">
+            <div className="pt-3 border-t border-gray-100 space-y-2">
+              <form onSubmit={handleAddComment} className="flex gap-2 items-stretch">
+                <div className="flex-1 relative min-w-0">
                   <textarea
                     value={newComment}
                     maxLength={1000}
@@ -1084,38 +1088,36 @@ export default function ArtworkDetailContent() {
                         handleAddComment(e as unknown as React.FormEvent);
                       }
                     }}
-                    placeholder="Tulis komentar (maks 1000 karakter)..."
-                    className={`w-full bg-gray-50 border text-gray-900 placeholder:text-gray-400 font-semibold rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:bg-white transition-all resize-none min-h-[36px] overflow-hidden ${
+                    placeholder="Tulis komentar..."
+                    className={`w-full bg-gray-50/80 border text-gray-900 placeholder:text-gray-400 font-medium rounded-xl px-3.5 pt-2.5 pb-6 text-xs focus:outline-none focus:bg-white transition-all resize-none min-h-[54px] ${
                       commentError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#F26522]'
                     }`}
                     rows={2}
                   />
-                  <div className="flex items-center justify-between px-1 mt-1">
-                    {commentError ? (
-                      <span className="text-[11px] font-normal text-red-500">
-                        {commentError.replace(/\s*\("[^"]+"\)/g, '')}
-                      </span>
-                    ) : (
-                      <span />
-                    )}
-                    <span className={`text-[10px] font-semibold ${newComment.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-                      {newComment.length}/1000
-                    </span>
-                  </div>
+                  <span className={`absolute right-3 bottom-1.5 text-[10px] font-semibold pointer-events-none ${
+                    newComment.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400'
+                  }`}>
+                    {newComment.length}/1000
+                  </span>
                 </div>
                 <button
                   type="submit"
-                  className="px-3.5 py-2 bg-[#F26522] text-white rounded-xl font-bold text-xs hover:bg-[#d85417] transition-all flex items-center gap-1 shrink-0"
+                  className="px-4 bg-[#F26522] hover:bg-[#d85417] text-white rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm self-stretch"
                 >
-                  <Send size={14} />
+                  <Send size={15} />
                   <span>Kirim</span>
                 </button>
               </form>
+              {commentError && (
+                <p className="text-[11px] font-normal text-red-500 px-1">
+                  {commentError.replace(/\s*\("[^"]+"\)/g, '')}
+                </p>
+              )}
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 pt-0.5">
                 <button
                   onClick={handleLikeToggle}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-xs font-bold transition-all ${
                     isLiked
                       ? 'bg-red-50 text-red-600 border-red-200'
                       : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
@@ -1127,7 +1129,7 @@ export default function ArtworkDetailContent() {
 
                 <button
                   onClick={handleSaveToggle}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-xs font-bold transition-all ${
                     isSaved
                       ? 'bg-amber-50 text-amber-700 border-amber-200'
                       : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
@@ -1139,37 +1141,41 @@ export default function ArtworkDetailContent() {
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-semibold transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-bold transition-all"
                 >
                   <Share2 size={15} className="text-gray-500" />
                   <span>Bagikan</span>
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className={`grid gap-2.5 pt-0.5 ${
+                artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== ''
+                  ? 'grid-cols-1 sm:grid-cols-2'
+                  : 'grid-cols-1'
+              }`}>
                 {/* 1. Unduh Gambar Preview Button (Carousel-aware with single slide & ZIP download options) */}
                 {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
                   <div className="relative" ref={carouselDownloadRef}>
-                    <div className="flex rounded-xl shadow-sm overflow-hidden bg-gray-900 text-white">
+                    <div className="flex rounded-xl shadow-sm overflow-hidden bg-slate-950 text-white">
                       {/* Main action: download slide currently in view */}
                       <button
                         type="button"
                         onClick={handleDownloadCurrentImage}
-                        className="flex-1 py-3 px-4 hover:bg-black active:scale-[0.99] text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2"
+                        className="flex-1 py-3 px-3 hover:bg-black active:scale-[0.99] text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2"
                         title={`Unduh Slide ${activeImageIndex + 1} (${activeImageIndex + 1} dari ${artwork.imageUrls.length})`}
                       >
-                        <Download size={17} />
-                        <span>Unduh Slide Ini ({activeImageIndex + 1}/{artwork.imageUrls.length})</span>
+                        <Download size={16} />
+                        <span className="truncate">Unduh Gambar (JPG/PNG)</span>
                       </button>
 
                       {/* Dropdown toggle for options */}
                       <button
                         type="button"
                         onClick={() => setShowCarouselDownloadMenu(!showCarouselDownloadMenu)}
-                        className="px-3 border-l border-gray-700 hover:bg-black active:bg-gray-800 transition-colors flex items-center justify-center text-white"
+                        className="px-2.5 border-l border-gray-800 hover:bg-black active:bg-gray-900 transition-colors flex items-center justify-center text-white"
                         title="Pilihan Download Slide"
                       >
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${showCarouselDownloadMenu ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={15} className={`transition-transform duration-200 ${showCarouselDownloadMenu ? 'rotate-180' : ''}`} />
                       </button>
                     </div>
 
@@ -1229,9 +1235,9 @@ export default function ArtworkDetailContent() {
                 ) : (
                   <button
                     onClick={handleDownloadCurrentImage}
-                    className="w-full py-3 px-5 bg-gray-900 hover:bg-black active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 px-3 bg-slate-950 hover:bg-black active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
                   >
-                    <Download size={17} />
+                    <Download size={16} />
                     <span>Unduh Gambar (JPG/PNG)</span>
                   </button>
                 )}
@@ -1240,13 +1246,13 @@ export default function ArtworkDetailContent() {
                 {artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== '' && (
                   <button
                     onClick={handleDownloadTemplate}
-                    className="w-full py-3 px-5 bg-[#F26522] hover:bg-[#d95416] active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 px-3 bg-[#F26522] hover:bg-[#d95416] active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
                   >
-                    <ExternalLink size={17} />
-                    <span>
+                    <ExternalLink size={16} />
+                    <span className="truncate">
                       {artwork.downloadUrl.toLowerCase().includes('canva.com')
                         ? 'Buka Template Canva'
-                        : `Buka File Master (${artwork.format || 'PSD/AI'})`}
+                        : `Buka File Master (${artwork.format || 'PSD'})`}
                     </span>
                   </button>
                 )}
