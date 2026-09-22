@@ -21,6 +21,7 @@ model User {
   region        String // e.g. "Jawa Barat", "DIY", "Sumut"
   role          String?        @default("Kreator") // e.g. "DPW PKS", "Kreator"
   status        String?        @default("Pending") // e.g. "Pending", "Active", "Suspended"
+  isVerified    Boolean        @default(false)
   artworks      Artwork[]
   likes         Like[]
   comments      Comment[]
@@ -52,6 +53,7 @@ model Artwork {
   likes          Like[]
   comments       Comment[]
   isFeatured     Boolean   @default(false)
+  status         String    @default("Disetujui")
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }

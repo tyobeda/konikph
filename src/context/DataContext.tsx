@@ -502,8 +502,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     const res = await dbAddArtwork(payload);
     if (res && res.success && res.artwork) {
       // Append the nested author object for local state rendering
-      const newArtwork = {
+      const newArtwork: Artwork = {
         ...res.artwork,
+        status: res.artwork.status as any,
         author: art.author || SUPER_ADMIN_USER,
         comments: []
       };

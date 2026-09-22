@@ -19,6 +19,8 @@ import {
   Move,
   ChevronLeft,
   ChevronRight,
+  BadgeCheck,
+  ShieldCheck,
 } from 'lucide-react';
 import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
@@ -291,7 +293,8 @@ export default function UploadPage() {
     }
     setIsSubmitting(true);
 
-    const requiresModeration = siteSettings?.autoApproveArtworks === false && currentUser?.role !== 'Super Admin';
+    const isExemptFromModeration = currentUser?.role === 'Super Admin' || Boolean(currentUser?.isVerified);
+    const requiresModeration = siteSettings?.autoApproveArtworks === false && !isExemptFromModeration;
     const status = requiresModeration ? 'Pending' : 'Disetujui';
 
     // Auto extract hashtags from description field (words starting with #)
@@ -361,6 +364,17 @@ export default function UploadPage() {
             <p className="text-sm text-gray-500 mt-1">
               Bagikan hasil karya poster, spanduk, atau aset desain PKS untuk digunakan pengurus dan kader di seluruh daerah.
             </p>
+            {currentUser?.isVerified ? (
+              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200 shadow-xs">
+                <BadgeCheck size={14} className="text-emerald-600 shrink-0" />
+                <span>Desainer Terverifikasi — Bebas Moderasi (Karya Otomatis Langsung Terpublikasi)</span>
+              </div>
+            ) : siteSettings?.autoApproveArtworks === false && currentUser?.role !== 'Super Admin' ? (
+              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
+                <ShieldCheck size={14} className="text-amber-600 shrink-0" />
+                <span>Moderasi Aktif — Karya akan ditinjau Admin sebelum tayang di galeri publik</span>
+              </div>
+            ) : null}
           </div>
 
           {isSuccess ? (

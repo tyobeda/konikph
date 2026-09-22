@@ -853,7 +853,7 @@ export default function AdminSettingsPage() {
                       <div>
                         <p className="text-xs font-extrabold text-gray-900">🛡️ Moderasi Admin (Menunggu Review)</p>
                         <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
-                          Karya berstatus `Pending`. Desainer melihat layar konfirmasi & menunggu persetujuan Admin di `/admin/artworks`.
+                          Karya desainer non-verified berstatus `Pending` & menunggu persetujuan Admin di `/admin/artworks`. Khusus desainer terverifikasi (Verified) otomatis disetujui tanpa moderasi.
                         </p>
                       </div>
                     </label>

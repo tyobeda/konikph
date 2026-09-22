@@ -68,6 +68,10 @@ ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.1
 ### 7. Moderasi & Admin Dashboard (`/admin`)
 - Akun desainer yang baru mendaftar membutuhkan persetujuan Admin (status `Pending Approval`).
 - Pengaturan situs (`/admin/settings`) menyediakan fitur *Auto Approve Artworks*, filter kata-kata dilarang (*forbidden words*), serta manajemen banner & pemeliharaan modul (*maintenance mode*).
+- **Aturan Moderasi Unggah Karya Desainer**:
+  - Jika sistem moderasi aktif (`autoApproveArtworks === false`), karya dari desainer yang **belum terverifikasi** berstatus `Pending` dan menunggu persetujuan Admin di `/admin/artworks`.
+  - **Khusus Desainer Terverifikasi (`isVerified === true`) atau Super Admin**: Karya **BEBAS MODERASI** (otomatis berstatus `Disetujui` dan langsung terpublikasi secara publik).
+  - Karya berstatus `Pending` / `Ditolak` otomatis disaring (disembunyikan) dari galeri publik Beranda & Explore, namun tetap dapat dilihat oleh kreator pemiliknya di `/my-artworks`.
 
 ---
 

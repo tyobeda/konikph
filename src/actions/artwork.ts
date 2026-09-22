@@ -137,6 +137,24 @@ export async function addArtwork(data: any) {
 
     const slug = data.slug || (await generateUniqueArtworkSlug(data.title));
 
+    // Moderation rule:
+    // - If author is Super Admin or verified (isVerified === true), auto approve (no moderation).
+    // - If autoApproveArtworks is not false, auto approve.
+    // - If autoApproveArtworks is false AND author is not verified, set to 'Pending'.
+    let artworkStatus = 'Disetujui';
+    const siteSettings = await prisma.siteSettings.findUnique({ where: { id: 'settings' } });
+    const authorUser = await prisma.user.findUnique({ where: { id: authorId } });
+    const isExempt = authorUser?.role === 'Super Admin' || 
+                     Boolean(authorUser?.isVerified) || 
+                     data.author?.role === 'Super Admin' || 
+                     Boolean(data.author?.isVerified);
+
+    if (siteSettings?.autoApproveArtworks === false && !isExempt) {
+      artworkStatus = 'Pending';
+    } else if (data.status) {
+      artworkStatus = data.status;
+    }
+
     const artwork = await prisma.artwork.create({
       data: {
         title: data.title,
@@ -150,6 +168,7 @@ export async function addArtwork(data: any) {
         format: data.format || 'Hanya gambar',
         tags: Array.isArray(data.tags) ? data.tags : [],
         authorId: authorId,
+        status: artworkStatus,
         ...(data.createdAt ? { createdAt: new Date(data.createdAt) } : {}),
       },
       include: { author: true }

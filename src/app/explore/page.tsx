@@ -27,7 +27,7 @@ import { MaintenanceContent } from '@/app/maintenance/page';
 
 export default function ExplorePage() {
   const router = useRouter();
-  const { artworks, isModuleUnderMaintenance } = useData();
+  const { artworks, currentUser, isModuleUnderMaintenance } = useData();
 
   if (isModuleUnderMaintenance('explore')) {
     return <MaintenanceContent />;
@@ -70,6 +70,14 @@ export default function ExplorePage() {
         art.author.region.toLowerCase().includes(q) ||
         (art.tags && art.tags.some(tag => tag.toLowerCase().includes(q)));
 
+      // Moderation filter: Only approved artworks are visible publicly
+      const isApproved = !art.status || art.status === 'Disetujui';
+      const isAuthor = currentUser && (art.author?.id === currentUser.id || art.author?.name === currentUser.name);
+      const isAdmin = currentUser?.role === 'Super Admin';
+      if (!isApproved && !isAuthor && !isAdmin) {
+        return false;
+      }
+
       return matchesCategory && matchesRegion && matchesFormat && matchesSearch;
     });
 
@@ -83,7 +91,7 @@ export default function ExplorePage() {
     }
 
     return result;
-  }, [artworks, activeCategory, selectedRegion, selectedFormat, searchQuery, sortBy]);
+  }, [artworks, activeCategory, selectedRegion, selectedFormat, searchQuery, sortBy, currentUser]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;

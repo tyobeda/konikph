@@ -779,6 +779,16 @@ export default function ArtworkDetailContent() {
           </button>
         </div>
 
+        {artwork.status === 'Pending' && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-amber-800 shadow-xs">
+            <AlertTriangle className="text-amber-600 shrink-0" size={22} />
+            <div className="text-xs sm:text-sm leading-relaxed">
+              <p className="font-bold text-amber-900">Karya Sedang Menunggu Peninjauan (Pending Review)</p>
+              <p className="text-amber-700">Karya ini sedang dalam antrean moderasi oleh Administrator PKSart sebelum dapat diakses publik di galeri utama.</p>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-start">
           <div className="lg:col-span-7 relative p-2 sm:p-4 w-full flex items-center justify-center bg-gray-50/50">
             <div className="relative max-w-full w-full flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-white">

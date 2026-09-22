@@ -35,7 +35,7 @@ import { MaintenanceContent } from '@/app/maintenance/page';
 
 export default function HomePage() {
   const router = useRouter();
-  const { artworks, users, dpwList, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
+  const { artworks, users, dpwList, siteSettings, currentUser, isMounted, isModuleUnderMaintenance } = useData();
 
   if (isModuleUnderMaintenance()) {
     return <MaintenanceContent />;
@@ -50,9 +50,13 @@ export default function HomePage() {
     return artworks.reduce((sum, item) => sum + (item.downloadsCount || 0), 0);
   }, [artworks]);
 
-  // Featured Trending Item for Hero Banner
+  // Featured Trending Item for Hero Banner (only approved artwork)
   const heroFeaturedArtwork = useMemo(() => {
-    return artworks.find((a) => a.isFeatured) || artworks[0];
+    return (
+      artworks.find((a) => a.isFeatured && (!a.status || a.status === 'Disetujui')) ||
+      artworks.find((a) => !a.status || a.status === 'Disetujui') ||
+      artworks[0]
+    );
   }, [artworks]);
 
   // Handle images for carousel hero banner (guarantee slide 1 / first image is displayed)
@@ -109,9 +113,18 @@ export default function HomePage() {
         art.author.region.toLowerCase().includes(q) ||
         (art.tags && art.tags.some(tag => tag.toLowerCase().includes(q)));
 
+      // Moderation filter: Only approved artworks are visible publicly
+      // Author can see their own artwork even if pending, and Super Admin can see all
+      const isApproved = !art.status || art.status === 'Disetujui';
+      const isAuthor = currentUser && (art.author?.id === currentUser.id || art.author?.name === currentUser.name);
+      const isAdmin = currentUser?.role === 'Super Admin';
+      if (!isApproved && !isAuthor && !isAdmin) {
+        return false;
+      }
+
       return matchesCategory && matchesRegion && matchesSearch;
     });
-  }, [artworks, activeCategory, selectedRegion, searchQuery]);
+  }, [artworks, activeCategory, selectedRegion, searchQuery, currentUser]);
 
   // Page-based pagination (20 items per page)
   const ITEMS_PER_PAGE = 20;
