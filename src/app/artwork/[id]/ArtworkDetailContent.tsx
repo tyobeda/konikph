@@ -815,11 +815,14 @@ export default function ArtworkDetailContent() {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Link href={`/creators/${getUserSlug(artwork.author)}`}>
+                  <Link 
+                    href={`/creators/${getUserSlug(artwork.author)}`}
+                    className="shrink-0 w-10 h-10 rounded-full overflow-hidden block aspect-square ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
+                  >
                     <img
                       src={artwork.author?.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                       alt={artwork.author?.name || 'Desainer PKS'}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
+                      className="w-full h-full object-cover aspect-square rounded-full block"
                     />
                   </Link>
                   <div>

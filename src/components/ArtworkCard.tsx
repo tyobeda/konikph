@@ -470,24 +470,27 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Creator Avatar Link */}
-          <Link href={`/creators/${getUserSlug(artwork.author)}`}>
+          <Link 
+            href={`/creators/${getUserSlug(artwork.author)}`}
+            className="shrink-0 w-8 h-8 rounded-full overflow-hidden block aspect-square ring-1 ring-gray-200 hover:ring-[#F26522] transition-all"
+          >
             <Image
               src={artwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
               alt={artwork.author.name}
               width={32}
               height={32}
               unoptimized={Boolean(artwork.author.avatar?.startsWith('data:'))}
-              className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-gray-200 hover:ring-[#F26522] transition-all"
+              className="w-full h-full object-cover aspect-square rounded-full block"
             />
           </Link>
 
           <div className="min-w-0 flex flex-col">
-            {/* Creator Name & Province Link to Creator Profile */}
+            {/* Creator Name Link to Creator Profile */}
             <Link 
               href={`/creators/${getUserSlug(artwork.author)}`}
               className="text-xs font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors"
             >
-              {artwork.author.name} - {(artwork.author.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')}
+              {artwork.author.name}
             </Link>
 
             {/* Hashtags list */}
