@@ -451,143 +451,144 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
           )}
-          
-          {/* Category & Tags Badge overlay */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1 max-w-[85%] z-10 pointer-events-none">
-            <div className="bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
-              {artwork.category}
-            </div>
-            {artwork.tags && artwork.tags.length > 0 && (
-              <span className="bg-[#F26522]/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full">
-                {artwork.tags[0]}
-              </span>
-            )}
-          </div>
         </div>
       </div>
 
       {/* Card Footer Info */}
-      <div className="p-3.5 flex items-center justify-between gap-2 bg-white">
-        <div className="flex items-center gap-2.5 min-w-0">
-          {/* Creator Avatar Link */}
-          <Link 
-            href={`/creators/${getUserSlug(artwork.author)}`}
-            className="shrink-0 w-8 h-8 rounded-full overflow-hidden block aspect-square ring-1 ring-gray-200 hover:ring-[#F26522] transition-all"
-          >
-            <Image
-              src={artwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
-              alt={artwork.author.name}
-              width={32}
-              height={32}
-              unoptimized={Boolean(artwork.author.avatar?.startsWith('data:'))}
-              className="w-full h-full object-cover aspect-square rounded-full block"
-            />
-          </Link>
-
-          <div className="min-w-0 flex flex-col">
-            {/* Creator Name Link to Creator Profile */}
+      <div className="p-3 sm:p-3.5 flex flex-col gap-2.5 bg-white">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Creator Avatar Link */}
             <Link 
               href={`/creators/${getUserSlug(artwork.author)}`}
-              className="text-xs font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors"
+              className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden block aspect-square ring-1 ring-gray-200 hover:ring-[#F26522] transition-all bg-gray-100"
             >
-              {artwork.author.name}
+              <Image
+                src={artwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
+                alt={artwork.author.name}
+                width={36}
+                height={36}
+                unoptimized={Boolean(artwork.author.avatar?.startsWith('data:'))}
+                className="w-full h-full object-cover aspect-square rounded-full block"
+              />
             </Link>
 
-            {/* Hashtags list */}
-            {artwork.tags && artwork.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {artwork.tags.slice(0, 3).map((tag, idx) => (
-                  <Link
-                    key={idx}
-                    href={`/explore?q=${encodeURIComponent(tag)}`}
-                    className="text-[10px] font-bold text-[#F26522] hover:underline bg-orange-50 px-1.5 py-0.5 rounded"
-                  >
-                    {tag}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {/* Like & Comment Stats */}
-            <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-0.5">
-              <button
-                onClick={handleLike}
-                className="flex items-center gap-1 hover:text-red-500 transition-colors"
-                title="Sukai Karya"
+            <div className="min-w-0 flex flex-col justify-center">
+              {/* Creator Name Link to Creator Profile */}
+              <Link 
+                href={`/creators/${getUserSlug(artwork.author)}`}
+                className="text-xs sm:text-sm font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors leading-tight"
               >
-                <Heart
-                  size={13}
-                  className={isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
-                />
-                <span>{likes}</span>
-              </button>
+                {artwork.author.name}
+              </Link>
 
-              <div className="flex items-center gap-1" title="Komentar">
-                <MessageSquare size={13} className="text-gray-400" />
-                <span>{artwork.commentsCount}</span>
+              {/* Like & Comment Stats */}
+              <div className="flex items-center gap-2.5 text-xs text-gray-400 font-medium mt-0.5">
+                <button
+                  onClick={handleLike}
+                  className="flex items-center gap-1 hover:text-red-500 transition-colors"
+                  title="Sukai Karya"
+                >
+                  <Heart
+                    size={14}
+                    className={isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                  />
+                  <span className="text-gray-500 font-semibold">{likes}</span>
+                </button>
+
+                <div className="flex items-center gap-1 text-gray-500" title="Komentar">
+                  <MessageSquare size={14} className="text-gray-400" />
+                  <span className="font-semibold">{artwork.commentsCount}</span>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Download & More Icon Button */}
+          <div className="flex items-center gap-0.5 relative" ref={dropdownRef}>
+            <button
+              onClick={handleDownload}
+              className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors shrink-0"
+              title="Unduh Design Template"
+            >
+              <Download size={18} />
+            </button>
+            
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(!showDropdown); }}
+              className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors shrink-0"
+              title="Opsi Lainnya"
+            >
+              <MoreVertical size={18} />
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-bottom-right">
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); setIsShareModalOpen(true); }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
+                >
+                  <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
+                </button>
+                {isOwner ? (
+                  <button
+                    onClick={handleOpenEditModal}
+                    className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center gap-2.5 text-blue-600 font-bold transition-colors"
+                  >
+                    <Edit size={15} /> <span className="text-xs">Edit Artwork</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => { 
+                      e.preventDefault(); 
+                      e.stopPropagation(); 
+                      setShowDropdown(false); 
+                      const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
+                      if (reason) {
+                        addArtworkReport({
+                          artworkId: artwork.id,
+                          artworkTitle: artwork.title,
+                          artworkImageUrl: artwork.imageUrl,
+                          reason
+                        });
+                        alert('Terima kasih. Laporan Anda berhasil dikirim dan akan segera ditinjau oleh Admin.');
+                      }
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
+                  >
+                    <Flag size={15} /> <span className="text-xs">Laporkan Postingan</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Download & More Icon Button */}
-        <div className="flex items-center gap-1 relative" ref={dropdownRef}>
-          <button
-            onClick={handleDownload}
-            className="p-2 text-gray-600 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors shrink-0"
-            title="Unduh Design Template"
-          >
-            <Download size={18} />
-          </button>
-          
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(!showDropdown); }}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors shrink-0"
-            title="Opsi Lainnya"
-          >
-            <MoreVertical size={18} />
-          </button>
-
-          {showDropdown && (
-            <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-bottom-right">
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); setIsShareModalOpen(true); }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
+        {/* Category (Tipe Postingan) & Hashtags Row */}
+        {(artwork.category || (artwork.tags && artwork.tags.length > 0)) && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            {artwork.category && (
+              <Link
+                href={`/explore?category=${encodeURIComponent(artwork.category)}`}
+                className="bg-[#484848] hover:bg-zinc-800 text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full transition-colors"
               >
-                <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
-              </button>
-              {isOwner ? (
-                <button
-                  onClick={handleOpenEditModal}
-                  className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center gap-2.5 text-blue-600 font-bold transition-colors"
+                {artwork.category}
+              </Link>
+            )}
+            {artwork.tags && artwork.tags.length > 0 && artwork.tags.slice(0, 3).map((tag, idx) => {
+              const formattedTag = tag.startsWith('#') ? tag : `#${tag}`;
+              return (
+                <Link
+                  key={idx}
+                  href={`/explore?q=${encodeURIComponent(tag)}`}
+                  className="text-[11px] font-bold text-[#F26522] hover:underline bg-orange-50 hover:bg-orange-100 px-2 py-0.5 rounded-md transition-colors"
                 >
-                  <Edit size={15} /> <span className="text-xs">Edit Artwork</span>
-                </button>
-              ) : (
-                <button
-                  onClick={(e) => { 
-                    e.preventDefault(); 
-                    e.stopPropagation(); 
-                    setShowDropdown(false); 
-                    const reason = prompt('Masukkan alasan pelaporan (misal: SARA, Spam, Hak Cipta):');
-                    if (reason) {
-                      addArtworkReport({
-                        artworkId: artwork.id,
-                        artworkTitle: artwork.title,
-                        artworkImageUrl: artwork.imageUrl,
-                        reason
-                      });
-                      alert('Terima kasih. Laporan Anda berhasil dikirim dan akan segera ditinjau oleh Admin.');
-                    }
-                  }}
-                  className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600 font-bold transition-colors"
-                >
-                  <Flag size={15} /> <span className="text-xs">Laporkan Postingan</span>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+                  {formattedTag}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Share Modal */}
