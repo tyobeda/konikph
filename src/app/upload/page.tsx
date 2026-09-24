@@ -20,7 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   BadgeCheck,
-  ShieldCheck,
+  Info,
 } from 'lucide-react';
 import { compressImageFile, CompressionResult } from '@/lib/imageCompressor';
 import { Header } from '@/components/Header';
@@ -361,20 +361,28 @@ export default function UploadPage() {
             <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">
               Unggah Karya & Desain Baru
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Bagikan hasil karya poster, spanduk, atau aset desain PKS untuk digunakan pengurus dan kader di seluruh daerah.
-            </p>
-            {currentUser?.isVerified ? (
-              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200 shadow-xs">
-                <BadgeCheck size={14} className="text-emerald-600 shrink-0" />
-                <span>Desainer Terverifikasi — Bebas Moderasi (Karya Otomatis Langsung Terpublikasi)</span>
+            {currentUser?.isVerified && (
+              <div className="mt-2.5 inline-flex items-center">
+                <div 
+                  className="group relative inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 shadow-xs cursor-pointer select-none"
+                  title="Bebas moderasi — Karya otomatis langsung terpublikasi"
+                >
+                  <BadgeCheck size={14} className="text-emerald-600 shrink-0" />
+                  <span>Desainer Terverifikasi</span>
+                  <div className="text-emerald-600/80 group-hover:text-emerald-700 transition-colors">
+                    <Info size={13} className="shrink-0" />
+                  </div>
+
+                  {/* Tooltip on hover */}
+                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-150 transform group-hover:translate-y-0 translate-y-1 z-30">
+                    <div className="relative bg-gray-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
+                      Bebas moderasi — Karya otomatis langsung terpublikasi
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : siteSettings?.autoApproveArtworks === false && currentUser?.role !== 'Super Admin' ? (
-              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
-                <ShieldCheck size={14} className="text-amber-600 shrink-0" />
-                <span>Moderasi Aktif — Karya akan ditinjau Admin sebelum tayang di galeri publik</span>
-              </div>
-            ) : null}
+            )}
           </div>
 
           {isSuccess ? (
