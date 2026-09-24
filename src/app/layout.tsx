@@ -39,7 +39,12 @@ export async function generateMetadata(): Promise<Metadata> {
     description: siteDesc,
     keywords: ["PKS", "Desain PKS", "Poster PKS", "Twibbon PKS", "Brand Kit PKS", "Aset Desain", "Desainer PKS"],
     icons: {
-      icon: settings?.faviconUrl || '/favicon.ico',
+      icon: [
+        { url: settings?.faviconUrl || '/favicon.ico', sizes: 'any' },
+        { url: '/favicon.ico', sizes: 'any' },
+      ],
+      shortcut: settings?.faviconUrl || '/favicon.ico',
+      apple: settings?.faviconUrl || '/apple-touch-icon.png',
     },
     openGraph: {
       title: siteTitle,
@@ -67,12 +72,18 @@ export default async function RootLayout({
   // Fetch site settings on the server so DataProvider starts with real data (zero logo flash)
   const settingsRes = await getDBSiteSettings();
   const initialSettings = settingsRes?.success ? settingsRes.data : undefined;
+  const faviconHref = initialSettings?.faviconUrl || '/favicon.ico';
 
   return (
     <html
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="icon" href={faviconHref} sizes="any" />
+        <link rel="shortcut icon" href={faviconHref} />
+        <link rel="apple-touch-icon" href={faviconHref} />
+      </head>
       <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] text-gray-900" suppressHydrationWarning>
         <DataProvider initialSettings={initialSettings}>
           <Suspense fallback={null}>

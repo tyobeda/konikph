@@ -24,12 +24,20 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   const title = `${artwork.title} - Karya ${artwork.category} PKS`;
   const description = artwork.description || `Unduh mentahan aset ${artwork.title} karya ${artwork.region} di PKSart.`;
-  const rawImage = artwork.imageUrl || (settings as any)?.ogImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop';
+  const rawImage = artwork.imageUrl || (settings as any)?.ogImageUrl || '/img/877859417715829.jpg';
   const imageUrl = rawImage.startsWith('/') ? `${baseUrl}${rawImage}` : rawImage;
 
   return {
     title: artwork.title,
     description,
+    icons: {
+      icon: [
+        { url: settings?.faviconUrl || '/favicon.ico', sizes: 'any' },
+        { url: '/favicon.ico', sizes: 'any' },
+      ],
+      shortcut: settings?.faviconUrl || '/favicon.ico',
+      apple: settings?.faviconUrl || '/apple-touch-icon.png',
+    },
     openGraph: {
       title,
       description,

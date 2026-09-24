@@ -94,7 +94,7 @@ export default function AdminTwibbonPage() {
     } else {
       addTwibbon({
         title: formData.title,
-        imageUrl: formData.imageUrl || filePreview || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400',
+        imageUrl: formData.imageUrl || filePreview || '/img/877859417715829.jpg',
         category: formData.category,
         region: formData.region,
         author: {

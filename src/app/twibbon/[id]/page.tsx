@@ -24,12 +24,20 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   const title = `Twibbon ${twibbon.title} - Bingkai Foto Official PKS`;
   const description = `Pasang foto Anda pada bingkai twibbon ${twibbon.title} official PKS secara online di PKSart.`;
-  const rawImage = twibbon.imageUrl || (settings as any)?.ogImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop';
+  const rawImage = twibbon.imageUrl || (settings as any)?.ogImageUrl || '/img/877859417715829.jpg';
   const imageUrl = rawImage.startsWith('/') ? `${baseUrl}${rawImage}` : rawImage;
 
   return {
     title: twibbon.title,
     description,
+    icons: {
+      icon: [
+        { url: settings?.faviconUrl || '/favicon.ico', sizes: 'any' },
+        { url: '/favicon.ico', sizes: 'any' },
+      ],
+      shortcut: settings?.faviconUrl || '/favicon.ico',
+      apple: settings?.faviconUrl || '/apple-touch-icon.png',
+    },
     openGraph: {
       title,
       description,

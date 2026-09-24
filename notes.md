@@ -58,6 +58,7 @@ ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.1
   - Dropdown "Wilayah DPW" **SUDAH DIHAPUS** pada modal edit.
   - Memiliki input **Tanggal Karya** & **Jam Karya** untuk mengubah timestamp `createdAt`.
   - **Tautan File Master**: Kolom input "Tautan File Master / Tautan Berbagi" bersifat kondisional. Kolom ini **HANYA MUNCIUL** apabila pilihan *Format File Master* bernilai selain `"Hanya gambar"` (misal: PSD, AI, CDR, CANVA, FIGMA). Jika diubah ke `"Hanya gambar"`, link otomatis dikosongkan.
+  - **Batas Karakter Deskripsi / Caption**: Maksimal **2000 karakter** (dilengkapi penghitung karakter dinamis di `/upload`, kartu karya, modal edit detail karya, dan `/my-artworks`).
 
 ### 6. Modul Utama Lain yang Tersedia
 - **Brand Kits / Aset Resmi (`/assets`)**: Halaman khusus aset resmi (logo, font, panduan warna) yang hanya dapat diakses setelah login.

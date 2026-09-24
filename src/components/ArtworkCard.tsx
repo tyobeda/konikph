@@ -857,14 +857,14 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 </label>
                 <textarea
                   rows={3}
-                  maxLength={1500}
+                  maxLength={2000}
                   value={editDescInput}
                   onChange={(e) => setEditDescInput(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                 />
                 <div className="flex justify-end mt-1">
-                  <span className={`text-[11px] font-semibold ${editDescInput.length >= 1500 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-                    {editDescInput.length}/1500 karakter
+                  <span className={`text-[11px] font-semibold ${editDescInput.length >= 2000 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                    {editDescInput.length}/2000 karakter
                   </span>
                 </div>
               </div>
