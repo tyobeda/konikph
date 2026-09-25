@@ -6,7 +6,7 @@ import { getUsers, loginUser as dbLoginUser, registerUser as dbRegisterUser, upd
 import { getArtworks, addArtwork as dbAddArtwork, updateArtwork as dbUpdateArtwork, deleteArtwork as dbDeleteArtwork, toggleLikeArtwork as dbToggleLikeArtwork, addCommentToArtworkDB, editCommentDB, deleteCommentDB, incrementArtworkDownloadDB, deleteAllArtworksDB } from '@/actions/artwork';
 import { getUnreadNotificationCount } from '@/actions/notification';
 import { getTwibbons, addTwibbon as dbAddTwibbon, updateTwibbon as dbUpdateTwibbon, deleteTwibbon as dbDeleteTwibbon } from '@/actions/twibbon';
-import { getDpwList, addDpw as dbAddDpw, updateDpw as dbUpdateDpw, deleteDpw as dbDeleteDpw } from '@/actions/dpw';
+import { getDpwList, addDpw as dbAddDpw, updateDpw as dbUpdateDpw, deleteDpw as dbDeleteDpw, seedAllIndonesianDpw } from '@/actions/dpw';
 import { getCustomPages, addCustomPage as dbAddPage, updateCustomPage as dbUpdatePage, deleteCustomPage as dbDeletePage } from '@/actions/page';
 import { getArtworkReports, addArtworkReport as dbAddReport, resolveArtworkReport as dbResolveReport } from '@/actions/report';
 import { getBrandKits, addBrandKit as dbAddBrandKit, updateBrandKit as dbUpdateBrandKit, deleteBrandKit as dbDeleteBrandKit } from '@/actions/brandkit';
@@ -92,6 +92,7 @@ export interface DataContextType {
   addDpw: (dpw: Omit<DpwOffice, 'id' | 'activeCreators' | 'totalArtworks'>) => void;
   updateDpw: (id: string, updated: Partial<DpwOffice>) => void;
   deleteDpw: (id: string) => void;
+  seedDpw38: () => Promise<{ success: boolean; count?: number; error?: string }>;
 
   // Site Settings
   siteSettings: {
@@ -851,6 +852,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     await dbDeleteDpw(id);
   };
 
+  const seedDpw38 = async () => {
+    const res = await seedAllIndonesianDpw();
+    if (res.success) {
+      const refreshed = await getDpwList();
+      if (refreshed.success && refreshed.data) {
+        setDpwList(JSON.parse(JSON.stringify(refreshed.data)));
+      }
+    }
+    return res;
+  };
+
   const updateSiteSettings = async (updated: Partial<DataContextType['siteSettings']>) => {
     setSiteSettings((prev: DataContextType['siteSettings']) => {
       const newSettings = { ...prev, ...updated };
@@ -1052,6 +1064,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
         addDpw,
         updateDpw,
         deleteDpw,
+        seedDpw38,
 
         customPages,
         addCustomPage,

@@ -44,12 +44,16 @@ export default function RegisterPage() {
     }
   }, [currentUser, router, isMounted, isModuleUnderMaintenance]);
 
-  // Combine dynamic DPW list from database settings with fallback constant REGIONS
+  // Combine dynamic DPW list from database settings with all 38 Indonesian provinces
   const availableRegions = React.useMemo(() => {
+    const list = new Set<string>();
     if (dpwList && dpwList.length > 0) {
-      return dpwList.map((d) => d.name);
+      dpwList.filter((d) => d.isActive !== false).forEach((d) => {
+        if (d.name?.trim()) list.add(d.name.trim());
+      });
     }
-    return REGIONS.filter((r) => r !== 'Semua Daerah');
+    REGIONS.filter((r) => r !== 'Semua Daerah').forEach((r) => list.add(r));
+    return Array.from(list);
   }, [dpwList]);
 
   const [formData, setFormData] = useState({

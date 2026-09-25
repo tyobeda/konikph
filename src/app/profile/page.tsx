@@ -39,7 +39,7 @@ import { ArtworkCard } from '@/components/ArtworkCard';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { currentUser, updateUser, addResetRequest, artworks, twibbons, deleteArtwork } = useData();
+  const { currentUser, updateUser, addResetRequest, artworks, twibbons, deleteArtwork, dpwList } = useData();
 
   const [userData, setUserData] = useState({
     name: currentUser?.name || '',
@@ -50,6 +50,31 @@ export default function ProfilePage() {
     avatar: currentUser?.avatar || '',
     role: currentUser?.role || 'Desainer',
   });
+
+  // Comprehensive region list: active DPWs + all 38 Indonesian provinces + user's current region
+  const availableRegions = React.useMemo(() => {
+    const list = new Set<string>();
+
+    // 1. From database DPW offices
+    if (dpwList && dpwList.length > 0) {
+      dpwList.filter((d) => d.isActive !== false).forEach((d) => {
+        if (d.name?.trim()) list.add(d.name.trim());
+      });
+    }
+
+    // 2. All 38 Indonesian provinces
+    REGIONS.filter((r) => r !== 'Semua Daerah').forEach((r) => list.add(r));
+
+    // 3. User's existing saved region (never lose user's value)
+    if (userData.region?.trim()) {
+      list.add(userData.region.trim());
+    }
+    if (currentUser?.region?.trim()) {
+      list.add(currentUser.region.trim());
+    }
+
+    return Array.from(list);
+  }, [dpwList, userData.region, currentUser?.region]);
 
   const [passwordData, setPasswordData] = useState({
     oldPassword: '',
@@ -344,17 +369,20 @@ export default function ProfilePage() {
 
               {/* Wilayah */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                   Wilayah
                 </label>
                 <div className="relative">
-                  <Building size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                  <Building size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
                   <select
                     value={userData.region}
                     onChange={(e) => setUserData({ ...userData, region: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 font-medium"
                   >
-                    {REGIONS.filter((r) => r !== 'Semua Daerah').map((r) => (
+                    {!userData.region && (
+                      <option value="">-- Pilih Wilayah Anda --</option>
+                    )}
+                    {availableRegions.map((r) => (
                       <option key={r} value={r}>
                         {r}
                       </option>
