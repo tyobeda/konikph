@@ -21,6 +21,8 @@ import {
   CheckCircle,
   Lock,
   Globe,
+  Share2,
+  Check,
 } from 'lucide-react';
 
 import { MaintenanceContent } from '@/app/maintenance/page';
@@ -36,10 +38,34 @@ export default function AssetsPage() {
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [copiedSlugOrId, setCopiedSlugOrId] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleShareCopy = async (item: any) => {
+    const slug = item.slug || item.id;
+    const url = `${window.location.origin}/assets/${slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedSlugOrId(item.id);
+      setTimeout(() => {
+        setCopiedSlugOrId((prev) => (prev === item.id ? null : prev));
+      }, 2500);
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedSlugOrId(item.id);
+      setTimeout(() => {
+        setCopiedSlugOrId((prev) => (prev === item.id ? null : prev));
+      }, 2500);
+    }
+  };
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
 
@@ -218,12 +244,32 @@ export default function AssetsPage() {
                     </div>
 
                     <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2">
-                      <Link
-                        href={detailHref}
-                        className="text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleShareCopy(item);
+                        }}
+                        className={`inline-flex items-center gap-1.5 text-xs font-bold transition-all px-2.5 py-1.5 rounded-xl cursor-pointer ${
+                          copiedSlugOrId === item.id
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                        title="Salin tautan ke clipboard"
                       >
-                        Detail &rarr;
-                      </Link>
+                        {copiedSlugOrId === item.id ? (
+                          <>
+                            <Check size={14} className="text-emerald-500" />
+                            <span className="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 size={14} />
+                            <span>Share</span>
+                          </>
+                        )}
+                      </button>
 
                       <button
                         onClick={() => {
@@ -358,6 +404,14 @@ export default function AssetsPage() {
             >
               Reset Filter Aset
             </button>
+          </div>
+        )}
+
+        {/* Floating Toast Notification when Link Copied */}
+        {copiedSlugOrId && (
+          <div className="fixed bottom-6 right-6 z-50 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
+            <CheckCircle size={15} className="text-emerald-400 dark:text-emerald-600" />
+            <span>Tautan aset berhasil disalin ke clipboard!</span>
           </div>
         )}
 
