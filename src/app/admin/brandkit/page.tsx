@@ -16,9 +16,14 @@ import {
   ExternalLink,
   X,
   Link2,
+  Globe,
+  Lock,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { BrandKit } from '@/lib/types';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
+import { slugify } from '@/lib/slug';
 
 export default function AdminBrandKit() {
   const { brandKits, addBrandKit, updateBrandKit, deleteBrandKit, isBrandKitsLoaded } = useData();
@@ -29,6 +34,8 @@ export default function AdminBrandKit() {
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isCustomSlug, setIsCustomSlug] = useState(false);
 
   const ITEMS_PER_PAGE = 8;
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,13 +50,24 @@ export default function AdminBrandKit() {
 
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
+    description: '',
     category: 'Logo',
     format: '.ai / .svg / .png',
     iconType: 'image',
     color: 'bg-orange-50 text-[#F26522] border-orange-200',
     fileUrl: '',
     previewUrl: '',
+    isPublic: true,
   });
+
+  const handleCopyAssetLink = (kit: BrandKit) => {
+    const slug = kit.slug || kit.id;
+    const url = `${window.location.origin}/assets/${slug}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(kit.id);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
 
   const triggerDirectDownload = async (fileUrl: string, fileName?: string) => {
     if (!fileUrl) return;
@@ -110,25 +128,33 @@ export default function AdminBrandKit() {
   const handleOpenModal = (kit?: BrandKit) => {
     if (kit) {
       setEditingKit(kit);
+      setIsCustomSlug(true);
       setFormData({
         title: kit.title,
+        slug: kit.slug || slugify(kit.title),
+        description: kit.description || '',
         category: kit.category,
         format: kit.format,
         iconType: kit.iconType,
         color: kit.color,
         fileUrl: kit.fileUrl,
         previewUrl: kit.previewUrl || '',
+        isPublic: kit.isPublic !== undefined ? kit.isPublic : true,
       });
     } else {
       setEditingKit(null);
+      setIsCustomSlug(false);
       setFormData({
         title: '',
+        slug: '',
+        description: '',
         category: 'Logo',
         format: '.ai / .svg / .png',
         iconType: 'image',
         color: 'bg-orange-50 text-[#F26522] border-orange-200',
         fileUrl: '',
         previewUrl: '',
+        isPublic: true,
       });
     }
     setIsModalOpen(true);
@@ -169,6 +195,7 @@ export default function AdminBrandKit() {
     const isFileUrlImage = /\.(jpg|jpeg|png|webp|svg|gif)($|\?)/i.test(formData.fileUrl) || formData.fileUrl.startsWith('/uploads/');
     const finalPayload = {
       ...formData,
+      slug: formData.slug ? slugify(formData.slug) : slugify(formData.title),
       previewUrl: formData.previewUrl || (isFileUrlImage ? formData.fileUrl : ''),
     };
 
@@ -248,8 +275,8 @@ export default function AdminBrandKit() {
             <thead className="bg-gray-50/80 dark:bg-gray-800/60 text-xs text-gray-500 dark:text-gray-400 font-bold border-b border-gray-100 dark:border-gray-800">
               <tr>
                 <th className="py-3.5 px-4">Informasi Aset & Pratinjau</th>
-                <th className="py-3.5 px-4">Kategori</th>
-                <th className="py-3.5 px-4">Format File</th>
+                <th className="py-3.5 px-4">Kategori & Format</th>
+                <th className="py-3.5 px-4">Akses & Tautan Detail</th>
                 <th className="py-3.5 px-4 text-right">Aksi Admin</th>
               </tr>
             </thead>
@@ -263,6 +290,8 @@ export default function AdminBrandKit() {
               ) : paginatedKits.length > 0 ? (
                 paginatedKits.map((kit) => {
                   const displayImg = getDisplayImage(kit);
+                  const isKitPublic = kit.isPublic !== false;
+                  const slug = kit.slug || kit.id;
                   return (
                     <tr key={kit.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
                       <td className="py-3.5 px-4">
@@ -303,11 +332,11 @@ export default function AdminBrandKit() {
                                 title={kit.fileUrl}
                               >
                                 <ExternalLink size={11} className="text-[#F26522] dark:text-[#ff7a38] shrink-0" />
-                                <span className="truncate max-w-[260px] group-hover:underline">{kit.fileUrl}</span>
+                                <span className="truncate max-w-[240px] group-hover:underline">{kit.fileUrl}</span>
                               </button>
                             ) : (
                               <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono mt-0.5 block italic">
-                                Belum ada tautan download
+                                Belum ada tautan berkas
                               </span>
                             )}
                           </div>
@@ -315,13 +344,54 @@ export default function AdminBrandKit() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] dark:text-[#ff7a38] border border-orange-100 dark:border-orange-900/40 rounded-lg text-xs font-bold">
-                          {kit.category}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className="px-2 py-0.5 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] dark:text-[#ff7a38] border border-orange-100 dark:border-orange-900/40 rounded-md text-xs font-bold w-fit">
+                            {kit.category}
+                          </span>
+                          <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 lowercase font-mono">
+                            {kit.format}
+                          </span>
+                        </div>
                       </td>
 
-                      <td className="py-3.5 px-4 font-semibold text-gray-800 dark:text-gray-200 lowercase">
-                        {kit.format}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col gap-1.5 items-start">
+                          {isKitPublic ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                              <Globe size={11} /> Publik
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                              <Lock size={11} /> Privat
+                            </span>
+                          )}
+
+                          <div className="flex items-center gap-1 text-xs">
+                            <a
+                              href={`/assets/${slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-mono text-[11px] text-[#F26522] hover:underline flex items-center gap-1 font-semibold"
+                              title="Buka Halaman Detail"
+                            >
+                              <span>/assets/{slug}</span>
+                              <ExternalLink size={10} />
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => handleCopyAssetLink(kit)}
+                              className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded transition-colors"
+                              title="Salin Tautan Detail"
+                            >
+                              {copiedId === kit.id ? (
+                                <Check size={12} className="text-emerald-500" />
+                              ) : (
+                                <Copy size={12} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
@@ -431,10 +501,100 @@ export default function AdminBrandKit() {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      title: newTitle,
+                      slug: !isCustomSlug && !editingKit ? slugify(newTitle) : prev.slug,
+                    }));
+                  }}
                   className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
                   placeholder="Misal: Logo Resmi PKS Vektor"
                   required
+                />
+              </div>
+
+              {/* URL Slug Input */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center justify-between">
+                  <span>URL Slug / Tautan Detail Aset</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal">
+                    (bisa diubah sesuai keinginan)
+                  </span>
+                </label>
+                <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:border-[#F26522] overflow-hidden">
+                  <span className="text-xs font-medium text-gray-400 dark:text-gray-500 pl-3 pr-1 select-none">
+                    /assets/
+                  </span>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => {
+                      setIsCustomSlug(true);
+                      setFormData({ ...formData, slug: slugify(e.target.value) });
+                    }}
+                    placeholder="nama-url-aset"
+                    className="w-full py-2 pr-3 bg-transparent text-gray-900 dark:text-white text-sm font-semibold focus:outline-none font-mono"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                  Tautan publik: <span className="font-mono text-[#F26522]">/assets/{formData.slug || 'nama-slug'}</span>
+                </p>
+              </div>
+
+              {/* Privacy / Accessibility Toggle */}
+              <div className="bg-gray-50 dark:bg-gray-800/60 p-3 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <label className="block text-xs font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-2">
+                  Hak Akses / Privasi Aset
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isPublic: true })}
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      formData.isPublic
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold shadow-xs'
+                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Globe size={18} className={formData.isPublic ? 'text-emerald-500' : 'text-gray-400'} />
+                    <div>
+                      <span className="text-xs block">🌐 Publik</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Bisa diunduh siapa saja</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isPublic: false })}
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      !formData.isPublic
+                        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500 text-amber-700 dark:text-amber-300 font-bold shadow-xs'
+                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Lock size={18} className={!formData.isPublic ? 'text-amber-500' : 'text-gray-400'} />
+                    <div>
+                      <span className="text-xs block">🔒 Privat</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Wajib login akun</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Description Input */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center justify-between">
+                  <span>Deskripsi / Panduan Penggunaan</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal lowercase">(opsional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-xs font-medium resize-none"
+                  placeholder="Panduan pemakaian berkas, lisensi, atau catatan resolusi aset..."
                 />
               </div>
 

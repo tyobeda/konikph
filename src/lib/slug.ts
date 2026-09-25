@@ -78,3 +78,28 @@ export async function generateUniqueTwibbonSlug(title: string, currentTwibbonId?
     slug = `${baseSlug}-${counter}`;
   }
 }
+
+/**
+ * Generate a unique brand kit / asset slug in the database
+ */
+export async function generateUniqueBrandKitSlug(title: string, currentBrandKitId?: string): Promise<string> {
+  const baseSlug = slugify(title) || 'aset';
+  let slug = baseSlug;
+  let counter = 1;
+
+  while (true) {
+    const existing = await prisma.brandKit.findFirst({
+      where: {
+        slug: slug,
+        ...(currentBrandKitId ? { id: { not: currentBrandKitId } } : {}),
+      },
+    });
+
+    if (!existing) {
+      return slug;
+    }
+
+    counter++;
+    slug = `${baseSlug}-${counter}`;
+  }
+}

@@ -161,15 +161,20 @@ model ArtworkReport {
 }
 
 model BrandKit {
-  id         String   @id @default(uuid())
-  title      String
-  category   String
-  format     String
-  iconType   String
-  color      String
-  fileUrl    String
-  previewUrl String?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(uuid())
+  title          String
+  slug           String?  @unique
+  description    String?
+  category       String
+  format         String
+  iconType       String
+  color          String
+  fileUrl        String
+  previewUrl     String?
+  isPublic       Boolean  @default(true)
+  downloadsCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
 }
 
 model SiteSettings {

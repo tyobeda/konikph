@@ -19,6 +19,8 @@ import {
   FileText,
   Presentation,
   CheckCircle,
+  Lock,
+  Globe,
 } from 'lucide-react';
 
 import { MaintenanceContent } from '@/app/maintenance/page';
@@ -37,10 +39,7 @@ export default function AssetsPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (!currentUser) {
-      router.replace('/login');
-    }
-  }, [currentUser, router]);
+  }, []);
 
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'SVG'];
 
@@ -163,52 +162,86 @@ export default function AssetsPage() {
             ) : (
               brandKits.map((item, idx) => {
                 const Icon = item.iconType === 'image' ? ImageIcon : item.iconType === 'file-text' ? FileText : item.iconType === 'palette' ? Palette : Presentation;
-                const displayImage = item.previewUrl || (item.fileUrl && /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(item.fileUrl) ? item.fileUrl : null);
+                const displayImage = item.previewUrl || (item.fileUrl && /\.(jpg|jpeg|png|webp|svg|gif)($|\?)/i.test(item.fileUrl) ? item.fileUrl : null);
+                const isItemPublic = item.isPublic !== false;
+                const detailHref = `/assets/${item.slug || item.id}`;
+
                 return (
                   <div
                     key={idx}
-                    className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
                   >
                     <div>
-                      {displayImage ? (
-                        <div className="w-full h-36 mb-3 flex items-center justify-center group overflow-hidden rounded-xl bg-gray-50 dark:bg-gray-800/50">
-                          <img
-                            src={displayImage}
-                            alt={item.title}
-                            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
-                            onError={(e) => {
-                              (e.currentTarget as HTMLElement).style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border ${item.color}`}>
-                          <Icon size={20} />
-                        </div>
-                      )}
-                    <span className="text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">
-                      {item.category}
-                    </span>
-                    <h3 className="font-extrabold text-sm text-gray-900 dark:text-white mt-2 leading-snug">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 lowercase">
-                      {item.format}
-                    </p>
-                  </div>
+                      <Link href={detailHref} className="block cursor-pointer">
+                        {displayImage ? (
+                          <div className="w-full h-36 mb-3 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                            <img
+                              src={displayImage}
+                              alt={item.title}
+                              className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border ${item.color}`}>
+                            <Icon size={20} />
+                          </div>
+                        )}
+                      </Link>
 
-                  <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end">
-                    <button
-                      onClick={() => item.fileUrl ? triggerDirectDownload(item.fileUrl, item.title) : handleDownloadKit(item.title)}
-                      className="px-3.5 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Download size={13} />
-                      <span>Unduh Kit</span>
-                    </button>
+                      <div className="flex items-center justify-between gap-1 mb-1.5">
+                        <span className="text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">
+                          {item.category}
+                        </span>
+
+                        {isItemPublic ? (
+                          <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded flex items-center gap-1 border border-emerald-200 dark:border-emerald-900/40">
+                            <Globe size={10} /> Publik
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 dark:border-amber-900/40">
+                            <Lock size={10} /> Privat
+                          </span>
+                        )}
+                      </div>
+
+                      <Link href={detailHref} className="block group-hover:text-[#F26522] transition-colors">
+                        <h3 className="font-extrabold text-sm text-gray-900 dark:text-white leading-snug line-clamp-2">
+                          {item.title}
+                        </h3>
+                      </Link>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 lowercase">
+                        {item.format}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2">
+                      <Link
+                        href={detailHref}
+                        className="text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
+                      >
+                        Detail &rarr;
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          if (!isItemPublic && !currentUser) {
+                            router.push(`/login?redirect=${detailHref}`);
+                            return;
+                          }
+                          item.fileUrl ? triggerDirectDownload(item.fileUrl, item.title) : handleDownloadKit(item.title);
+                        }}
+                        className="px-3 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Download size={13} />
+                        <span>Unduh</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            }))}
+                );
+              }))}
           </div>
         </section>
 

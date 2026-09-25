@@ -84,11 +84,16 @@ export interface ArtworkReport {
 export interface BrandKit {
   id: string;
   title: string;
+  slug?: string | null;
+  description?: string | null;
   category: string;
   format: string;
   iconType: string;
   color: string;
   fileUrl: string;
   previewUrl?: string | null;
+  isPublic?: boolean;
+  downloadsCount?: number;
   createdAt: string;
+  updatedAt?: string;
 }
