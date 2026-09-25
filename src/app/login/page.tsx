@@ -9,6 +9,7 @@ import { useData } from '@/context/DataContext';
 
 import { Footer } from '@/components/Footer';
 import { formatPhoneNumber } from '@/lib/phone';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -208,6 +209,11 @@ export default function LoginPage() {
           </Link>
         </div>
 
+      </div>
+
+      {/* 3-State Theme Switch (Dark / System / Light) */}
+      <div className="flex justify-center mt-6">
+        <ThemeToggle variant="inline" order={['dark', 'system', 'light']} />
       </div>
 
       <Footer />

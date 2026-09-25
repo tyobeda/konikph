@@ -82,28 +82,28 @@ export default function AdminDashboardPage() {
       value: artworks.length.toString(),
       change: '+14% bulan ini',
       icon: ImageIcon,
-      color: 'bg-orange-50 text-[#F26522]',
+      color: 'bg-orange-50 dark:bg-orange-950/40 text-[#F26522]',
     },
     {
       title: 'Total Unduhan Master',
       value: totalDownloads.toLocaleString(),
       change: '+22% bulan ini',
       icon: Download,
-      color: 'bg-[#1e293b] text-white',
+      color: 'bg-[#1e293b] dark:bg-slate-800 text-white',
     },
     {
       title: 'Desainer Terdaftar',
       value: users.length.toString(),
       change: '+8 desainer baru',
       icon: Users,
-      color: 'bg-emerald-50 text-emerald-600',
+      color: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
     },
     {
       title: 'Perlu Moderasi',
       value: artworks.filter((a) => (a as any).status === 'Pending').length.toString(),
       change: 'Perlu tindakan cepat',
       icon: ShieldCheck,
-      color: 'bg-amber-50 text-amber-600',
+      color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
     },
   ];
 
@@ -170,10 +170,10 @@ export default function AdminDashboardPage() {
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
             Super Admin Dashboard
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Pemantauan statistik platform, peringkat desainer terpopuler, karya paling banyak diunduh & twibbon terfavorit.
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/analytics"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-sm font-bold rounded-xl shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-sm font-bold rounded-xl shadow-sm transition-all"
           >
             <TrendingUp size={16} className="text-[#F26522]" />
             <span>Analisis Trafik & Geo-IP</span>
@@ -198,7 +198,7 @@ export default function AdminDashboardPage() {
       </div>
 
 
-        {/* 🗺️ MINIMALIST INDONESIA MAP WITH DYNAMIC DPW PINPOINTS */}
+        {/* 🗺️ MINIMALIST INDONESIA MAP WITH DYNAMIC DPW PINPOINTS (Color preserved as requested) */}
         <div className="mb-8 w-full">
           <IndonesiaMapSection />
         </div>
@@ -208,15 +208,15 @@ export default function AdminDashboardPage() {
           {stats.map((item, idx) => {
             const Icon = item.icon;
             return (
-              <div key={idx} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+              <div key={idx} className="bg-white dark:bg-[#111622] p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {item.title}
                   </p>
-                  <h3 className="text-2xl font-black text-gray-900 mt-1">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mt-1">
                     {item.value}
                   </h3>
-                  <p className="text-xs font-semibold text-gray-400 mt-1">
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mt-1">
                     {item.change}
                   </p>
                 </div>
@@ -232,10 +232,10 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           
           {/* 1. Top Creator */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#111622] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
-                <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                   <Trophy size={18} className="text-amber-500" />
                   <span>10 Desainer Terpopuler</span>
                 </h3>
@@ -244,38 +244,38 @@ export default function AdminDashboardPage() {
                 </Link>
               </div>
 
-              <div className="space-y-1 divide-y divide-gray-50">
+              <div className="space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
                 {topCreators.map((creator) => (
                   <div
                     key={creator.user.id}
-                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 dark:hover:bg-gray-800/40 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
                         creator.rank === 1 ? 'bg-amber-400 text-white shadow-xs' :
-                        creator.rank === 2 ? 'bg-slate-300 text-gray-800' :
+                        creator.rank === 2 ? 'bg-slate-300 text-gray-800 dark:bg-slate-700 dark:text-gray-200' :
                         creator.rank === 3 ? 'bg-amber-700 text-white' :
-                        'text-gray-400 font-semibold'
+                        'text-gray-400 dark:text-gray-500 font-semibold'
                       }`}>
                         #{creator.rank}
                       </span>
                       <img
                         src={creator.user.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                         alt={creator.user.name}
-                        className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-gray-200"
+                        className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-gray-200 dark:ring-gray-700"
                       />
                       <div className="min-w-0 truncate">
-                        <p className="text-xs font-bold text-gray-900 flex items-center gap-1 truncate">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1 truncate">
                           <span className="truncate">{creator.user.name}</span>
                           <BadgeCheck size={13} className="text-[#F26522] shrink-0" />
                         </p>
-                        <p className="text-[10px] text-gray-500 font-medium truncate">{(creator.user.region || '').replace(/^DPW\s+/i, '')}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate">{(creator.user.region || '').replace(/^DPW\s+/i, '')}</p>
                       </div>
                     </div>
 
                     <div className="text-right text-xs shrink-0 ml-2">
-                      <p className="font-semibold text-gray-900">{creator.totalDownloads} Unduhan</p>
-                      <p className="text-[10px] text-gray-400 font-medium flex items-center justify-end gap-1">
+                      <p className="font-semibold text-gray-900 dark:text-white">{creator.totalDownloads} Unduhan</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium flex items-center justify-end gap-1">
                         <span>{creator.totalArtworks} Karya</span>
                         <span>•</span>
                         <Heart size={10} className="fill-red-500 text-red-500 shrink-0" />
@@ -289,10 +289,10 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* 2. Most Liked Artworks */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#111622] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
-                <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-3">
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                   <Flame size={18} className="text-red-500" />
                   <span>10 Karya terpopuler</span>
                 </h3>
@@ -301,31 +301,31 @@ export default function AdminDashboardPage() {
                 </Link>
               </div>
 
-              <div className="space-y-1 divide-y divide-gray-50">
+              <div className="space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
                 {mostLikedArtworks.map((art, index) => (
                   <div
                     key={art.id}
-                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 dark:hover:bg-gray-800/40 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
                         index === 0 ? 'bg-amber-400 text-white' :
-                        index === 1 ? 'bg-slate-300 text-gray-800' :
+                        index === 1 ? 'bg-slate-300 text-gray-800 dark:bg-slate-700 dark:text-gray-200' :
                         index === 2 ? 'bg-amber-700 text-white' :
-                        'text-gray-400 font-semibold'
+                        'text-gray-400 dark:text-gray-500 font-semibold'
                       }`}>
                         #{index + 1}
                       </span>
                       <img
                         src={art.imageUrl}
                         alt={art.title}
-                        className="w-7 h-7 rounded-md object-cover border border-gray-200 shrink-0"
+                        className="w-7 h-7 rounded-md object-cover border border-gray-200 dark:border-gray-700 shrink-0"
                       />
                       <div className="min-w-0 truncate">
-                        <p className="text-xs font-bold text-gray-900 truncate">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
                           {art.title}
                         </p>
-                        <p className="text-[10px] text-gray-500 truncate">{art.author.name} - {(art.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{art.author.name} - {(art.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</p>
                       </div>
                     </div>
 
@@ -340,10 +340,10 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* 3. Most Downloaded Artworks */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#111622] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
-                <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-3">
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                   <Download size={18} className="text-[#F26522]" />
                   <span>10 Karya paling banyak diunduh</span>
                 </h3>
@@ -352,31 +352,31 @@ export default function AdminDashboardPage() {
                 </Link>
               </div>
 
-              <div className="space-y-1 divide-y divide-gray-50">
+              <div className="space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
                 {mostDownloadedArtworks.map((art, index) => (
                   <div
                     key={art.id}
-                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 dark:hover:bg-gray-800/40 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
                         index === 0 ? 'bg-amber-400 text-white' :
-                        index === 1 ? 'bg-slate-300 text-gray-800' :
+                        index === 1 ? 'bg-slate-300 text-gray-800 dark:bg-slate-700 dark:text-gray-200' :
                         index === 2 ? 'bg-amber-700 text-white' :
-                        'text-gray-400 font-semibold'
+                        'text-gray-400 dark:text-gray-500 font-semibold'
                       }`}>
                         #{index + 1}
                       </span>
                       <img
                         src={art.imageUrl}
                         alt={art.title}
-                        className="w-7 h-7 rounded-md object-cover border border-gray-200 shrink-0"
+                        className="w-7 h-7 rounded-md object-cover border border-gray-200 dark:border-gray-700 shrink-0"
                       />
                       <div className="min-w-0 truncate">
-                        <p className="text-xs font-bold text-gray-900 truncate">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
                           {art.title}
                         </p>
-                        <p className="text-[10px] text-gray-500 truncate">Format: {art.format || 'PSD/AI'}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">Format: {art.format || 'PSD/AI'}</p>
                       </div>
                     </div>
 
@@ -391,10 +391,10 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* 4. Most Used Twibbon */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#111622] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
-                <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-3">
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                   <Sparkles size={18} className="text-purple-600" />
                   <span>10 Twibbon paling banyak digunakan</span>
                 </h3>
@@ -403,18 +403,18 @@ export default function AdminDashboardPage() {
                 </Link>
               </div>
 
-              <div className="space-y-1 divide-y divide-gray-50">
+              <div className="space-y-1 divide-y divide-gray-50 dark:divide-gray-800/60">
                 {mostUsedTwibbons.map((tw, index) => (
                   <div
                     key={tw.id}
-                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 dark:hover:bg-gray-800/40 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
                         index === 0 ? 'bg-amber-400 text-white' :
-                        index === 1 ? 'bg-slate-300 text-gray-800' :
+                        index === 1 ? 'bg-slate-300 text-gray-800 dark:bg-slate-700 dark:text-gray-200' :
                         index === 2 ? 'bg-amber-700 text-white' :
-                        'text-gray-400 font-semibold'
+                        'text-gray-400 dark:text-gray-500 font-semibold'
                       }`}>
                         #{index + 1}
                       </span>
@@ -422,20 +422,20 @@ export default function AdminDashboardPage() {
                         <img
                           src={tw.imageUrl}
                           alt={tw.title}
-                          className="w-7 h-7 rounded-md object-cover border border-purple-100 shrink-0"
+                          className="w-7 h-7 rounded-md object-cover border border-purple-100 dark:border-purple-900/50 shrink-0"
                         />
                       ) : (
-                        <div className="w-7 h-7 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-md bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex items-center justify-center shrink-0">
                           <ImageIcon size={14} className="text-purple-500" />
                         </div>
                       )}
                       <div className="min-w-0 truncate">
-                        <p className="text-xs font-bold text-gray-900 truncate">{tw.title}</p>
-                        <p className="text-[10px] text-gray-500 font-medium truncate">Wilayah: {(tw.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • {tw.format}</p>
+                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{tw.title}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate">Wilayah: {(tw.region || '').replace(/^DPW\s+/i, 'Wilayah ')} • {tw.format}</p>
                       </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 shrink-0 ml-2">
+                    <div className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 dark:text-purple-400 shrink-0 ml-2">
                       <ImageIcon size={12} className="text-purple-600 shrink-0" />
                       <span>{tw.usedCount}</span>
                     </div>
@@ -444,6 +444,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
+        </div>
 
         {/* Confirm Delete Artwork Modal */}
         <ConfirmModal
@@ -455,7 +456,6 @@ export default function AdminDashboardPage() {
           onConfirm={confirmDeleteArtwork}
           onCancel={() => setDeletingArtwork(null)}
         />
-      </div>
     </>
   );
 }

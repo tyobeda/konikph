@@ -15,12 +15,14 @@ import {
   Building,
   Eye,
   EyeOff,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
-import { REGIONS } from '@/lib/data';
 import { useData } from '@/context/DataContext';
 import { Footer } from '@/components/Footer';
 import { formatPhoneNumber } from '@/lib/phone';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -44,16 +46,13 @@ export default function RegisterPage() {
     }
   }, [currentUser, router, isMounted, isModuleUnderMaintenance]);
 
-  // Combine dynamic DPW list from database settings with all 38 Indonesian provinces
+  // Hanya menampilkan wilayah aktif yang sudah terdaftar di database Admin (dpwList)
   const availableRegions = React.useMemo(() => {
-    const list = new Set<string>();
-    if (dpwList && dpwList.length > 0) {
-      dpwList.filter((d) => d.isActive !== false).forEach((d) => {
-        if (d.name?.trim()) list.add(d.name.trim());
-      });
-    }
-    REGIONS.filter((r) => r !== 'Semua Daerah').forEach((r) => list.add(r));
-    return Array.from(list);
+    if (!dpwList || dpwList.length === 0) return [];
+    return dpwList
+      .filter((d) => d.isActive !== false && d.name?.trim())
+      .map((d) => d.name.trim())
+      .sort((a, b) => a.localeCompare('id'));
   }, [dpwList]);
 
   const [formData, setFormData] = useState({
@@ -73,6 +72,16 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [regionSearch, setRegionSearch] = useState('');
   const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+
+  // Ketika input diklik / difokuskan atau nilainya sama dengan pilihan yang tersimpan, tampilkan semua wilayah
+  const filteredRegions = React.useMemo(() => {
+    if (!regionSearch.trim() || regionSearch === formData.region) {
+      return availableRegions;
+    }
+    return availableRegions.filter((r) =>
+      r.toLowerCase().includes(regionSearch.toLowerCase())
+    );
+  }, [availableRegions, regionSearch, formData.region]);
 
   // Keep region empty by default so user picks manually
 
@@ -122,6 +131,10 @@ export default function RegisterPage() {
     }
     if (!sanitizedRegion) {
       setErrorMessage('Wilayah wajib dipilih.');
+      return;
+    }
+    if (availableRegions.length > 0 && !availableRegions.includes(sanitizedRegion)) {
+      setErrorMessage('Silakan pilih salah satu wilayah resmi dari daftar yang tersedia.');
       return;
     }
 
@@ -177,45 +190,48 @@ export default function RegisterPage() {
 
   if (!isMounted || currentUser) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex items-center justify-center transition-colors">
         <div className="animate-pulse flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
-          <span className="text-sm font-semibold text-gray-500">Memeriksa sesi...</span>
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Memeriksa sesi...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-200">
       
-      {/* Top Header Link */}
+      {/* Top Header Link & Theme Toggle */}
       <div className="max-w-2xl w-full mx-auto mb-6 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#F26522] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
         >
           <ArrowLeft size={16} />
           <span>Kembali ke Beranda</span>
         </Link>
 
-        <PksLogo size="sm" />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <PksLogo size="sm" />
+        </div>
       </div>
 
       {/* Main Registration Card */}
-      <div className="max-w-2xl w-full mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+      <div className="max-w-2xl w-full mx-auto bg-white dark:bg-[#111622] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 sm:p-8 transition-colors duration-200">
         
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
             Daftar Akun PKSart
           </h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
             Bergabunglah bersama komunitas desainer & pengurus wilayah PKS seluruh Indonesia.
           </p>
         </div>
 
         {errorMessage && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-600 animate-in fade-in">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 animate-in fade-in">
             ⚠️ {errorMessage}
           </div>
         )}
@@ -223,11 +239,11 @@ export default function RegisterPage() {
         {isSuccess ? (
           <div className="py-6 text-center animate-in zoom-in-95 space-y-4 max-w-md mx-auto">
             <CheckCircle2 size={56} className="text-emerald-500 mx-auto animate-bounce" />
-            <h3 className="text-lg font-black text-gray-900">Pendaftaran Berhasil!</h3>
-            <p className="text-xs text-gray-600 leading-relaxed font-semibold px-2">
+            <h3 className="text-lg font-black text-gray-900 dark:text-white">Pendaftaran Berhasil!</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-semibold px-2">
               Akun Anda telah diajukan ke sistem. Untuk alasan keamanan, akun desainer baru harus disetujui oleh Administrator PKSart terlebih dahulu sebelum dapat digunakan untuk masuk.
             </p>
-            <div className="bg-orange-50 border border-orange-100 text-[#F26522] text-xs font-bold py-2.5 px-4 rounded-xl max-w-xs mx-auto">
+            <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/50 text-[#F26522] dark:text-[#ff7a38] text-xs font-bold py-2.5 px-4 rounded-xl max-w-xs mx-auto">
               Status: Menunggu Persetujuan Admin
             </div>
             <div className="pt-2 flex flex-col gap-2">
@@ -239,7 +255,7 @@ export default function RegisterPage() {
               </Link>
               <Link
                 href="/"
-                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-all text-center"
+                className="w-full py-2.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl transition-all text-center"
               >
                 Jelajahi Beranda
               </Link>
@@ -254,18 +270,18 @@ export default function RegisterPage() {
               <div className="space-y-4">
                 {/* Nama Lengkap */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Nama Lengkap <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <UserIcon size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                    <UserIcon size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Nama Lengkap Anda"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
                       required
                     />
                   </div>
@@ -273,18 +289,18 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Alamat Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <Mail size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                    <Mail size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="contoh: email@pks.art"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
                       required
                     />
                   </div>
@@ -292,11 +308,11 @@ export default function RegisterPage() {
 
                 {/* Nomor WhatsApp */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Nomor WhatsApp <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <PhoneCall size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                    <PhoneCall size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
                     <input
                       type="tel"
                       name="phone"
@@ -308,42 +324,42 @@ export default function RegisterPage() {
                         }
                       }}
                       placeholder="contoh: 081234567890 atau +6281234567890"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
                       required
                     />
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-1 leading-tight">
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 leading-tight">
                     Digunakan untuk verifikasi & notifikasi unduhan karya.
                   </p>
                 </div>
 
                 {/* Jenis Kelamin */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Jenis Kelamin <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <UserIcon size={18} className="absolute left-3.5 top-3 text-gray-400 z-10" />
+                    <UserIcon size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500 z-10" />
                     <select
                       name="gender"
                       value={formData.gender}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold transition-colors"
                       required
                     >
-                      <option value="Laki-laki">Laki-laki</option>
-                      <option value="Perempuan">Perempuan</option>
+                      <option value="Laki-laki" className="dark:bg-[#1a2233] dark:text-white">Laki-laki</option>
+                      <option value="Perempuan" className="dark:bg-[#1a2233] dark:text-white">Perempuan</option>
                     </select>
                   </div>
                 </div>
 
-                 {/* Wilayah DPW Search Combobox */}
-                 <div className="relative">
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                {/* Wilayah DPW Search Combobox */}
+                <div className="relative">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Wilayah <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <Building size={18} className="absolute left-3.5 top-3 text-gray-400 z-10" />
+                    <Building size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500 z-10 pointer-events-none" />
                     <input
                       type="text"
                       value={regionSearch}
@@ -353,21 +369,42 @@ export default function RegisterPage() {
                         setFormData((prev) => ({ ...prev, region: val }));
                         setShowRegionDropdown(true);
                       }}
-                      onFocus={() => setShowRegionDropdown(true)}
-                      onBlur={() => {
-                        setTimeout(() => setShowRegionDropdown(false), 200);
+                      onClick={() => {
+                        setShowRegionDropdown(true);
                       }}
-                      placeholder="Cari Wilayah..."
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
+                      onFocus={() => {
+                        setShowRegionDropdown(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowRegionDropdown(false), 250);
+                      }}
+                      placeholder="Pilih atau cari wilayah resmi..."
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal cursor-pointer transition-colors"
                       required
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setShowRegionDropdown((prev) => !prev);
+                      }}
+                      className="absolute right-3 top-3 text-gray-400 dark:text-gray-500 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors p-0.5"
+                    >
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${
+                          showRegionDropdown ? 'rotate-180 text-[#F26522]' : ''
+                        }`}
+                      />
+                    </button>
                   </div>
                   {showRegionDropdown && (
-                    <div className="absolute z-20 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg divide-y divide-gray-50">
-                      {availableRegions.filter((r) => r.toLowerCase().includes(regionSearch.toLowerCase())).length > 0 ? (
-                        availableRegions
-                          .filter((r) => r.toLowerCase().includes(regionSearch.toLowerCase()))
-                          .map((r) => (
+                    <div className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-[#151C2C] border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl divide-y divide-gray-50 dark:divide-gray-800/60 animate-in fade-in zoom-in-95 duration-150">
+                      {filteredRegions.length > 0 ? (
+                        filteredRegions.map((r) => {
+                          const isSelected = formData.region === r;
+                          return (
                             <button
                               key={r}
                               type="button"
@@ -376,13 +413,21 @@ export default function RegisterPage() {
                                 setFormData((prev) => ({ ...prev, region: r }));
                                 setShowRegionDropdown(false);
                               }}
-                              className="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-orange-50 hover:text-[#F26522] transition-colors"
+                              className={`w-full flex items-center justify-between text-left px-4 py-2.5 text-xs transition-colors ${
+                                isSelected
+                                  ? 'bg-orange-50 dark:bg-orange-950/40 text-[#F26522] dark:text-[#ff7a38] font-bold'
+                                  : 'font-semibold text-gray-700 dark:text-gray-300 hover:bg-orange-50/60 dark:hover:bg-slate-800/80 hover:text-[#F26522] dark:hover:text-[#ff7a38]'
+                              }`}
                             >
-                              {r}
+                              <span>{r}</span>
+                              {isSelected && <Check size={14} className="text-[#F26522] shrink-0 ml-2" />}
                             </button>
-                          ))
+                          );
+                        })
                       ) : (
-                        <div className="px-4 py-2 text-xs text-gray-400 italic">Wilayah tidak ditemukan</div>
+                        <div className="px-4 py-3 text-xs text-gray-400 dark:text-gray-500 italic text-center">
+                          {!dpwList || dpwList.length === 0 ? 'Memuat daftar wilayah...' : 'Wilayah tidak ditemukan'}
+                        </div>
                       )}
                     </div>
                   )}
@@ -393,42 +438,42 @@ export default function RegisterPage() {
               <div className="space-y-4">
                 {/* Alamat Lengkap */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                    Alamat Lengkap <span className="text-gray-400 font-normal">(Opsional)</span>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
+                    Alamat Lengkap <span className="text-gray-400 dark:text-gray-500 font-normal">(Opsional)</span>
                   </label>
                   <div className="relative">
-                    <MapPin size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                    <MapPin size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
                     <textarea
                       name="address"
                       rows={2}
                       value={formData.address}
                       onChange={handleChange}
                       placeholder="Jalan, RT/RW, Kecamatan, Kota/Kabupaten"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal resize-none"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal resize-none transition-colors"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Kata Sandi <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
+                    <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" />
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Minimal 6 karakter"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3.5 text-gray-400 hover:text-[#F26522] transition-colors animate-in fade-in"
+                      className="absolute right-3.5 top-3.5 text-gray-400 dark:text-gray-500 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors animate-in fade-in"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -437,24 +482,24 @@ export default function RegisterPage() {
 
                 {/* Konfirmasi Password */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                     Konfirmasi Kata Sandi <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
+                    <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" />
                     <input
                       type={showPassword ? "text" : "password"}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Ketik ulang kata sandi"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white text-gray-900 font-semibold placeholder:text-gray-400 placeholder:font-normal"
+                      className="w-full bg-gray-50 dark:bg-[#1a2233] border border-gray-200 dark:border-gray-700/80 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] dark:focus:border-[#F26522] focus:bg-white dark:focus:bg-[#1f293d] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3.5 text-gray-400 hover:text-[#F26522] transition-colors animate-in fade-in"
+                      className="absolute right-3.5 top-3.5 text-gray-400 dark:text-gray-500 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors animate-in fade-in"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -476,9 +521,9 @@ export default function RegisterPage() {
         )}
 
         {/* Footer login link */}
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
+        <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 text-center text-xs text-gray-500 dark:text-gray-400">
           Sudah memiliki akun?{' '}
-          <Link href="/login" className="font-bold text-[#F26522] hover:underline">
+          <Link href="/login" className="font-bold text-[#F26522] dark:text-[#ff7a38] hover:underline">
             Masuk ke Akun
           </Link>
         </div>

@@ -350,12 +350,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                       Kelola Postingan Saya
                     </Link>
 
-                    {/* Inline Theme Chooser in Profile Menu */}
-                    <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800">
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Mode Tampilan</p>
-                      <ThemeToggle variant="inline" />
-                    </div>
-
                     <button
                       onClick={() => {
                         setIsProfileDropdownOpen(false);

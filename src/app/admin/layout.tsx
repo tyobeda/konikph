@@ -18,6 +18,7 @@ import {
   FileText,
   Bell,
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function AdminLayout({
   children,
@@ -68,7 +69,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col md:flex-row font-sans transition-colors duration-200">
       
       {/* 📱 MOBILE STICKY HEADER WITH BURGER MENU */}
       <header className="md:hidden sticky top-0 z-50 bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-slate-700/60">
@@ -99,8 +100,12 @@ export default function AdminLayout({
           {currentPageLabel}
         </span>
 
-        {/* Burger Toggle Button */}
+        {/* Actions & Burger Toggle Button */}
         <div className="flex items-center gap-2">
+          <ThemeToggle
+            variant="dropdown"
+            buttonClassName="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700"
+          />
           <Link href="/notifikasi?from=admin" className="relative p-2 text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700" aria-label="System Notifications">
             <Bell size={18} />
             {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />}
@@ -148,6 +153,17 @@ export default function AdminLayout({
                 </>
               )}
             </Link>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ThemeToggle
+                variant="dropdown"
+                buttonClassName="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 flex items-center justify-center"
+              />
+              <Link href="/notifikasi?from=admin" onClick={() => setIsMobileMenuOpen(false)} className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
+                <Bell size={18} />
+                {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />}
+              </Link>
+            </div>
           </div>
 
           {/* Drawer Navigation Links */}
@@ -216,10 +232,16 @@ export default function AdminLayout({
               )}
             </Link>
             
-            <Link href="/notifikasi?from=admin" className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
-              <Bell size={18} />
-              {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />}
-            </Link>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ThemeToggle
+                variant="dropdown"
+                buttonClassName="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 flex items-center justify-center"
+              />
+              <Link href="/notifikasi?from=admin" className="relative p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 shrink-0" title="Notifikasi Sistem">
+                <Bell size={18} />
+                {unreadNotificationCount > 0 && <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full" />}
+              </Link>
+            </div>
           </div>
 
           {/* Admin Navigation */}

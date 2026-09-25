@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-export const INITIAL_38_DPW = [
+const INITIAL_38_DPW = [
   { name: 'Aceh', code: 'DPW-ACEH', coordinator: 'Koordinator Aceh', phone: '081200000001', email: 'dpw.aceh@pks.art', address: 'Banda Aceh' },
   { name: 'Sumatera Utara', code: 'DPW-SUMUT', coordinator: 'Koordinator Sumatera Utara', phone: '081200000002', email: 'dpw.sumut@pks.art', address: 'Medan' },
   { name: 'Sumatera Barat', code: 'DPW-SUMBAR', coordinator: 'Koordinator Sumatera Barat', phone: '081200000003', email: 'dpw.sumbar@pks.art', address: 'Padang' },
