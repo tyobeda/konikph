@@ -211,31 +211,31 @@ export default function AdminCreatorsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
             <Users className="text-[#F26522]" />
             <span>Kelola Desainer & Member PKSart</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Verifikasi lencana Desainer PKS Official, kelola kontak WhatsApp/Email, dan kontrol status akun.
           </p>
         </div>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm">
+      <div className="flex border-b border-gray-200 dark:border-gray-800 mb-6 gap-6 text-sm">
         <button
           onClick={() => setActiveTab('creators')}
           className={`pb-3 relative transition-all flex items-center gap-2 ${
             activeTab === 'creators'
               ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
-              : 'text-gray-500 hover:text-gray-900 font-medium'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
           }`}
         >
           <span>Desainer Terdaftar</span>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
             activeTab === 'creators'
-              ? 'bg-orange-50 text-[#F26522] border-orange-200'
-              : 'bg-gray-100 text-gray-600 border-gray-200'
+              ? 'bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border-orange-200 dark:border-orange-900/50'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}>
             {users.length}
           </span>
@@ -250,14 +250,14 @@ export default function AdminCreatorsPage() {
           className={`pb-3 relative transition-all flex items-center gap-2 ${
             activeTab === 'resets'
               ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
-              : 'text-gray-500 hover:text-gray-900 font-medium'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
           }`}
         >
           <span>Permintaan Reset</span>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
             activeTab === 'resets'
-              ? 'bg-orange-50 text-[#F26522] border-orange-200'
-              : 'bg-gray-100 text-gray-600 border-gray-200'
+              ? 'bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border-orange-200 dark:border-orange-900/50'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}>
             {resetRequests.length}
           </span>
@@ -277,7 +277,7 @@ export default function AdminCreatorsPage() {
             className={`px-3 py-1.5 rounded-xl text-xs transition-all ${
               statusFilter === 'all'
                 ? 'bg-[#F26522] text-white shadow-sm font-bold'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 font-medium'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium'
             }`}
           >
             Semua ({users.length})
@@ -288,7 +288,7 @@ export default function AdminCreatorsPage() {
             className={`px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 ${
               statusFilter === 'pending'
                 ? 'bg-amber-500 text-white shadow-sm font-bold'
-                : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium'
+                : 'bg-white dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-50 dark:hover:bg-amber-950/40 font-medium'
             }`}
           >
             <span>Menunggu Approval</span>
@@ -304,7 +304,7 @@ export default function AdminCreatorsPage() {
             className={`px-3 py-1.5 rounded-xl text-xs transition-all ${
               statusFilter === 'active'
                 ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium'
+                : 'bg-white dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-medium'
             }`}
           >
             Disutujui / Aktif
@@ -315,7 +315,7 @@ export default function AdminCreatorsPage() {
             className={`px-3 py-1.5 rounded-xl text-xs transition-all ${
               statusFilter === 'suspended'
                 ? 'bg-red-600 text-white shadow-sm font-bold'
-                : 'bg-white text-red-700 border border-red-200 hover:bg-red-50 font-medium'
+                : 'bg-white dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 font-medium'
             }`}
           >
             Ditangguhkan
@@ -324,30 +324,30 @@ export default function AdminCreatorsPage() {
       )}
 
       {/* Table Container */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#111622] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-extrabold text-gray-900">
+            <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
               {activeTab === 'resets' ? 'Permintaan Reset Kata Sandi' : 'Daftar Desainer Terdaftar'}
             </h2>
           </div>
 
           <div className="relative flex-1 max-w-xs">
-            <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+            <Search size={16} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama, email, atau Wilayah..."
-              className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+              className="w-full bg-gray-50 dark:bg-gray-800/80 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522]"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+          <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+            <thead className="bg-gray-50/80 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
               {activeTab === 'resets' ? (
                 <tr>
                   <th className="py-3.5 px-4">Nama Lengkap</th>
@@ -368,25 +368,25 @@ export default function AdminCreatorsPage() {
                 </tr>
               )}
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
               {activeTab === 'resets' ? (
                 paginatedResets.length > 0 ? (
                   paginatedResets.map((req) => (
-                    <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-gray-900">{req.name}</td>
-                      <td className="py-3.5 px-4 font-medium text-gray-600">{req.email}</td>
-                      <td className="py-3.5 px-4 font-semibold text-gray-800">
+                    <tr key={req.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">{req.name}</td>
+                      <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300">{req.email}</td>
+                      <td className="py-3.5 px-4 font-semibold text-gray-800 dark:text-gray-200">
                         <span className="flex items-center gap-1">
-                          <PhoneCall size={12} className="text-emerald-600" />
+                          <PhoneCall size={12} className="text-emerald-600 dark:text-emerald-400" />
                           <span>{req.phone}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-gray-700 font-mono text-xs">{formatDateTime(req.createdAt)}</td>
+                      <td className="py-3.5 px-4 text-gray-700 dark:text-gray-400 font-mono text-xs">{formatDateTime(req.createdAt)}</td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                           req.status === 'Pending'
-                            ? 'bg-amber-50 text-amber-600 border border-amber-200 animate-pulse'
-                            : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 animate-pulse'
+                            : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
                         }`}>
                           {req.status === 'Pending' ? 'Menunggu' : 'Selesai'}
                         </span>
@@ -404,7 +404,7 @@ export default function AdminCreatorsPage() {
                           )}
                           <button
                             onClick={() => deleteResetRequest(req.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
                             title="Hapus Permintaan"
                           >
                             <Trash2 size={15} />
@@ -415,7 +415,7 @@ export default function AdminCreatorsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
+                    <td colSpan={6} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium">
                       Tidak ada permintaan reset kata sandi.
                     </td>
                   </tr>
@@ -423,57 +423,57 @@ export default function AdminCreatorsPage() {
               ) : (
                 paginatedCreators.length > 0 ? (
                   paginatedCreators.map((creator) => (
-                    <tr key={creator.id} className="hover:bg-gray-50/60 transition-colors">
+                    <tr key={creator.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <Link href={`/creators/${getUserSlug(creator)}`} target="_blank" className="shrink-0">
                             <img
                               src={creator.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
                               alt={creator.name}
-                              className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 hover:ring-[#F26522] transition-all"
+                              className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 hover:ring-[#F26522] transition-all"
                             />
                           </Link>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <Link href={`/creators/${getUserSlug(creator)}`} target="_blank" className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">
+                              <Link href={`/creators/${getUserSlug(creator)}`} target="_blank" className="font-bold text-gray-900 dark:text-white hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors">
                                 {creator.name}
                               </Link>
                               {creator.isVerified && (
                                 <span title="Verified Desainer PKS">
-                                  <BadgeCheck size={16} className="text-[#F26522] fill-orange-50" />
+                                  <BadgeCheck size={16} className="text-[#F26522] fill-orange-50 dark:fill-orange-950/40" />
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-gray-400 font-medium">{creator.role || 'Desainer'}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{creator.role || 'Desainer'}</span>
                           </div>
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col text-xs font-medium space-y-0.5">
-                          <span className="flex items-center gap-1 text-gray-800">
-                            <PhoneCall size={12} className="text-emerald-600" />
+                          <span className="flex items-center gap-1 text-gray-800 dark:text-gray-200">
+                            <PhoneCall size={12} className="text-emerald-600 dark:text-emerald-400" />
                             <span>{creator.phone}</span>
                           </span>
-                          <span className="flex items-center gap-1 text-gray-500">
-                            <Mail size={12} className="text-gray-400" />
+                          <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                            <Mail size={12} className="text-gray-400 dark:text-gray-500" />
                             <span>{creator.email}</span>
                           </span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-gray-800">
+                      <td className="py-3.5 px-4 font-semibold text-gray-800 dark:text-gray-200">
                         {(creator.region || '').replace(/^DPW\s+/i, '')}
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-gray-700">
+                      <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
                         {artworks.filter(a => a.author?.name === creator.name || a.author?.email === creator.email || a.author?.id === creator.id).length} Karya
                       </td>
                       <td className="py-3.5 px-4">
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                             creator.status === 'Suspended'
-                              ? 'bg-red-50 text-red-600 border border-red-200'
+                              ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50'
                               : (creator.status === 'Pending' || creator.status === 'Pending Approval')
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-                              : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 animate-pulse'
+                              : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
                           }`}
                         >
                           {creator.status === 'Suspended' 
@@ -499,8 +499,8 @@ export default function AdminCreatorsPage() {
                             onClick={() => handleToggleVerified(creator.id)}
                             className={`p-1.5 rounded-lg transition-colors ${
                               creator.isVerified
-                                ? 'text-[#F26522] bg-orange-50'
-                                : 'text-gray-400 hover:text-[#F26522] hover:bg-orange-50'
+                                ? 'text-[#F26522] bg-orange-50 dark:bg-orange-950/40'
+                                : 'text-gray-400 dark:text-gray-500 hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/30'
                             }`}
                             title={creator.isVerified ? 'Cabut Verifikasi Lencana' : 'Beri Verifikasi Lencana Official'}
                           >
@@ -508,7 +508,7 @@ export default function AdminCreatorsPage() {
                           </button>
                           <button
                             onClick={() => openEditModal(creator)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
                             title="Edit Data Desainer"
                           >
                             <Edit size={16} />
@@ -517,8 +517,8 @@ export default function AdminCreatorsPage() {
                             onClick={() => handleToggleStatus(creator)}
                             className={`p-1.5 rounded-lg transition-colors ${
                               creator.status === 'Suspended'
-                                ? 'text-emerald-600 bg-emerald-50'
-                                : 'text-amber-600 hover:bg-amber-50'
+                                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
+                                : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40'
                             }`}
                             title={creator.status === 'Suspended' ? 'Aktifkan Kembali' : 'Suspend Akun'}
                           >
@@ -526,7 +526,7 @@ export default function AdminCreatorsPage() {
                           </button>
                           <button
                             onClick={() => handleDelete(creator)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
                             title="Hapus Permanent Akun"
                           >
                             <Trash2 size={16} />
@@ -537,7 +537,7 @@ export default function AdminCreatorsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-gray-400 font-medium">
+                    <td colSpan={6} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium">
                       Tidak ada data akun desainer yang sesuai dengan pencarian.
                     </td>
                   </tr>
@@ -548,9 +548,9 @@ export default function AdminCreatorsPage() {
         </div>
 
         {/* Pagination Controls */}
-        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
-          <div className="text-gray-500 font-medium">
-            Menampilkan <span className="font-bold text-gray-800">{totalItems > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</span> - <span className="font-bold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-800">{totalItems}</span> data {activeTab === 'resets' ? 'pengajuan reset' : 'desainer'}
+        <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50 dark:bg-[#111622]">
+          <div className="text-gray-500 dark:text-gray-400 font-medium">
+            Menampilkan <span className="font-bold text-gray-800 dark:text-gray-200">{totalItems > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</span> - <span className="font-bold text-gray-800 dark:text-gray-200">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-800 dark:text-gray-200">{totalItems}</span> data {activeTab === 'resets' ? 'pengajuan reset' : 'desainer'}
           </div>
 
           <div className="flex items-center gap-1.5 font-bold">
@@ -558,7 +558,7 @@ export default function AdminCreatorsPage() {
               type="button"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+              className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm text-xs"
             >
               &larr; Prev
             </button>
@@ -572,7 +572,7 @@ export default function AdminCreatorsPage() {
                   className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
                     currentPage === page
                       ? 'bg-[#F26522] text-white shadow-sm'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   {page}
@@ -584,7 +584,7 @@ export default function AdminCreatorsPage() {
               type="button"
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalItems === 0}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+              className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm text-xs"
             >
               Next &rarr;
             </button>
@@ -601,41 +601,41 @@ export default function AdminCreatorsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
+            className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 cursor-default"
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               Edit Data Desainer (Admin)
             </h3>
 
             <form onSubmit={handleSaveEdit} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                   Nama Lengkap
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-[#F26522]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                   Alamat Email
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:border-[#F26522]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                   Nomor WhatsApp
                 </label>
                 <input
@@ -648,29 +648,32 @@ export default function AdminCreatorsPage() {
                     }
                   }}
                   placeholder="contoh: 081234567890 atau +6281234567890"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:border-[#F26522]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Wilayah DPW
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                  Wilayah
                 </label>
                 <select
                   value={formData.region}
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:border-[#F26522]"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-[#F26522]"
                 >
-                  <option value="">-- Pilih Wilayah DPW --</option>
+                  <option value="">-- Pilih Wilayah --</option>
                   {formData.region && !dpwList.some(d => d.name.toLowerCase() === formData.region.toLowerCase()) && (
-                    <option value={formData.region}>{formData.region}</option>
+                    <option value={formData.region}>{formData.region.replace(/^DPW\s+/i, '')}</option>
                   )}
-                  {dpwList.map((dpw) => (
-                    <option key={dpw.id} value={dpw.name}>
-                      {dpw.name} ({dpw.code})
-                    </option>
-                  ))}
+                  {dpwList
+                    .filter(d => d.isActive !== false || d.name === formData.region)
+                    .sort((a, b) => a.name.localeCompare(b.name, 'id'))
+                    .map((dpw) => (
+                      <option key={dpw.id} value={dpw.name}>
+                        {dpw.name.replace(/^DPW\s+/i, '')}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -678,7 +681,7 @@ export default function AdminCreatorsPage() {
                 <button
                   type="button"
                   onClick={() => setEditingCreator(null)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl"
                 >
                   Batal
                 </button>

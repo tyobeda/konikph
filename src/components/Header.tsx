@@ -321,7 +321,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                       >
                         <span>Admin Dashboard</span>
                         <span className="text-[9px] uppercase font-extrabold bg-[#F26522] text-white px-1.5 py-0.5 rounded">
-                          {currentUser.role === 'Super Admin' ? 'Super' : 'DPW'}
+                          {currentUser.role === 'Super Admin' ? 'Super' : 'Wilayah'}
                         </span>
                       </Link>
                     )}

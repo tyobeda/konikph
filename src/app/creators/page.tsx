@@ -228,8 +228,12 @@ export default function CreatorsPage() {
                 <div>
                   <div className="flex items-center gap-3 mb-4">
                     <div>
-                      <h3 className="font-extrabold text-base text-gray-900 dark:text-white">{dpw.name}</h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{dpw.code}</p>
+                      <h3 className="font-extrabold text-base text-gray-900 dark:text-white">
+                        {dpw.name.replace(/^DPW\s+/i, '')}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                        Wilayah {dpw.name.replace(/^DPW\s+/i, '')}
+                      </p>
                     </div>
                   </div>
 
@@ -251,7 +255,7 @@ export default function CreatorsPage() {
                   href={`/?search=${encodeURIComponent(dpw.name)}`}
                   className="w-full py-2.5 px-4 bg-[#1E293B] dark:bg-gray-800 hover:bg-slate-800 dark:hover:bg-gray-700 text-white text-xs font-bold rounded-xl text-center transition-colors block"
                 >
-                  Lihat Karya Wilayah {dpw.code}
+                  Lihat Karya Wilayah {dpw.name.replace(/^DPW\s+/i, '')}
                 </Link>
               </div>
             ))}

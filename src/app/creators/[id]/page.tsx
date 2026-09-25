@@ -169,7 +169,7 @@ export default function CreatorPublicProfilePage() {
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-[#F26522] transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
           >
             <ArrowLeft size={18} />
             <span>Kembali</span>
@@ -177,39 +177,39 @@ export default function CreatorPublicProfilePage() {
         </div>
 
         {/* Creator Hero Header Card */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 sm:p-8 mb-8 transition-colors">
           <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
             
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
               <img
                 src={creator.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
                 alt={creator.name}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-orange-50 shrink-0 shadow-sm"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-orange-50 dark:ring-orange-950/40 shrink-0 shadow-sm"
               />
               
               <div className="space-y-2">
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">{creator.name}</h1>
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">{creator.name}</h1>
                   {(creator.isVerified || creator.role === 'Super Admin') && (
                     <span title="Verified Desainer PKS">
-                      <BadgeCheck size={20} className="text-[#F26522] fill-orange-50" />
+                      <BadgeCheck size={20} className="text-[#F26522] fill-orange-50 dark:fill-orange-950/50" />
                     </span>
                   )}
                 </div>
 
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   {creator.role || 'Desainer PKSart'}
                 </p>
 
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3.5 text-xs text-gray-500 font-semibold pt-1">
-                  <span className="flex items-center gap-1 text-gray-700">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3.5 text-xs text-gray-500 dark:text-gray-400 font-semibold pt-1">
+                  <span className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                     <MapPin size={13} className="text-[#F26522]" />
                     <span>{(creator.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
                   </span>
                   
                   {creator.email && (
-                    <a href={`mailto:${creator.email}`} className="flex items-center gap-1 hover:text-[#F26522] transition-colors">
-                      <Mail size={13} className="text-gray-400" />
+                    <a href={`mailto:${creator.email}`} className="flex items-center gap-1 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors">
+                      <Mail size={13} className="text-gray-400 dark:text-gray-500" />
                       <span>{creator.email}</span>
                     </a>
                   )}
@@ -219,7 +219,7 @@ export default function CreatorPublicProfilePage() {
                       href={`https://api.whatsapp.com/send?phone=${creator.phone.replace(/[^0-9]/g, '')}`} 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 hover:text-emerald-600 transition-colors"
+                      className="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                     >
                       <PhoneCall size={13} className="text-emerald-500" />
                       <span>{creator.phone}</span>
@@ -230,18 +230,18 @@ export default function CreatorPublicProfilePage() {
             </div>
 
             {/* Creator Statistics Card */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 text-center border-t sm:border-t-0 sm:border-l border-gray-100 pt-5 sm:pt-0 sm:pl-8 shrink-0 w-full md:w-auto">
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 text-center border-t sm:border-t-0 sm:border-l border-gray-100 dark:border-gray-800 pt-5 sm:pt-0 sm:pl-8 shrink-0 w-full md:w-auto">
               <div className="px-2">
-                <p className="text-lg sm:text-xl font-extrabold text-gray-900">{creatorArtworks.length}</p>
-                <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mt-0.5">Karya</p>
+                <p className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{creatorArtworks.length}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mt-0.5">Karya</p>
               </div>
-              <div className="px-2 border-x border-gray-100">
-                <p className="text-lg sm:text-xl font-extrabold text-gray-900">{totalDownloads}</p>
-                <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mt-0.5">Unduhan</p>
+              <div className="px-2 border-x border-gray-100 dark:border-gray-800">
+                <p className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{totalDownloads}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mt-0.5">Unduhan</p>
               </div>
               <div className="px-2">
-                <p className="text-lg sm:text-xl font-extrabold text-gray-900">{totalLikes}</p>
-                <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mt-0.5">Suka</p>
+                <p className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{totalLikes}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mt-0.5">Suka</p>
               </div>
             </div>
 
@@ -250,21 +250,21 @@ export default function CreatorPublicProfilePage() {
 
         {/* Gallery / Artworks / Twibbon 4 Tabs Section */}
         <div className="space-y-6">
-          <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1 border-b border-gray-200 dark:border-gray-800 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab('karya')}
               className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'karya'
                   ? 'border-[#F26522] text-[#F26522]'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span>Koleksi Karya Desainer</span>
               <span
                 className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
                   activeTab === 'karya'
-                    ? 'bg-orange-100 text-[#F26522]'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-orange-100 dark:bg-orange-950/60 text-[#F26522] dark:text-[#ff7a38]'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {creatorArtworks.length}
@@ -276,15 +276,15 @@ export default function CreatorPublicProfilePage() {
               className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'sukai'
                   ? 'border-[#F26522] text-[#F26522]'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span>{isOwnProfile ? 'Yang Saya Sukai' : 'Disukai Desainer'}</span>
               <span
                 className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
                   activeTab === 'sukai'
-                    ? 'bg-orange-100 text-[#F26522]'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-orange-100 dark:bg-orange-950/60 text-[#F26522] dark:text-[#ff7a38]'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {likedArtworks.length}
@@ -296,15 +296,15 @@ export default function CreatorPublicProfilePage() {
               className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'template-twibbon'
                   ? 'border-[#F26522] text-[#F26522]'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span>Template Twibbon</span>
               <span
                 className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
                   activeTab === 'template-twibbon'
-                    ? 'bg-orange-100 text-[#F26522]'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-orange-100 dark:bg-orange-950/60 text-[#F26522] dark:text-[#ff7a38]'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {creatorTwibbonTemplates.length}
@@ -316,15 +316,15 @@ export default function CreatorPublicProfilePage() {
               className={`px-4 py-3 text-xs sm:text-sm font-extrabold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'twibbon-saya'
                   ? 'border-[#F26522] text-[#F26522]'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span>Twibbon Saya</span>
               <span
                 className={`px-2 py-0.5 text-[11px] font-black rounded-full transition-colors ${
                   activeTab === 'twibbon-saya'
-                    ? 'bg-orange-100 text-[#F26522]'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-orange-100 dark:bg-orange-950/60 text-[#F26522] dark:text-[#ff7a38]'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {isLoadingUsedTwibbons && usedTwibbonsList.length === 0 ? (
@@ -338,14 +338,14 @@ export default function CreatorPublicProfilePage() {
 
           {activeTab === 'karya' || activeTab === 'sukai' ? (
             displayedArtworks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                <div className="w-14 h-14 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
+                <div className="w-14 h-14 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] rounded-full flex items-center justify-center mb-4">
                   <ImageIcon size={26} />
                 </div>
-                <h3 className="text-base font-bold text-gray-900">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
                   {activeTab === 'karya' ? 'Belum Ada Karya' : 'Belum Ada Karya yang Disukai'}
                 </h3>
-                <p className="text-xs text-gray-500 max-w-sm mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mt-1">
                   {activeTab === 'karya'
                     ? 'Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.'
                     : 'Belum ada karya yang ditandai sebagai favorit.'}
@@ -360,12 +360,12 @@ export default function CreatorPublicProfilePage() {
             )
           ) : activeTab === 'template-twibbon' ? (
             creatorTwibbonTemplates.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-4">
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
+                <div className="w-14 h-14 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mb-4">
                   <Sparkles size={26} />
                 </div>
-                <h3 className="text-base font-bold text-gray-900">Belum Ada Template Twibbon</h3>
-                <p className="text-xs text-gray-500 max-w-sm mt-1">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">Belum Ada Template Twibbon</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mt-1">
                   Desainer ini belum mengunggah template bingkai twibbon resmi.
                 </p>
               </div>
@@ -375,19 +375,19 @@ export default function CreatorPublicProfilePage() {
                   <Link
                     key={tw.id}
                     href={`/twibbon/${tw.slug || tw.id}`}
-                    className="group bg-white rounded-2xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-3 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                   >
-                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-2 relative">
+                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2 relative">
                       <img
                         src={tw.imageUrl}
                         alt={tw.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
                     </div>
-                    <h4 className="font-bold text-xs text-gray-900 line-clamp-1 group-hover:text-[#F26522] transition-colors">
+                    <h4 className="font-bold text-xs text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#F26522] transition-colors">
                       {tw.title}
                     </h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{tw.usedCount || 0}x digunakan</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{tw.usedCount || 0}x digunakan</p>
                   </Link>
                 ))}
               </div>
@@ -395,17 +395,17 @@ export default function CreatorPublicProfilePage() {
           ) : (
             /* activeTab === 'twibbon-saya' */
             isLoadingUsedTwibbons ? (
-              <div className="py-20 flex flex-col items-center justify-center text-gray-400">
+              <div className="py-20 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
                 <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#F26522] mb-3"></div>
                 <p className="text-xs font-semibold">Memuat riwayat twibbon...</p>
               </div>
             ) : usedTwibbonsList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                <div className="w-14 h-14 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
+                <div className="w-14 h-14 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] rounded-full flex items-center justify-center mb-4">
                   <Layers size={26} />
                 </div>
-                <h3 className="text-base font-bold text-gray-900">Belum Ada Twibbon Yang Digenerate</h3>
-                <p className="text-xs text-gray-500 max-w-sm mt-1">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">Belum Ada Twibbon Yang Digenerate</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mt-1">
                   Kreator ini belum pernah men-generate twibbon.
                 </p>
               </div>
@@ -414,9 +414,9 @@ export default function CreatorPublicProfilePage() {
                 {usedTwibbonsList.map((item) => (
                   <div
                     key={item.id}
-                    className="bg-white rounded-2xl border border-gray-100 p-3.5 flex flex-col justify-between hover:shadow-md transition-all group"
+                    className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-3.5 flex flex-col justify-between hover:shadow-md transition-all group"
                   >
-                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 relative mb-3">
+                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 relative mb-3">
                       <img
                         src={item.resultImageUrl || item.twibbon?.imageUrl || '/img/logo.png'}
                         alt={item.twibbon?.title || 'Hasil Twibbon'}
@@ -431,17 +431,17 @@ export default function CreatorPublicProfilePage() {
                     </div>
 
                     <div>
-                      <h4 className="font-extrabold text-sm text-gray-900 line-clamp-1 group-hover:text-[#F26522] transition-colors">
+                      <h4 className="font-extrabold text-sm text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#F26522] transition-colors">
                         {item.twibbon?.title || 'Frame Twibbon PKS'}
                       </h4>
-                      <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                         Kategori: {item.twibbon?.category || 'Nasional'} • {item.twibbon?.region || 'Official'}
                       </p>
-                      <p className="text-[10px] text-gray-400 font-mono mt-1">
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-1">
                         Dibuat pada: {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
 
-                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
+                      <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
                         <Link
                           href={`/twibbon/${item.twibbon?.slug || item.twibbon?.id}`}
                           className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
@@ -454,7 +454,7 @@ export default function CreatorPublicProfilePage() {
                           <a
                             href={item.resultImageUrl}
                             download={`Twibbon_${item.twibbon?.title || 'PKS'}.png`}
-                            className="p-1.5 bg-white border border-gray-200 text-gray-700 hover:text-[#F26522] hover:border-orange-200 rounded-lg shadow-sm transition-all"
+                            className="p-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] hover:border-orange-200 dark:hover:border-orange-900/50 rounded-lg shadow-sm transition-all"
                             title="Unduh Lagi"
                           >
                             <Download size={14} />

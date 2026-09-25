@@ -73,12 +73,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-gray-100 max-w-sm w-full mx-auto text-center relative animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-[#111622] rounded-3xl p-6 sm:p-7 shadow-2xl border border-gray-100 dark:border-gray-800 max-w-sm w-full mx-auto text-center relative animate-in zoom-in-95 duration-200">
         
         {/* Close Icon Button */}
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           aria-label="Tutup Modal"
         >
           <X size={18} />
@@ -90,10 +90,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </div>
 
         {/* Title & Message */}
-        <h3 className="text-lg font-black text-gray-900 tracking-tight mb-1.5">
+        <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight mb-1.5">
           {title || 'Konfirmasi'}
         </h3>
-        <p className="text-xs text-gray-500 leading-relaxed mb-6 font-medium">
+        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-6 font-medium">
           {message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?'}
         </p>
 
@@ -102,7 +102,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-all active:scale-95"
+            className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition-all active:scale-95"
           >
             {cancelLabel}
           </button>

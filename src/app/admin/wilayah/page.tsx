@@ -91,7 +91,7 @@ export default function AdminDpwPage() {
   };
 
   const handleSeedAll38 = async () => {
-    if (!confirm('Apakah Anda ingin menginisialisasi / melengkapi seluruh 38 Wilayah DPW PKS se-Indonesia ke dalam database?')) return;
+    if (!confirm('Apakah Anda ingin menginisialisasi / melengkapi seluruh 38 Wilayah PKS se-Indonesia ke dalam database?')) return;
     setIsSeeding(true);
     const res = await seedDpw38();
     setIsSeeding(false);
@@ -143,7 +143,7 @@ export default function AdminDpwPage() {
             onClick={handleSeedAll38}
             disabled={isSeeding}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#F26522] to-amber-500 hover:from-[#d85517] hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
-            title="Lengkapi seluruh 38 DPW Provinsi Indonesia secara otomatis"
+            title="Lengkapi seluruh 38 Wilayah Provinsi Indonesia secara otomatis"
           >
             <Sparkles size={15} className={isSeeding ? 'animate-spin' : ''} />
             <span>{isSeeding ? 'Memproses 38 Wilayah...' : 'Inisialisasi 38 Wilayah'}</span>
@@ -302,7 +302,7 @@ export default function AdminDpwPage() {
                           <button
                             onClick={() => openEditModal(dpw)}
                             className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors"
-                            title="Edit Data DPW"
+                            title="Edit Data Wilayah"
                           >
                             <Edit size={16} />
                           </button>
@@ -310,7 +310,7 @@ export default function AdminDpwPage() {
                           <button
                             onClick={() => handleDelete(dpw)}
                             className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                            title="Hapus DPW"
+                            title="Hapus Wilayah"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -322,7 +322,7 @@ export default function AdminDpwPage() {
               ) : (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium">
-                    Tidak ada data wilayah DPW yang sesuai dengan pencarian.
+                    Tidak ada data wilayah yang sesuai dengan pencarian.
                   </td>
                 </tr>
               )}
