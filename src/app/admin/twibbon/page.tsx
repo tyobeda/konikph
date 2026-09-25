@@ -16,6 +16,8 @@ import {
   Share2,
   Layers,
   UploadCloud,
+  ShieldCheck,
+  Users,
 } from 'lucide-react';
 import { USERS } from '@/lib/data';
 import { useData, TwibbonFrame } from '@/context/DataContext';
@@ -23,7 +25,7 @@ import { compressImageFile } from '@/lib/imageCompressor';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 
 export default function AdminTwibbonPage() {
-  const { twibbons, addTwibbon, updateTwibbon, deleteTwibbon } = useData();
+  const { twibbons, addTwibbon, updateTwibbon, deleteTwibbon, siteSettings, updateSiteSettings } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [deletingTwibbon, setDeletingTwibbon] = useState<TwibbonFrame | null>(null);
@@ -162,6 +164,65 @@ export default function AdminTwibbonPage() {
           <Plus size={18} />
           <span>Tambah Twibbon Official</span>
         </button>
+      </div>
+
+      {/* Switch Akses Pembuatan Template Twibbon */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mb-8 shadow-sm transition-all">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className={`p-2.5 rounded-xl shrink-0 ${
+              siteSettings?.onlyAdminCanCreateTwibbon
+                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'
+            }`}>
+              {siteSettings?.onlyAdminCanCreateTwibbon ? <ShieldCheck size={22} /> : <Users size={22} />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">
+                  Batasi Pembuatan Template Twibbon Hanya untuk Super Admin
+                </h3>
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  siteSettings?.onlyAdminCanCreateTwibbon
+                    ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
+                    : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'
+                }`}>
+                  {siteSettings?.onlyAdminCanCreateTwibbon ? 'Hanya Super Admin' : 'Semua User'}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-2xl leading-relaxed">
+                {siteSettings?.onlyAdminCanCreateTwibbon
+                  ? 'Aktif: Tombol "Buat Template Twibbon" di halaman publik (/twibbon) hanya akan muncul dan dapat diakses oleh Super Admin.'
+                  : 'Nonaktif: Semua pengguna/kreator diperbolehkan membuat dan mengunggah template twibbon baru.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle Switch */}
+          <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
+              {siteSettings?.onlyAdminCanCreateTwibbon ? 'Khusus Admin' : 'Terbuka Umum'}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={Boolean(siteSettings?.onlyAdminCanCreateTwibbon)}
+              onClick={async () => {
+                const nextVal = !siteSettings?.onlyAdminCanCreateTwibbon;
+                await updateSiteSettings({ onlyAdminCanCreateTwibbon: nextVal });
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                siteSettings?.onlyAdminCanCreateTwibbon ? 'bg-[#F26522]' : 'bg-gray-200 dark:bg-gray-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  siteSettings?.onlyAdminCanCreateTwibbon ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Table Container */}

@@ -120,6 +120,7 @@ export interface DataContextType {
     autoApproveArtworks?: boolean;
     allowCommentLinks?: boolean;
     forbiddenWords?: string;
+    onlyAdminCanCreateTwibbon?: boolean;
     maintenanceConfig?: {
       globalEnabled: boolean;
       modules: {
@@ -256,7 +257,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     ctaSocialText: 'Follow @pksart',
     ctaSocialUrl: '#',
     allowCommentLinks: true,
-    forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu'
+    forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu',
+    onlyAdminCanCreateTwibbon: false
   };
 
   const [siteSettings, setSiteSettings] = useState(() => {

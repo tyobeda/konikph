@@ -25,8 +25,12 @@ import { compressImageFile } from '@/lib/imageCompressor';
 import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
 
 export default function TwibbonGalleryPage() {
-  const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance } = useData();
+  const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance, siteSettings } = useData();
   const router = useRouter();
+
+  const isOnlyAdminMode = Boolean(siteSettings?.onlyAdminCanCreateTwibbon);
+  const isSuperAdmin = currentUser?.role === 'Super Admin';
+  const canCreateTwibbon = !isOnlyAdminMode || isSuperAdmin;
 
   if (isModuleUnderMaintenance('twibbon')) {
     return <MaintenanceContent />;
@@ -122,6 +126,10 @@ export default function TwibbonGalleryPage() {
 
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isOnlyAdminMode && !isSuperAdmin) {
+      alert('Pembuatan template twibbon saat ini dibatasi hanya untuk Super Admin.');
+      return;
+    }
     if (!uploadFileUrl) {
       alert('Harap unggah berkas gambar bingkai PNG terlebih dahulu.');
       return;
@@ -191,20 +199,22 @@ export default function TwibbonGalleryPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto shrink-0 flex-wrap">
-            {/* Create Template Twibbon Button */}
-            <button
-              onClick={() => {
-                if (!currentUser) {
-                  router.push('/login?redirect=/twibbon');
-                } else {
-                  setIsUploadModalOpen(true);
-                }
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
-            >
-              <Plus size={16} />
-              <span>Buat Template Twibbon</span>
-            </button>
+            {/* Create Template Twibbon Button (Hanya tampil sesuai hak akses pengaturan switch) */}
+            {canCreateTwibbon && (
+              <button
+                onClick={() => {
+                  if (!currentUser) {
+                    router.push('/login?redirect=/twibbon');
+                  } else {
+                    setIsUploadModalOpen(true);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+              >
+                <Plus size={16} />
+                <span>Buat Template Twibbon</span>
+              </button>
+            )}
 
             {/* Search bar */}
             <div className="relative flex-1 md:max-w-xs">

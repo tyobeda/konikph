@@ -43,7 +43,8 @@ const DEFAULT_SETTINGS = {
   ]),
   adminWhatsapp: '6281199887766',
   allowCommentLinks: true,
-  forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu'
+  forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu',
+  onlyAdminCanCreateTwibbon: false
 };
 
 export async function getDBSiteSettings() {
@@ -110,6 +111,7 @@ export async function updateDBSiteSettings(data: any) {
     if (data.autoApproveArtworks !== undefined) updateData.autoApproveArtworks = Boolean(data.autoApproveArtworks);
     if (data.allowCommentLinks !== undefined) updateData.allowCommentLinks = Boolean(data.allowCommentLinks);
     if (data.forbiddenWords !== undefined) updateData.forbiddenWords = data.forbiddenWords;
+    if (data.onlyAdminCanCreateTwibbon !== undefined) updateData.onlyAdminCanCreateTwibbon = Boolean(data.onlyAdminCanCreateTwibbon);
     if (data.maintenanceConfig !== undefined) {
       updateData.maintenanceConfig = typeof data.maintenanceConfig === 'string' 
         ? data.maintenanceConfig 
@@ -144,6 +146,7 @@ export async function updateDBSiteSettings(data: any) {
         autoApproveArtworks: data.autoApproveArtworks !== undefined ? Boolean(data.autoApproveArtworks) : true,
         allowCommentLinks: data.allowCommentLinks !== undefined ? Boolean(data.allowCommentLinks) : true,
         forbiddenWords: data.forbiddenWords || DEFAULT_SETTINGS.forbiddenWords,
+        onlyAdminCanCreateTwibbon: data.onlyAdminCanCreateTwibbon !== undefined ? Boolean(data.onlyAdminCanCreateTwibbon) : false,
         maintenanceConfig: data.maintenanceConfig ? (typeof data.maintenanceConfig === 'string' ? data.maintenanceConfig : JSON.stringify(data.maintenanceConfig)) : null,
       }
     });
