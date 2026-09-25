@@ -90,12 +90,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans transition-colors">
       {/* Top Header Link */}
       <div className="max-w-md w-full mx-auto mb-6 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#F26522] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
         >
           <ArrowLeft size={16} />
           <span>Kembali ke Beranda</span>
@@ -104,13 +104,13 @@ export default function LoginPage() {
         <PksLogo size="sm" />
       </div>
 
-      <div className="max-w-md w-full mx-auto bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-8">
+      <div className="max-w-md w-full mx-auto bg-white dark:bg-gray-900 rounded-3xl shadow-md border border-gray-100 dark:border-gray-800 p-6 sm:p-8">
         
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
             Masuk ke PKSart
           </h2>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Masukkan email dan kata sandi akun Anda.
           </p>
         </div>
@@ -118,34 +118,34 @@ export default function LoginPage() {
         <form onSubmit={handleLoginSubmit} className="space-y-4">
           
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
               Email
             </label>
             <div className="relative">
-              <Mail size={18} className="absolute left-3.5 top-3 text-gray-400" />
+              <Mail size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setAlertInfo(null); }}
                 placeholder="Masukkan email Anda"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-bold"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 font-bold"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
               Kata Sandi
             </label>
             <div className="relative">
-              <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
+              <Lock size={18} className="absolute left-3.5 top-3.5 text-gray-400 dark:text-gray-500" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setAlertInfo(null); }}
                 placeholder="Masukkan kata sandi Anda"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-bold"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 font-bold"
                 required
               />
               <button
@@ -165,7 +165,7 @@ export default function LoginPage() {
                   setShowResetModal(true);
                   setResetSuccessMessage(false);
                 }}
-                className="text-xs font-bold text-gray-500 hover:text-[#F26522] transition-colors"
+                className="text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
               >
                 Lupa Kata Sandi?
               </button>
@@ -186,14 +186,14 @@ export default function LoginPage() {
           <div
             className={`mt-4 p-3.5 rounded-2xl border text-xs font-bold flex items-start gap-2.5 transition-all animate-in fade-in slide-in-from-top-1 ${
               alertInfo.type === 'error'
-                ? 'bg-red-50 border-red-200 text-red-700'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900 text-red-700 dark:text-red-400'
+                : 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400'
             }`}
           >
             {alertInfo.type === 'error' ? (
-              <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+              <AlertCircle size={18} className="text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
             ) : (
-              <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             )}
             <div className="leading-snug">
               <span>{alertInfo.message}</span>
@@ -201,7 +201,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
+        <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 text-center text-xs text-gray-500 dark:text-gray-400">
           Belum memiliki akun?{' '}
           <Link href="/register" className="font-bold text-[#F26522] hover:underline">
             Daftar Akun Baru
@@ -215,8 +215,8 @@ export default function LoginPage() {
       {/* Password Reset Request Modal */}
       {showResetModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 relative animate-in fade-in zoom-in-95">
-            <h3 className="text-base font-extrabold text-gray-900 mb-2 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 dark:border-gray-800 relative animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-extrabold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
               <Lock size={18} className="text-[#F26522]" />
               <span>Minta Reset Kata Sandi</span>
             </h3>
@@ -237,32 +237,32 @@ export default function LoginPage() {
                 }}
                 className="space-y-4 mt-4"
               >
-                <p className="text-xs text-gray-600 leading-relaxed bg-orange-50/70 p-3 rounded-xl border border-orange-100">
+                <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed bg-orange-50/70 dark:bg-orange-950/20 p-3 rounded-xl border border-orange-100 dark:border-orange-900/40">
                   Tautan reset kata sandi (berlaku <strong>5 menit</strong>) akan <strong>dikirimkan secara otomatis ke Inbox/Spam email Anda via Resend</strong>. Jika email belum kunjung tiba, Anda juga dapat langsung menghubungi Admin via WhatsApp.
                 </p>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nama Lengkap (Opsional)</label>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Nama Lengkap (Opsional)</label>
                   <input
                     type="text"
                     value={resetName}
                     onChange={(e) => setResetName(e.target.value)}
                     placeholder="Nama akun Anda"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Alamat Email <span className="text-red-500">*</span></label>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Alamat Email <span className="text-red-500">*</span></label>
                   <input
                     type="email"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="contoh: nama@pks.art"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nomor WhatsApp <span className="text-red-500">*</span></label>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Nomor WhatsApp <span className="text-red-500">*</span></label>
                   <input
                     type="tel"
                     value={resetPhone}
@@ -273,7 +273,7 @@ export default function LoginPage() {
                       }
                     }}
                     placeholder="081299887766 atau +6281299887766"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                     required
                   />
                 </div>
@@ -281,7 +281,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowResetModal(false)}
-                    className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors"
+                    className="px-3.5 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-lg transition-colors"
                   >
                     Batal
                   </button>
@@ -296,19 +296,19 @@ export default function LoginPage() {
               </form>
             ) : (
               <div className="space-y-4 mt-4 text-center py-2">
-                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
                   ✓
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">Permintaan Berhasil Terkirim!</h4>
-                <p className="text-xs text-gray-600 leading-relaxed max-w-sm mx-auto">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">Permintaan Berhasil Terkirim!</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed max-w-sm mx-auto">
                   Sistem telah mengirimkan tautan reset kata sandi ke email <strong>{resetEmail}</strong> (Silakan cek folder <strong>Inbox & Spam</strong>).
                 </p>
 
-                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-left space-y-2 text-xs text-amber-900">
-                  <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl text-left space-y-2 text-xs text-amber-900 dark:text-amber-200">
+                  <p className="font-bold flex items-center gap-1.5 text-amber-900 dark:text-amber-300">
                     <span>📱 Email belum kunjung sampai?</span>
                   </p>
-                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300/80 leading-relaxed">
                     Anda juga dapat langsung menghubungi Admin PKSart via WhatsApp untuk meminta verifikasi manual:
                   </p>
                   <a
@@ -327,7 +327,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowResetModal(false)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg transition-colors w-full"
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-lg transition-colors w-full"
                   >
                     Selesai & Tutup
                   </button>

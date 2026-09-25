@@ -160,7 +160,7 @@ export default function CreatorPublicProfilePage() {
   const displayedArtworks = activeTab === 'karya' ? creatorArtworks : likedArtworks;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px]">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] transition-colors duration-200">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">

@@ -172,7 +172,7 @@ export default function HomePage() {
   }, [baseFiltered, currentPage]);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
       {/* Welcome Popup Dialog */}
       <WelcomePopup />
 
@@ -329,7 +329,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Rss size={20} className="text-[#F26522]" />
-            <h2 className="text-lg font-extrabold text-gray-900">
+            <h2 className="text-lg font-extrabold text-gray-900 dark:text-white transition-colors">
               Feed Timeline
             </h2>
           </div>
@@ -371,9 +371,9 @@ export default function HomePage() {
 
               {/* 📄 Pagination Navigation Controls (20 Karya Per Halaman) */}
               {totalPages > 1 && (
-                <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200/80">
-                  <div className="text-xs text-gray-500 font-semibold">
-                    Menampilkan <span className="font-extrabold text-gray-800">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> - <span className="font-extrabold text-gray-800">{Math.min(currentPage * ITEMS_PER_PAGE, baseFiltered.length)}</span> dari <span className="font-extrabold text-gray-800">{baseFiltered.length}</span> karya
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200/80 dark:border-gray-800 transition-colors">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                    Menampilkan <span className="font-extrabold text-gray-800 dark:text-gray-200">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> - <span className="font-extrabold text-gray-800 dark:text-gray-200">{Math.min(currentPage * ITEMS_PER_PAGE, baseFiltered.length)}</span> dari <span className="font-extrabold text-gray-800 dark:text-gray-200">{baseFiltered.length}</span> karya
                   </div>
 
                   <div className="flex items-center gap-1.5">
@@ -381,7 +381,7 @@ export default function HomePage() {
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-orange-50 hover:text-[#F26522] hover:border-orange-200 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-gray-700 disabled:hover:border-gray-200 transition-all shadow-sm"
+                      className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:text-[#F26522] dark:hover:text-[#F26522] hover:border-orange-200 dark:hover:border-orange-900/50 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-gray-800 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 transition-all shadow-sm"
                       aria-label="Halaman Sebelumnya"
                     >
                       <ChevronLeft size={16} />
@@ -405,13 +405,13 @@ export default function HomePage() {
                             className={`min-w-[36px] h-9 px-3 rounded-xl text-xs font-bold transition-all shadow-sm ${
                               currentPage === p
                                 ? 'bg-[#F26522] text-white shadow-orange-500/20'
-                                : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-50 hover:text-[#F26522] hover:border-orange-200'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:text-[#F26522] dark:hover:text-[#F26522] hover:border-orange-200 dark:hover:border-orange-900/50'
                             }`}
                           >
                             {p}
                           </button>
                         ) : (
-                          <span key={`dots-${idx}`} className="px-1 text-gray-400 text-xs font-bold">
+                          <span key={`dots-${idx}`} className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold">
                             ...
                           </span>
                         )
@@ -421,7 +421,7 @@ export default function HomePage() {
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-orange-50 hover:text-[#F26522] hover:border-orange-200 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-gray-700 disabled:hover:border-gray-200 transition-all shadow-sm"
+                      className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:text-[#F26522] dark:hover:text-[#F26522] hover:border-orange-200 dark:hover:border-orange-900/50 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-gray-800 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 transition-all shadow-sm"
                       aria-label="Halaman Berikutnya"
                     >
                       <ChevronRight size={16} />
@@ -431,12 +431,12 @@ export default function HomePage() {
               )}
             </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-gray-100">
-            <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 transition-colors">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded-full flex items-center justify-center mb-4">
               🔍
             </div>
-            <h3 className="text-lg font-bold text-gray-800">Karya tidak ditemukan</h3>
-            <p className="text-sm text-gray-500 max-w-sm mt-1">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Karya tidak ditemukan</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mt-1">
               Coba ubah kata kunci pencarian atau reset filter kategori/daerah.
             </p>
             <button
@@ -470,9 +470,9 @@ export default function HomePage() {
             <div className="flex-1 flex flex-col z-10 text-center md:text-left">
               {/* Logo & Description Row */}
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                {siteSettings.ctaLogoUrl ? (
+                {(siteSettings.ctaLogoUrl || siteSettings.logoFooterUrl || siteSettings.logoAdminUrl) ? (
                   <img 
-                    src={siteSettings.ctaLogoUrl} 
+                    src={siteSettings.ctaLogoUrl || siteSettings.logoFooterUrl || siteSettings.logoAdminUrl} 
                     alt="CTA Logo" 
                     className="h-16 object-contain shrink-0" 
                   />

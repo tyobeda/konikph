@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { PksLogo } from './PksLogo';
+import { ThemeToggle } from './ThemeToggle';
 import { Search, ChevronDown, Bell } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { getUserSlug } from '@/lib/slug';
@@ -180,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-40 w-full bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-800/80 shadow-sm transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           
@@ -191,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             {/* Search Bar - Desktop */}
             {!pathname?.startsWith('/twibbon') && (
               <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 relative items-center">
-                <div className="absolute left-3.5 text-gray-400 pointer-events-none">
+                <div className="absolute left-3.5 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <Search size={18} />
                 </div>
                 <input
@@ -199,14 +200,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   value={internalSearch}
                   onChange={handleSearchInput}
                   placeholder="Cari karya, desainer, atau daerah..."
-                  className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none transition-all"
+                  className="w-full bg-[#F3F4F6] dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 focus:outline-none transition-all"
                 />
               </form>
             )}
           </div>
 
           {/* Desktop Navigation Links with Seamless Cross-Page Sliding Indicator */}
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-700 relative h-full">
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-700 dark:text-gray-300 relative h-full">
             {navLinks.map((link) => {
               const isActive = activeLinkId === link.id;
 
@@ -219,7 +220,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   }}
                   onClick={(e) => handleNavClick(e, link.id, link.href)}
                   className={`relative py-5 transition-colors duration-200 flex items-center ${
-                    isActive ? 'text-[#F26522] font-extrabold' : 'text-gray-700 hover:text-[#F26522]'
+                    isActive ? 'text-[#F26522] font-extrabold' : 'text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522]'
                   }`}
                 >
                   {link.label}
@@ -242,11 +243,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
           </nav>
 
           {/* Action Buttons & Profile */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle (Dark / Light / System) */}
+            <ThemeToggle variant="dropdown" />
+
             {/* Create Twibbon Button */}
             <Link
               href="/twibbon"
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
             >
               <span>Buat Twibbon</span>
             </Link>
@@ -263,7 +267,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
 
             {/* Notification Icon */}
             {currentUser && (
-              <Link href="/notifikasi" className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors mx-1" aria-label="Notifications">
+              <Link href="/notifikasi" className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
                 {unreadNotificationCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />}
               </Link>
@@ -271,7 +275,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             
             {currentUser ? (
               <div suppressHydrationWarning ref={profileDropdownRef} className="relative flex items-center">
-                <div className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                <div className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                   {/* Clicking Avatar redirects directly to user profile */}
                   <Link
                     href={`/creators/${getUserSlug(currentUser)}`}
@@ -294,7 +298,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   {/* Dropdown toggle arrow */}
                   <button
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="p-1 text-gray-500 hover:text-gray-900 transition-colors focus:outline-none"
+                    className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors focus:outline-none"
                     aria-label="Toggle profile menu"
                     title="Menu Akun"
                   >
@@ -303,17 +307,17 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 </div>
 
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 text-sm animate-in fade-in slide-in-from-top-2">
-                    <div className="px-4 py-2.5 border-b border-gray-100">
-                      <p suppressHydrationWarning className="font-bold text-gray-900 truncate">{currentUser.name}</p>
-                      <p suppressHydrationWarning className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-1.5 z-50 text-sm animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
+                      <p suppressHydrationWarning className="font-bold text-gray-900 dark:text-white truncate">{currentUser.name}</p>
+                      <p suppressHydrationWarning className="text-xs text-gray-500 dark:text-gray-400 truncate">{currentUser.email}</p>
                     </div>
 
                     {(currentUser.role === 'Super Admin' || currentUser.role?.includes('DPW')) && (
                       <Link
                         href="/admin"
                         onClick={() => setIsProfileDropdownOpen(false)}
-                        className="flex items-center justify-between px-4 py-2 text-gray-800 font-bold hover:bg-orange-50 hover:text-[#F26522]"
+                        className="flex items-center justify-between px-4 py-2 text-gray-800 dark:text-gray-200 font-bold hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:text-[#F26522] dark:hover:text-[#F26522]"
                       >
                         <span>Admin Dashboard</span>
                         <span className="text-[9px] uppercase font-extrabold bg-[#F26522] text-white px-1.5 py-0.5 rounded">
@@ -325,7 +329,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     <Link
                       href={`/creators/${getUserSlug(currentUser)}`}
                       onClick={() => setIsProfileDropdownOpen(false)}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold"
                     >
                       Profil Saya
                     </Link>
@@ -333,7 +337,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     <Link
                       href="/profile"
                       onClick={() => setIsProfileDropdownOpen(false)}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold"
                     >
                       Pengaturan Profil
                     </Link>
@@ -341,10 +345,16 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                     <Link
                       href="/my-artworks"
                       onClick={() => setIsProfileDropdownOpen(false)}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-xs font-semibold"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold"
                     >
                       Kelola Postingan Saya
                     </Link>
+
+                    {/* Inline Theme Chooser in Profile Menu */}
+                    <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800">
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Mode Tampilan</p>
+                      <ThemeToggle variant="inline" />
+                    </div>
 
                     <button
                       onClick={() => {
@@ -352,7 +362,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                         logoutUser();
                         router.push('/login');
                       }}
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-bold text-xs border-t border-gray-100 transition-colors"
+                      className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 font-bold text-xs border-t border-gray-100 dark:border-gray-800 transition-colors"
                     >
                       Keluar Akun
                     </button>
@@ -363,13 +373,13 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="px-3.5 py-2 text-xs font-bold text-gray-700 hover:text-[#F26522] hover:bg-gray-100 rounded-xl transition-all"
+                  className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
                 >
                   Masuk
                 </Link>
                 <Link
                   href="/register"
-                  className="px-3.5 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+                  className="px-3.5 py-2 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-bold rounded-xl transition-all shadow-sm"
                 >
                   Daftar
                 </Link>
@@ -383,7 +393,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
         {!pathname?.startsWith('/twibbon') && pathname !== '/notifikasi' && (
           <div className="md:hidden pb-3 pt-1">
             <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-              <div className="absolute left-3 text-gray-400 pointer-events-none">
+              <div className="absolute left-3 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <Search size={16} />
               </div>
               <input
@@ -391,7 +401,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 value={internalSearch}
                 onChange={handleSearchInput}
                 placeholder="Cari karya, desainer, atau daerah..."
-                className="w-full bg-[#F3F4F6] text-gray-800 placeholder-gray-400 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white focus:outline-none"
+                className="w-full bg-[#F3F4F6] dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 focus:outline-none"
               />
             </form>
           </div>

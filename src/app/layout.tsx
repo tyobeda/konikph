@@ -4,6 +4,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DataProvider } from "@/context/DataContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 
 const geistSans = Geist({
@@ -78,20 +79,44 @@ export default async function RootLayout({
     <html
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <link rel="icon" href={faviconHref} sizes="any" />
         <link rel="shortcut icon" href={faviconHref} />
         <link rel="apple-touch-icon" href={faviconHref} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('pksart_theme');
+                  var isDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] text-gray-900" suppressHydrationWarning>
-        <DataProvider initialSettings={initialSettings}>
-          <Suspense fallback={null}>
-            <AnalyticsTracker />
-          </Suspense>
-          {children}
-          <MobileBottomNav />
-        </DataProvider>
+      <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100 transition-colors duration-200" suppressHydrationWarning>
+        <ThemeProvider>
+          <DataProvider initialSettings={initialSettings}>
+            <Suspense fallback={null}>
+              <AnalyticsTracker />
+            </Suspense>
+            {children}
+            <MobileBottomNav />
+          </DataProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

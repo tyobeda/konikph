@@ -774,7 +774,7 @@ export default function ArtworkDetailContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
       {/* 🌟 Premium Top-Right Toast Alert */}
       {showToast && (
         <div className={`fixed top-20 right-6 z-[200] bg-white/95 backdrop-blur-md border ${
@@ -850,13 +850,13 @@ export default function ArtworkDetailContent() {
           </div>
 
           {/* Right: Info Card Container */}
-          <div className="lg:col-span-5 p-5 sm:p-6 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div className="lg:col-span-5 p-5 sm:p-6 bg-white dark:bg-[#161B26] rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between transition-colors duration-200">
             <div>
-              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-3">
                   <Link 
                     href={`/creators/${getUserSlug(artwork.author)}`}
-                    className="shrink-0 w-10 h-10 rounded-full overflow-hidden block aspect-square ring-2 ring-orange-100 shadow-sm hover:ring-[#F26522] transition-all"
+                    className="shrink-0 w-10 h-10 rounded-full overflow-hidden block aspect-square ring-2 ring-orange-100 dark:ring-orange-950/40 shadow-sm hover:ring-[#F26522] transition-all"
                   >
                     <img
                       src={artwork.author?.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
@@ -867,17 +867,17 @@ export default function ArtworkDetailContent() {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <Link href={`/creators/${getUserSlug(artwork.author)}`}>
-                        <h2 className="text-sm font-extrabold text-gray-900 leading-snug hover:text-[#F26522] transition-colors">
+                        <h2 className="text-sm font-extrabold text-gray-900 dark:text-gray-100 leading-snug hover:text-[#F26522] transition-colors">
                           {artwork.author?.name || 'Desainer PKS'}
                         </h2>
                       </Link>
                       {(artwork.author?.isVerified || artwork.author?.role === 'Super Admin') && (
                         <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
-                          <BadgeCheck size={16} className="text-[#F26522] fill-orange-50" />
+                          <BadgeCheck size={16} className="text-[#F26522] fill-orange-50 dark:fill-orange-950" />
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 font-medium">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                       {(artwork.author?.region || artwork.region || '').replace(/^DPW\s+/i, 'Wilayah ')}
                       {artwork.format && !['Hanya gambar', 'Hanya Gambar', 'HANYA_GAMBAR', 'Gambar'].includes(artwork.format.trim()) && (
                         ` • Format ${artwork.format}`
@@ -889,13 +889,13 @@ export default function ArtworkDetailContent() {
                 <div className="relative" ref={optionsRef}>
                   <button
                     onClick={() => setShowOptions(!showOptions)}
-                    className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                   >
                     <MoreVertical size={20} />
                   </button>
 
                   {showOptions && (
-                    <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-top-right">
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-top-right">
                       <button
                         onClick={() => { setShowOptions(false); handleShare(); }}
                         className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
@@ -952,8 +952,8 @@ export default function ArtworkDetailContent() {
                 </div>
               </div>
 
-              <div className="pt-4 pb-3 border-b border-gray-100 space-y-2">
-                <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
+              <div className="pt-4 pb-3 border-b border-gray-100 dark:border-gray-800 space-y-2">
+                <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-gray-100 leading-tight">
                   {artwork.title}
                 </h1>
 
@@ -962,7 +962,7 @@ export default function ArtworkDetailContent() {
                   {artwork.category && (
                     <Link
                       href={`/explore?category=${encodeURIComponent(artwork.category)}`}
-                      className="bg-[#3f3f46] hover:bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-full transition-colors"
+                      className="bg-[#3f3f46] dark:bg-gray-800 hover:bg-zinc-800 dark:hover:bg-gray-700 text-white text-xs font-semibold px-3 py-1 rounded-full transition-colors"
                     >
                       {artwork.category}
                     </Link>
@@ -973,7 +973,7 @@ export default function ArtworkDetailContent() {
                       <Link
                         key={idx}
                         href={`/explore?q=${encodeURIComponent(tag)}`}
-                        className="text-xs font-bold text-[#F26522] hover:text-[#d85417] bg-orange-50 hover:bg-orange-100 px-2.5 py-0.5 rounded-md transition-colors"
+                        className="text-xs font-bold text-[#F26522] hover:text-[#d85417] bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/40 px-2.5 py-0.5 rounded-md transition-colors"
                       >
                         {formattedTag}
                       </Link>
@@ -982,7 +982,7 @@ export default function ArtworkDetailContent() {
                 </div>
 
                 {artwork.description && (
-                  <div className="pt-2 text-xs sm:text-sm text-gray-700 leading-relaxed font-normal whitespace-pre-line">
+                  <div className="pt-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-normal whitespace-pre-line">
                     {!isDescExpanded && artwork.description.length > 250
                       ? `${artwork.description.slice(0, 250)}...`
                       : artwork.description}
@@ -1000,16 +1000,16 @@ export default function ArtworkDetailContent() {
             </div>
 
             <div suppressHydrationWarning className="flex-1 py-3 overflow-y-auto max-h-[220px] lg:max-h-[260px] space-y-2.5 pr-1 my-2">
-              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+              <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <MessageSquare size={15} className="text-[#F26522]" />
                 <span>KOMENTAR ({currentComments.length})</span>
               </h3>
 
               {currentComments.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200 p-4">
-                  <MessageSquare size={22} className="text-gray-300 mb-1.5" />
-                  <p className="text-xs font-bold text-gray-500 font-sans">Belum ada komentar</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Jadilah yang pertama menuliskan pendapat Anda!</p>
+                <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50/50 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-200 dark:border-gray-750 p-4">
+                  <MessageSquare size={22} className="text-gray-300 dark:text-gray-600 mb-1.5" />
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 font-sans">Belum ada komentar</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">Jadilah yang pertama menuliskan pendapat Anda!</p>
                 </div>
               ) : (
                 currentComments.slice(0, visibleCommentsCount).map((comment: any) => {
@@ -1019,7 +1019,7 @@ export default function ArtworkDetailContent() {
                   const isEditingThis = editingCommentId === comment.id;
 
                   return (
-                    <div key={comment.id} className="flex gap-2.5 bg-gray-50/70 p-3 rounded-xl border border-gray-100 group">
+                    <div key={comment.id} className="flex gap-2.5 bg-gray-50/70 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-100 dark:border-gray-700/60 group">
                       <Link href={`/creators/${getUserSlug(author)}`}>
                         <img
                           src={author.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
@@ -1031,11 +1031,11 @@ export default function ArtworkDetailContent() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <Link href={`/creators/${getUserSlug(author)}`}>
-                              <span className="font-bold text-gray-900 hover:text-[#F26522] transition-colors">{author.name}</span>
+                              <span className="font-bold text-gray-900 dark:text-gray-100 hover:text-[#F26522] transition-colors">{author.name}</span>
                             </Link>
                             {(author.isVerified || author.role === 'Super Admin') && (
                               <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
-                                <BadgeCheck size={13} className="text-[#F26522] fill-orange-50" />
+                                <BadgeCheck size={13} className="text-[#F26522] fill-orange-50 dark:fill-orange-950" />
                               </span>
                             )}
                             {comment.isEdited && (
@@ -1082,14 +1082,14 @@ export default function ArtworkDetailContent() {
                                   handleSaveEdit(comment.id);
                                 }
                               }}
-                              className="w-full bg-white border border-[#F26522] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-semibold focus:outline-none resize-none min-h-[36px]"
+                              className="w-full bg-white dark:bg-gray-900 border border-[#F26522] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 dark:text-gray-100 font-semibold focus:outline-none resize-none min-h-[36px]"
                               rows={2}
                               autoFocus
                             />
                             <div className="flex items-center gap-1.5 justify-end">
                               <button
                                 onClick={() => setEditingCommentId(null)}
-                                className="px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-0.5"
+                                className="px-2 py-1 text-[11px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors flex items-center gap-0.5"
                               >
                                 <X size={12} />
                                 <span>Batal</span>
@@ -1105,7 +1105,7 @@ export default function ArtworkDetailContent() {
                           </div>
                         ) : (
                           <div className="mt-1">
-                            <p className="text-gray-700 leading-normal whitespace-pre-line break-words">
+                            <p className="text-gray-700 dark:text-gray-300 leading-normal whitespace-pre-line break-words">
                               {!expandedComments[comment.id] && content.length > 100
                                 ? `${content.slice(0, 100)}...`
                                 : content}
@@ -1140,7 +1140,7 @@ export default function ArtworkDetailContent() {
               )}
             </div>
 
-            <div className="pt-3 border-t border-gray-100 space-y-2">
+            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
               <form onSubmit={handleAddComment} className="flex gap-2 items-stretch">
                 <div className="flex-1 relative min-w-0">
                   <textarea
@@ -1157,13 +1157,13 @@ export default function ArtworkDetailContent() {
                       }
                     }}
                     placeholder="Tulis komentar..."
-                    className={`w-full bg-gray-50/80 border text-gray-900 placeholder:text-gray-400 font-medium rounded-xl px-3.5 pt-2.5 pb-6 text-xs focus:outline-none focus:bg-white transition-all resize-none min-h-[54px] ${
-                      commentError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#F26522]'
+                    className={`w-full bg-gray-50/80 dark:bg-gray-800/80 border text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 font-medium rounded-xl px-3.5 pt-2.5 pb-6 text-xs focus:outline-none focus:bg-white dark:focus:bg-gray-800 transition-all resize-none min-h-[54px] ${
+                      commentError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 dark:border-gray-700 focus:border-[#F26522]'
                     }`}
                     rows={2}
                   />
                   <span className={`absolute right-3 bottom-1.5 text-[10px] font-semibold pointer-events-none ${
-                    newComment.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400'
+                    newComment.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400 dark:text-gray-500'
                   }`}>
                     {newComment.length}/1000
                   </span>
@@ -1187,11 +1187,11 @@ export default function ArtworkDetailContent() {
                   onClick={handleLikeToggle}
                   className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-xs font-bold transition-all ${
                     isLiked
-                      ? 'bg-red-50 text-red-600 border-red-200'
-                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Heart size={15} className={isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500'} />
+                  <Heart size={15} className={isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500 dark:text-gray-400'} />
                   <span>Sukai ({likesCount})</span>
                 </button>
 
@@ -1199,19 +1199,19 @@ export default function ArtworkDetailContent() {
                   onClick={handleSaveToggle}
                   className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-xs font-bold transition-all ${
                     isSaved
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Bookmark size={15} className={isSaved ? 'fill-amber-500 text-amber-500' : 'text-gray-500'} />
+                  <Bookmark size={15} className={isSaved ? 'fill-amber-500 text-amber-500' : 'text-gray-500 dark:text-gray-400'} />
                   <span>{isSaved ? 'Tersimpan' : 'Simpan'}</span>
                 </button>
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs font-bold transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-bold transition-all"
                 >
-                  <Share2 size={15} className="text-gray-500" />
+                  <Share2 size={15} className="text-gray-500 dark:text-gray-400" />
                   <span>Bagikan</span>
                 </button>
               </div>

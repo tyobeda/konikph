@@ -438,9 +438,9 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
 
   return (
     <>
-      <div className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
+      <div className="group bg-white dark:bg-[#161B26] rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-800 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
-      <div className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50">
+      <div className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50 dark:bg-gray-900">
         <div className="relative w-full overflow-hidden">
           {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
             <CarouselViewer
@@ -454,7 +454,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
             <Link href={artworkPath} className="block relative w-full overflow-hidden">
               {/* Subtle loading placeholder background that matches masonry height */}
               {!isImgLoaded && (
-                <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+                <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 animate-pulse" />
               )}
               <Image
                 src={imgSrc}
@@ -480,13 +480,13 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       </div>
 
       {/* Card Footer Info */}
-      <div className="p-3 sm:p-3.5 flex flex-col gap-2.5 bg-white">
+      <div className="p-3 sm:p-3.5 flex flex-col gap-2.5 bg-white dark:bg-[#161B26] rounded-b-xl">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             {/* Creator Avatar Link */}
             <Link 
               href={`/creators/${getUserSlug(artwork.author)}`}
-              className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden block aspect-square ring-1 ring-gray-200 hover:ring-[#F26522] transition-all bg-gray-100"
+              className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden block aspect-square ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-[#F26522] transition-all bg-gray-100 dark:bg-gray-800"
             >
               <Image
                 src={artwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
@@ -503,19 +503,19 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               <div className="flex items-center gap-1 min-w-0">
                 <Link 
                   href={`/creators/${getUserSlug(artwork.author)}`}
-                  className="text-xs sm:text-sm font-bold text-gray-900 truncate hover:text-[#F26522] transition-colors leading-tight"
+                  className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 truncate hover:text-[#F26522] transition-colors leading-tight"
                 >
                   {artwork.author.name}
                 </Link>
                 {(artwork.author?.isVerified || artwork.author?.role === 'Super Admin') && (
                   <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
-                    <BadgeCheck size={14} className="text-[#F26522] fill-orange-50" />
+                    <BadgeCheck size={14} className="text-[#F26522] fill-orange-50 dark:fill-orange-950" />
                   </span>
                 )}
               </div>
 
               {/* Like & Comment Stats */}
-              <div className="flex items-center gap-2.5 text-xs text-gray-400 font-medium mt-0.5">
+              <div className="flex items-center gap-2.5 text-xs text-gray-400 dark:text-gray-500 font-medium mt-0.5">
                 <button
                   onClick={handleLike}
                   className="flex items-center gap-1 hover:text-red-500 transition-colors"
@@ -523,13 +523,13 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 >
                   <Heart
                     size={14}
-                    className={isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                    className={isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-gray-500'}
                   />
-                  <span className="text-gray-500 font-semibold">{likes}</span>
+                  <span className="text-gray-500 dark:text-gray-400 font-semibold">{likes}</span>
                 </button>
 
-                <div className="flex items-center gap-1 text-gray-500" title="Komentar">
-                  <MessageSquare size={14} className="text-gray-400" />
+                <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400" title="Komentar">
+                  <MessageSquare size={14} className="text-gray-400 dark:text-gray-500" />
                   <span className="font-semibold">{artwork.commentsCount}</span>
                 </div>
               </div>
@@ -540,7 +540,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           <div className="flex items-center gap-0.5 relative" ref={dropdownRef}>
             <button
               onClick={handleDownload}
-              className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors shrink-0"
+              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-lg transition-colors shrink-0"
               title="Unduh Design Template"
             >
               <Download size={18} />
@@ -548,17 +548,17 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
             
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(!showDropdown); }}
-              className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors shrink-0"
+              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
               title="Opsi Lainnya"
             >
               <MoreVertical size={18} />
             </button>
 
             {showDropdown && (
-              <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-bottom-right">
+              <div className="absolute right-0 bottom-full mb-2 w-48 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl py-1.5 z-[100] text-sm animate-in fade-in zoom-in-95 origin-bottom-right">
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDropdown(false); setIsShareModalOpen(true); }}
-                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 font-bold transition-colors"
+                  className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2.5 text-gray-700 dark:text-gray-300 font-bold transition-colors"
                 >
                   <Share2 size={15} /> <span className="text-xs">Bagikan ke Sosial Media</span>
                 </button>
@@ -616,7 +616,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
             {artwork.category && (
               <Link
                 href={`/explore?category=${encodeURIComponent(artwork.category)}`}
-                className="bg-[#484848] hover:bg-zinc-800 text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full transition-colors"
+                className="bg-[#484848] dark:bg-gray-800 hover:bg-zinc-800 dark:hover:bg-gray-700 text-white text-[11px] font-medium px-2.5 py-0.5 rounded-full transition-colors"
               >
                 {artwork.category}
               </Link>
@@ -627,7 +627,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                 <Link
                   key={idx}
                   href={`/explore?q=${encodeURIComponent(tag)}`}
-                  className="text-[11px] font-bold text-[#F26522] hover:text-[#d85417] bg-orange-50 hover:bg-orange-100 px-2 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] font-bold text-[#F26522] hover:text-[#d85417] bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/40 px-2 py-0.5 rounded-md transition-colors"
                 >
                   {formattedTag}
                 </Link>

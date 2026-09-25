@@ -1,42 +1,88 @@
 import React from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface PksLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  forceWhite?: boolean;
 }
 
-export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md' }) => {
-  const { siteSettings, isMounted, isSettingsLoaded } = useData();
+export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md', forceWhite = false }) => {
+  const { siteSettings } = useData();
+  const { isDark } = useTheme();
   const [imageFailed, setImageFailed] = React.useState(false);
   const iconSize = size === 'sm' ? 28 : size === 'lg' ? 44 : 36;
   const textSize = size === 'sm' ? 'text-lg' : size === 'lg' ? 'text-2xl' : 'text-xl';
+  const logoHeight = size === 'sm' ? '28px' : size === 'lg' ? '48px' : '40px';
 
-  const hasCustomLogo = Boolean(
-    siteSettings?.logoUrl &&
-    siteSettings.logoUrl !== '/favicon.ico' &&
-    siteSettings.logoUrl.trim() !== '' &&
-    !imageFailed
-  );
+  // White logo preferred in dark mode:
+  // 1. logoFooterUrl is explicitly "Logo Putih (Footer)" in admin settings
+  // 2. logoAdminUrl is white text variant
+  // 3. logoUrl fallback
+  const whiteLogoUrl =
+    siteSettings?.logoFooterUrl?.trim() && siteSettings.logoFooterUrl !== '/favicon.ico'
+      ? siteSettings.logoFooterUrl
+      : siteSettings?.logoAdminUrl?.trim() && siteSettings.logoAdminUrl !== '/favicon.ico'
+      ? siteSettings.logoAdminUrl
+      : siteSettings?.logoUrl || '';
 
-  const isReady = isMounted && isSettingsLoaded;
+  const normalLogoUrl =
+    siteSettings?.logoUrl?.trim() && siteSettings.logoUrl !== '/favicon.ico'
+      ? siteSettings.logoUrl
+      : whiteLogoUrl;
+
+  const hasCustomLogo = Boolean(normalLogoUrl && !imageFailed);
+  const hasDistinctWhiteLogo = Boolean(whiteLogoUrl && whiteLogoUrl !== normalLogoUrl && !imageFailed);
 
   return (
     <Link href="/" className={`inline-flex items-center gap-2 font-bold tracking-tight select-none ${className}`}>
       {hasCustomLogo ? (
-        <img
-          src={siteSettings.logoUrl}
-          alt={siteSettings.siteName || 'PKSart'}
-          onError={() => setImageFailed(true)}
-          fetchPriority="high"
-          decoding="sync"
-          className="object-contain h-auto"
-          style={{ 
-            height: size === 'sm' ? '28px' : size === 'lg' ? '48px' : '40px',
-            maxWidth: '180px'
-          }}
-        />
+        forceWhite ? (
+          <img
+            src={whiteLogoUrl || normalLogoUrl}
+            alt={siteSettings?.siteName || 'PKSart'}
+            onError={() => setImageFailed(true)}
+            fetchPriority="high"
+            decoding="sync"
+            className="object-contain h-auto"
+            style={{ height: logoHeight, maxWidth: '180px' }}
+          />
+        ) : hasDistinctWhiteLogo ? (
+          <>
+            {/* Light Mode Logo (hidden when dark mode active) */}
+            <img
+              src={normalLogoUrl}
+              alt={siteSettings?.siteName || 'PKSart'}
+              onError={() => setImageFailed(true)}
+              fetchPriority="high"
+              decoding="sync"
+              className="object-contain h-auto dark:hidden"
+              style={{ height: logoHeight, maxWidth: '180px' }}
+            />
+            {/* Dark Mode White Logo (shown when dark mode active) */}
+            <img
+              src={whiteLogoUrl}
+              alt={siteSettings?.siteName || 'PKSart'}
+              onError={() => setImageFailed(true)}
+              fetchPriority="high"
+              decoding="sync"
+              className="object-contain h-auto hidden dark:block"
+              style={{ height: logoHeight, maxWidth: '180px' }}
+            />
+          </>
+        ) : (
+          <img
+            src={isDark ? whiteLogoUrl : normalLogoUrl}
+            alt={siteSettings?.siteName || 'PKSart'}
+            onError={() => setImageFailed(true)}
+            fetchPriority="high"
+            decoding="sync"
+            className="object-contain h-auto"
+            style={{ height: logoHeight, maxWidth: '180px' }}
+          />
+        )
       ) : (
         <>
           {/* PKS Emblem Circle */}
@@ -67,10 +113,10 @@ export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md' })
             </svg>
           </div>
 
-          {/* Brand Text: PKSart */}
+          {/* Brand Text: PKSart (White in dark mode) */}
           <div className={`flex items-center font-extrabold ${textSize} font-sans leading-none`}>
-            <span className="text-[#F26522]">PKS</span>
-            <span className="text-[#E53935] font-medium ml-[1px]">art</span>
+            <span className="text-[#F26522] dark:text-white transition-colors">PKS</span>
+            <span className="text-[#E53935] dark:text-[#F26522] font-medium ml-[1px] transition-colors">art</span>
           </div>
         </>
       )}
