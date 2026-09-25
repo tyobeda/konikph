@@ -317,7 +317,7 @@ export default function TwibbonDetailContent() {
 
   if (!isMounted || twibbons.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500 font-sans">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 font-sans">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F26522] mb-4"></div>
         <p className="text-sm font-semibold">Memuat bingkai twibbon...</p>
       </div>
@@ -326,9 +326,9 @@ export default function TwibbonDetailContent() {
 
   if (!activeTwibbon) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500 font-sans">
-        <p className="font-bold text-lg mb-2">Bingkai Twibbon Tidak Ditemukan</p>
-        <p className="text-sm text-gray-400 mb-4">Twibbon yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 font-sans">
+        <p className="font-bold text-lg text-gray-900 dark:text-white mb-2">Bingkai Twibbon Tidak Ditemukan</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Twibbon yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
         <Link href="/twibbon" className="px-5 py-2.5 bg-[#F26522] text-white font-bold text-xs rounded-xl hover:bg-[#d85417] transition-all">
           Lihat Semua Twibbon
         </Link>
@@ -339,26 +339,26 @@ export default function TwibbonDetailContent() {
   const otherTwibbons = twibbons.filter((t) => t.id !== activeTwibbon.id).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
       <Header />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6">
         <div className="mb-4">
           <Link
             href="/twibbon"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-600 hover:text-[#F26522] transition-colors"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
           >
             <ArrowLeft size={16} />
             <span>Kembali ke Galeri Twibbon</span>
           </Link>
         </div>
 
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
           {/* Canvas Box (Putih Tulang / Off-White Ivory Background) */}
-          <div className="lg:col-span-6 bg-[#FAF7F2] p-6 sm:p-8 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] relative select-none overflow-hidden border-r border-amber-100/60">
+          <div className="lg:col-span-6 bg-[#FAF7F2] dark:bg-gray-950/60 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] relative select-none overflow-hidden border-r border-amber-100/60 dark:border-gray-800">
             <div
               onClick={handleCanvasClick}
-              className={`relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-amber-50/50 flex items-center justify-center ${
+              className={`relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800 bg-amber-50/50 dark:bg-gray-900/50 flex items-center justify-center ${
                 photoUrl ? 'cursor-move touch-none' : 'cursor-pointer hover:border-[#F26522] transition-colors group'
               }`}
               onMouseDown={handleMouseDown}
@@ -384,12 +384,12 @@ export default function TwibbonDetailContent() {
                   />
                 </div>
               ) : (
-                <div className="text-center p-6 text-gray-400 flex flex-col items-center justify-center">
+                <div className="text-center p-6 text-gray-400 dark:text-gray-500 flex flex-col items-center justify-center">
                   <Upload size={44} className="mb-2 text-[#F26522] animate-bounce group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-extrabold text-gray-800 group-hover:text-[#F26522] transition-colors">
+                  <p className="text-xs font-extrabold text-gray-800 dark:text-gray-200 group-hover:text-[#F26522] transition-colors">
                     Unggah Foto Anda Di Sini
                   </p>
-                  <p className="text-[10px] text-gray-500 font-medium mt-1">
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mt-1">
                     Klik di dalam bingkai ini untuk memilih foto dari perangkat
                   </p>
                 </div>
@@ -403,7 +403,7 @@ export default function TwibbonDetailContent() {
             </div>
 
             {photoUrl && (
-              <p className="text-[11px] text-gray-600 mt-3 flex items-center gap-1 font-medium text-center">
+              <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-3 flex items-center gap-1 font-medium text-center">
                 <Sparkles size={12} className="text-[#F26522] shrink-0" />
                 <span>Geser 1 jari untuk posisi, 2 jari untuk zoom & rotasi foto</span>
               </p>
@@ -412,7 +412,7 @@ export default function TwibbonDetailContent() {
             {/* 📱 UNGGAH FOTO & SLIDER (Tampilan Mobile: Di bawah canvas, di atas garis) */}
             <div className="w-full max-w-[340px] mt-4 space-y-3 lg:hidden">
               <div>
-                <label className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200/80 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all shadow-2xs">
+                <label className="w-full py-3 px-4 bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/60 text-[#F26522] border border-orange-200/80 dark:border-orange-900/50 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all shadow-2xs">
                   <Upload size={16} />
                   <span>{photoUrl ? 'Ganti Foto Lain' : 'Pilih Foto Dari Perangkat'}</span>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
@@ -420,8 +420,8 @@ export default function TwibbonDetailContent() {
               </div>
 
               {photoUrl && (
-                <div className="space-y-3 p-4 bg-white/90 backdrop-blur-sm rounded-2xl border border-amber-200/60 shadow-xs animate-in fade-in duration-300">
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-700">
+                <div className="space-y-3 p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-amber-200/60 dark:border-gray-800 shadow-xs animate-in fade-in duration-300">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 dark:text-gray-300">
                     <span>Atur Ukuran</span>
                     <span className="text-[#F26522]">{Math.round(scale * 100)}%</span>
                   </div>
@@ -432,10 +432,10 @@ export default function TwibbonDetailContent() {
                     step="0.05"
                     value={scale}
                     onChange={(e) => setScale(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
                   />
 
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 pt-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 dark:text-gray-300 pt-1">
                     <span>Putar</span>
                     <span className="text-[#F26522]">{rotation}°</span>
                   </div>
@@ -446,19 +446,19 @@ export default function TwibbonDetailContent() {
                     step="5"
                     value={rotation}
                     onChange={(e) => setRotation(parseInt(e.target.value, 10))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
                   />
                 </div>
               )}
             </div>
 
             {/* Thumbnails Hasil Generate Terakhir (Garis Pembatas) */}
-            <div className="mt-5 w-full max-w-[340px] pt-4 border-t border-amber-200/60">
+            <div className="mt-5 w-full max-w-[340px] pt-4 border-t border-amber-200/60 dark:border-gray-800">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-extrabold text-gray-600 uppercase tracking-wider">
+                <span className="text-[11px] font-extrabold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   Hasil Generate Terbaru
                 </span>
-                <span className="text-[10px] text-gray-400 font-bold">
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold">
                   {(activeTwibbon.usedCount || 0) + 100}+ Dibuat
                 </span>
               </div>
@@ -467,7 +467,7 @@ export default function TwibbonDetailContent() {
                 {recentThumbnails.slice(0, 5).map((thumbUrl, idx) => (
                   <div
                     key={idx}
-                    className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl overflow-hidden border-2 border-white shadow-md bg-white relative group shrink-0"
+                    className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl overflow-hidden border-2 border-white dark:border-gray-800 shadow-md bg-white dark:bg-gray-800 relative group shrink-0"
                   >
                     <img
                       src={thumbUrl}
@@ -483,9 +483,9 @@ export default function TwibbonDetailContent() {
                 ))}
 
                 {/* Kotak X: Jumlah 100+ Lainnya */}
-                <div className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl bg-orange-100/70 border-2 border-orange-200/80 text-[#F26522] flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm hover:bg-orange-100 transition-colors">
+                <div className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl bg-orange-100/70 dark:bg-orange-950/50 border-2 border-orange-200/80 dark:border-orange-900/50 text-[#F26522] flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm hover:bg-orange-100 dark:hover:bg-orange-900/70 transition-colors">
                   <span className="text-[11px] font-black leading-none">100+</span>
-                  <span className="text-[8px] font-bold text-orange-600 mt-0.5 leading-none">Lainnya</span>
+                  <span className="text-[8px] font-bold text-orange-600 dark:text-orange-400 mt-0.5 leading-none">Lainnya</span>
                 </div>
               </div>
             </div>
@@ -494,7 +494,7 @@ export default function TwibbonDetailContent() {
           <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between space-y-6">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 text-[#F26522] border border-orange-100 text-xs font-bold rounded-full">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-100 dark:border-orange-900/40 text-xs font-bold rounded-full">
                   <Sparkles size={12} />
                   <span>{activeTwibbon.category || 'Twibbon Official'}</span>
                 </span>
@@ -508,12 +508,12 @@ export default function TwibbonDetailContent() {
                 </button>
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-tight">
                 {activeTwibbon.title}
               </h1>
 
-              <div className="flex items-center gap-3 mt-3 text-xs text-gray-500 font-medium pb-4 border-b border-gray-100">
-                <span>Oleh: <strong className="text-gray-900">{activeTwibbon.author?.name || 'DPP PKS'}</strong></span>
+              <div className="flex items-center gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400 font-medium pb-4 border-b border-gray-100 dark:border-gray-800">
+                <span>Oleh: <strong className="text-gray-900 dark:text-white">{activeTwibbon.author?.name || 'DPP PKS'}</strong></span>
                 <span>•</span>
                 <span>Telah Digunakan: <strong className="text-[#F26522]">{activeTwibbon.usedCount || 0}x</strong></span>
               </div>
@@ -522,7 +522,7 @@ export default function TwibbonDetailContent() {
             {/* 🖥️ UNGGAH FOTO & SLIDER (Tampilan Desktop Web: Di bawah info Oleh/Telah Digunakan) */}
             <div className="hidden lg:block space-y-3">
               <div>
-                <label className="w-full py-3 px-4 bg-orange-50 hover:bg-orange-100 text-[#F26522] border border-orange-200/80 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all shadow-2xs">
+                <label className="w-full py-3 px-4 bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/60 text-[#F26522] border border-orange-200/80 dark:border-orange-900/50 rounded-2xl font-bold text-xs cursor-pointer flex items-center justify-center gap-2 transition-all shadow-2xs">
                   <Upload size={16} />
                   <span>{photoUrl ? 'Ganti Foto Lain' : 'Pilih Foto Dari Perangkat'}</span>
                   <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
@@ -530,8 +530,8 @@ export default function TwibbonDetailContent() {
               </div>
 
               {photoUrl && (
-                <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 animate-in fade-in duration-300">
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-700">
+                <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in duration-300">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 dark:text-gray-300">
                     <span>Atur Ukuran</span>
                     <span className="text-[#F26522]">{Math.round(scale * 100)}%</span>
                   </div>
@@ -542,10 +542,10 @@ export default function TwibbonDetailContent() {
                     step="0.05"
                     value={scale}
                     onChange={(e) => setScale(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
                   />
 
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 pt-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-gray-700 dark:text-gray-300 pt-1">
                     <span>Putar</span>
                     <span className="text-[#F26522]">{rotation}°</span>
                   </div>
@@ -556,13 +556,13 @@ export default function TwibbonDetailContent() {
                     step="5"
                     value={rotation}
                     onChange={(e) => setRotation(parseInt(e.target.value, 10))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#F26522]"
                   />
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t border-gray-100 space-y-3">
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
               <button
                 onClick={handleDownload}
                 disabled={!photoUrl || isDownloading}
@@ -583,7 +583,7 @@ export default function TwibbonDetailContent() {
 
               <button
                 onClick={handleShare}
-                className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Share2 size={14} />
                 <span>Salin Tautan Twibbon Ini</span>
@@ -593,7 +593,7 @@ export default function TwibbonDetailContent() {
         </div>
 
         {showShareToast && (
-          <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2">
+          <div className="fixed bottom-6 right-6 z-50 bg-gray-900 dark:bg-gray-800 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-gray-700">
             <Sparkles size={16} className="text-amber-400" />
             <span>Tautan Twibbon berhasil disalin ke clipboard!</span>
           </div>
@@ -601,7 +601,7 @@ export default function TwibbonDetailContent() {
 
         {otherTwibbons.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Layers size={20} className="text-[#F26522]" />
               <span>Twibbon Lainnya yang Populer</span>
             </h3>
@@ -610,19 +610,19 @@ export default function TwibbonDetailContent() {
                 <Link
                   key={tw.id}
                   href={`/twibbon/${tw.slug || tw.id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-3 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                 >
-                  <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-2 relative">
+                  <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2 relative">
                     <img
                       src={tw.imageUrl}
                       alt={tw.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   </div>
-                  <h4 className="font-bold text-xs text-gray-900 line-clamp-1 group-hover:text-[#F26522] transition-colors">
+                  <h4 className="font-bold text-xs text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#F26522] dark:group-hover:text-[#F26522] transition-colors">
                     {tw.title}
                   </h4>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{tw.usedCount || 0}x digunakan</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{tw.usedCount || 0}x digunakan</p>
                 </Link>
               ))}
             </div>

@@ -31,6 +31,12 @@ body {
 }
 
 /* Ensure any page wrapper using default light grey turns dark seamlessly */
+html.dark,
+html[data-theme='dark'] {
+  background-color: #0b0f17 !important;
+  color-scheme: dark;
+}
+
 html.dark .bg-\[\#F8F9FA\],
 html.dark .bg-\[\#f8f9fa\],
 .dark .bg-\[\#F8F9FA\],
@@ -41,6 +47,7 @@ html.dark .bg-\[\#f8f9fa\],
 html.dark body,
 .dark body {
   background-color: #0b0f17 !important;
+  color-scheme: dark;
 }
 
 @keyframes slideUp {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Clock, ShieldAlert, ArrowLeft, LogOut, MessageSquare, RefreshCw } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useData } from '@/context/DataContext';
 
 export default function PendingApprovalPage() {
@@ -37,40 +38,46 @@ export default function PendingApprovalPage() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex items-center justify-center font-sans">
         <div className="animate-pulse flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
-          <span className="text-sm font-semibold text-gray-500">Memeriksa status akun...</span>
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Memeriksa status akun...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden transition-colors">
       
       {/* Background Decorative Gradient Blobs */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-orange-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-orange-100 dark:bg-orange-950/20 rounded-full blur-3xl opacity-60 dark:opacity-20 pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-100 dark:bg-amber-950/20 rounded-full blur-3xl opacity-60 dark:opacity-20 pointer-events-none" />
 
       {/* Top Header */}
       <div className="max-w-md w-full mx-auto mb-6 flex items-center justify-between relative z-10">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#F26522] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
         >
           <ArrowLeft size={16} />
-          <span>Ke Beranda</span>
+          <span>Kembali ke Beranda</span>
         </Link>
-        <PksLogo size="sm" />
+        <div className="flex items-center gap-2">
+          <ThemeToggle
+            variant="dropdown"
+            buttonClassName="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
+          />
+          <PksLogo size="sm" />
+        </div>
       </div>
 
       {/* Main Card */}
-      <div className="max-w-md w-full mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8 relative z-10 text-center animate-in fade-in zoom-in-95 duration-300">
+      <div className="max-w-md w-full mx-auto bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 relative z-10 text-center animate-in fade-in zoom-in-95 duration-300">
         
         {/* Animated Clock Icon Header */}
         <div className="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-500 to-orange-500 rounded-3xl p-0.5 shadow-lg shadow-orange-500/20 mb-6 flex items-center justify-center relative">
-          <div className="w-full h-full bg-white rounded-[22px] flex items-center justify-center">
+          <div className="w-full h-full bg-white dark:bg-gray-800 rounded-[22px] flex items-center justify-center">
             <Clock size={38} className="text-[#F26522] animate-bounce" />
           </div>
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
@@ -80,32 +87,32 @@ export default function PendingApprovalPage() {
         </div>
 
         {/* Status Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-black rounded-full uppercase tracking-wider mb-3">
-          <ShieldAlert size={14} className="text-amber-600" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-400 text-xs font-black rounded-full uppercase tracking-wider mb-3">
+          <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400" />
           <span>Menunggu Persetujuan Admin</span>
         </div>
 
-        <h1 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-2">
           Akun Sedang Ditinjau
         </h1>
 
-        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">
-          Terima kasih telah mendaftar di <strong className="text-gray-900">PKSart</strong>. Demi menjaga kualitas & keamanan karya resmi, akun Anda saat ini sedang dalam proses peninjauan oleh tim Admin PKSart.
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Terima kasih telah mendaftar di <strong className="text-gray-900 dark:text-gray-200">PKSart</strong>. Demi menjaga kualitas & keamanan karya resmi, akun Anda saat ini sedang dalam proses peninjauan oleh tim Admin PKSart.
         </p>
 
         {/* Account Summary Box */}
         {currentUser && (
-          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-left mb-6 space-y-2 text-xs">
-            <div className="flex justify-between items-center pb-2 border-b border-gray-200/60">
-              <span className="text-gray-500 font-semibold">Nama Pendaftar:</span>
-              <span className="font-bold text-gray-900 truncate max-w-[200px]">{currentUser.name}</span>
+          <div className="bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 text-left mb-6 space-y-2 text-xs">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-200/60 dark:border-gray-700/60">
+              <span className="text-gray-500 dark:text-gray-400 font-semibold">Nama Pendaftar:</span>
+              <span className="font-bold text-gray-900 dark:text-white truncate max-w-[200px]">{currentUser.name}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-gray-200/60">
-              <span className="text-gray-500 font-semibold">Email:</span>
-              <span className="font-bold text-gray-900 truncate max-w-[200px]">{currentUser.email}</span>
+            <div className="flex justify-between items-center pb-2 border-b border-gray-200/60 dark:border-gray-700/60">
+              <span className="text-gray-500 dark:text-gray-400 font-semibold">Email:</span>
+              <span className="font-bold text-gray-900 dark:text-white truncate max-w-[200px]">{currentUser.email}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-500 font-semibold">Wilayah:</span>
+              <span className="text-gray-500 dark:text-gray-400 font-semibold">Wilayah:</span>
               <span className="font-bold text-[#F26522]">{currentUser.region || 'PKS Official'}</span>
             </div>
           </div>
@@ -116,7 +123,7 @@ export default function PendingApprovalPage() {
           <button
             onClick={handleCheckStatus}
             disabled={isRefreshing}
-            className="w-full py-3 bg-[#F26522] hover:bg-[#d85417] text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60"
+            className="w-full py-3 bg-[#F26522] hover:bg-[#d85417] text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
           >
             <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
             <span>{isRefreshing ? 'Memeriksa...' : 'Cek Status Persetujuan'}</span>
@@ -126,7 +133,7 @@ export default function PendingApprovalPage() {
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2"
           >
             <MessageSquare size={16} />
             <span>Hubungi Admin via WhatsApp</span>
@@ -134,7 +141,7 @@ export default function PendingApprovalPage() {
 
           <button
             onClick={handleLogout}
-            className="w-full py-2.5 text-gray-500 hover:text-gray-800 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+            className="w-full py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <LogOut size={14} />
             <span>Keluar Akun / Login Lain</span>
@@ -144,7 +151,7 @@ export default function PendingApprovalPage() {
       </div>
 
       {/* Footer copyright note */}
-      <div className="mt-8 text-center text-[11px] text-gray-400 font-semibold relative z-10">
+      <div className="mt-8 text-center text-[11px] text-gray-400 dark:text-gray-500 font-semibold relative z-10">
         &copy; {new Date().getFullYear()} PKSart Designer Community. Official PKS Creative Platform.
       </div>
     </div>

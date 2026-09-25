@@ -150,11 +150,11 @@ export default function AdminArtworksPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
               <ImageIcon className="text-[#F26522]" />
               <span>Kelola & Moderasi Karya</span>
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Moderasi unggahan karya desainer, edit metadata, jadikan pilihan utama (featured), atau hapus karya.
             </p>
           </div>
@@ -169,13 +169,13 @@ export default function AdminArtworksPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-gray-200 mb-6 gap-6 text-sm overflow-x-auto">
+        <div className="flex border-b border-gray-200 dark:border-gray-800 mb-6 gap-6 text-sm overflow-x-auto">
           <button
             onClick={() => { setActiveTab('all'); setFilterStatus('all'); }}
             className={`pb-3 relative transition-all whitespace-nowrap ${
               activeTab === 'all'
                 ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
-                : 'text-gray-500 hover:text-gray-900 font-medium'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
             }`}
           >
             <span>Semua Karya ({artworks.length})</span>
@@ -186,7 +186,7 @@ export default function AdminArtworksPage() {
             className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'pending'
                 ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
-                : 'text-gray-500 hover:text-gray-900 font-medium'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
             }`}
           >
             <span>Menunggu Approval</span>
@@ -202,7 +202,7 @@ export default function AdminArtworksPage() {
             className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === 'reports'
                 ? 'text-[#F26522] border-b-2 border-[#F26522] font-bold'
-                : 'text-gray-500 hover:text-gray-900 font-medium'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
             }`}
           >
             <span>Laporan Masuk</span>
@@ -215,14 +215,14 @@ export default function AdminArtworksPage() {
         </div>
 
         {/* Table Filter Container */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
           
-          <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h2 className="text-base font-extrabold text-gray-900">
+              <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
                 {activeTab === 'reports' ? 'Daftar Laporan Karya' : 'Daftar Postingan Karya'}
               </h2>
-              <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
+              <span className="bg-orange-50 dark:bg-orange-950/40 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100 dark:border-orange-800/60">
                 {totalItems} Hasil
               </span>
             </div>
@@ -230,13 +230,13 @@ export default function AdminArtworksPage() {
             <div className="flex items-center gap-3 flex-wrap">
               {/* Search Bar */}
               <div className="relative flex-1 min-w-[200px]">
-                <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+                <Search size={16} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={activeTab === 'reports' ? "Cari judul karya atau alasan..." : "Cari judul karya atau uploader..."}
-                  className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522]"
                 />
               </div>
 
@@ -246,7 +246,7 @@ export default function AdminArtworksPage() {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
+                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-[#F26522]"
               >
                 <option value="all">Semua Kategori</option>
                 {ARTWORK_CATEGORIES.map((cat) => (
@@ -258,7 +258,7 @@ export default function AdminArtworksPage() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
+                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-[#F26522]"
               >
                 <option value="all">Semua Status</option>
                 <option value="Disetujui">Disetujui</option>
@@ -272,8 +272,8 @@ export default function AdminArtworksPage() {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+            <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+              <thead className="bg-gray-50/80 dark:bg-gray-800/80 text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
                 {activeTab === 'reports' ? (
                   <tr>
                     <th className="py-3.5 px-4">Karya Dilaporkan</th>
@@ -293,19 +293,19 @@ export default function AdminArtworksPage() {
                   </tr>
                 )}
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {activeTab === 'reports' ? (
                   paginatedReports.map((report) => (
-                    <tr key={report.id} className="hover:bg-gray-50/60 transition-colors">
+                    <tr key={report.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <img
                             src={report.artworkImageUrl}
                             alt={report.artworkTitle}
-                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-gray-700 shrink-0"
                           />
                           <div>
-                            <p className="font-bold text-gray-900 max-w-xs truncate">
+                            <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
                               {report.artworkTitle}
                             </p>
                             <Link href={`/artwork/${report.artworkId}`} target="_blank" className="text-xs text-[#F26522] font-semibold hover:underline flex items-center gap-0.5 mt-0.5">
@@ -315,19 +315,19 @@ export default function AdminArtworksPage() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <p className="text-sm font-medium text-gray-800 bg-red-50 p-2 rounded-lg border border-red-100 max-w-sm flex items-start gap-2">
+                        <p className="text-sm font-medium text-gray-800 dark:text-red-200 bg-red-50 dark:bg-red-950/30 p-2 rounded-lg border border-red-100 dark:border-red-900/50 max-w-sm flex items-start gap-2">
                           <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
                           <span>{report.reason}</span>
                         </p>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-gray-600 text-xs">
+                      <td className="py-3.5 px-4 font-semibold text-gray-600 dark:text-gray-400 text-xs">
                         {report.createdAt}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                          report.status === 'Pending' ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                          : report.status === 'Resolved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                          : 'bg-gray-100 text-gray-600 border border-gray-200'
+                          report.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                          : report.status === 'Resolved' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
                         }`}>
                           {report.status}
                         </span>
@@ -342,7 +342,7 @@ export default function AdminArtworksPage() {
                                     resolveArtworkReport(report.id, 'reject_report');
                                   }
                                 }}
-                                className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-bold text-xs px-3"
+                                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-bold text-xs px-3"
                                 title="Abaikan Laporan"
                               >
                                 Abaikan
@@ -368,7 +368,7 @@ export default function AdminArtworksPage() {
                   ))
                 ) : (
                   paginatedArtworks.map((art) => (
-                    <tr key={art.id} className="hover:bg-gray-50/60 transition-colors">
+                    <tr key={art.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/50 transition-colors">
                     
                     {/* Artwork, Title & Format */}
                     <td className="py-3.5 px-4">
@@ -377,7 +377,7 @@ export default function AdminArtworksPage() {
                           <img
                             src={art.imageUrl}
                             alt={art.title}
-                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-gray-700 shrink-0"
                           />
                           {art.isFeatured && (
                             <span className="absolute -top-1 -right-1 bg-amber-400 text-white p-0.5 rounded-full shadow-sm" title="Karya Pilihan (Featured)">
@@ -386,10 +386,10 @@ export default function AdminArtworksPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 max-w-xs truncate">
+                          <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
                             {art.title}
                           </p>
-                          <span className="inline-block mt-0.5 text-[10px] font-mono font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md border border-gray-200">
+                          <span className="inline-block mt-0.5 text-[10px] font-mono font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-700">
                             {art.format || 'PSD/AI'}
                           </span>
                         </div>
@@ -398,7 +398,7 @@ export default function AdminArtworksPage() {
 
                     {/* Category */}
                     <td className="py-3.5 px-4">
-                      <span className="font-bold text-gray-800 text-xs">{art.category}</span>
+                      <span className="font-bold text-gray-800 dark:text-gray-200 text-xs">{art.category}</span>
                     </td>
 
                     {/* Desainer & Wilayah */}
@@ -410,14 +410,14 @@ export default function AdminArtworksPage() {
                           className="w-7 h-7 rounded-full object-cover shrink-0"
                         />
                         <div>
-                          <span className="font-bold text-gray-900 text-xs block">{art.author.name}</span>
-                          <span className="text-[11px] text-gray-500 font-medium">{(art.region || art.author?.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
+                          <span className="font-bold text-gray-900 dark:text-white text-xs block">{art.author.name}</span>
+                          <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">{(art.region || art.author?.region || '').replace(/^DPW\s+/i, 'Wilayah ')}</span>
                         </div>
                       </div>
                     </td>
 
                     {/* Downloads */}
-                    <td className="py-3.5 px-4 font-semibold text-gray-700">
+                    <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
                       {art.downloadsCount}x
                     </td>
 
@@ -426,10 +426,10 @@ export default function AdminArtworksPage() {
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
                           art.status === 'Disetujui'
-                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                             : art.status === 'Pending'
-                            ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                            : 'bg-red-50 text-red-600 border border-red-200'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                            : 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800'
                         }`}
                       >
                         <span
@@ -460,7 +460,7 @@ export default function AdminArtworksPage() {
                             </button>
                             <button
                               onClick={() => handleReject(art.id)}
-                              className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                              className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-900/50 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
                               title="Tolak Karya"
                             >
                               <XCircle size={13} />
@@ -473,8 +473,8 @@ export default function AdminArtworksPage() {
                           onClick={() => handleToggleFeatured(art.id, art.isFeatured)}
                           className={`p-1.5 rounded-lg transition-colors ${
                             art.isFeatured
-                              ? 'text-amber-500 bg-amber-50'
-                              : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'
+                              ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30'
+                              : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
                           }`}
                           title={art.isFeatured ? 'Hapus dari Pilihan Utama' : 'Jadikan Pilihan Utama (Featured)'}
                         >
@@ -483,7 +483,7 @@ export default function AdminArtworksPage() {
 
                         <Link
                           href={`/artwork/${art.slug || art.id}`}
-                          className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors"
                           title="Lihat Detail Halaman"
                         >
                           <Eye size={16} />
@@ -492,7 +492,7 @@ export default function AdminArtworksPage() {
                         {(art.author?.id === 'superadmin_1' || art.author?.email?.toLowerCase() === 'admin@pks.art') && (
                           <button
                             onClick={() => handleOpenEdit(art)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"
                             title="Edit Postingan Saya"
                           >
                             <Edit size={16} />
@@ -502,7 +502,7 @@ export default function AdminArtworksPage() {
                         {art.status !== 'Disetujui' && (
                           <button
                             onClick={() => handleApprove(art.id)}
-                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg transition-colors"
                             title="Setujui Karya"
                           >
                             <CheckCircle size={16} />
@@ -512,7 +512,7 @@ export default function AdminArtworksPage() {
                         {art.status !== 'Ditolak' && (
                           <button
                             onClick={() => handleReject(art.id)}
-                            className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                            className="p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors"
                             title="Tolak Karya"
                           >
                             <XCircle size={16} />
@@ -521,7 +521,7 @@ export default function AdminArtworksPage() {
 
                         <button
                           onClick={() => handleDelete(art)}
-                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
                           title="Hapus Permanent"
                         >
                           <Trash2 size={16} />
@@ -537,27 +537,27 @@ export default function AdminArtworksPage() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-white sm:px-6 rounded-b-3xl">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 sm:px-6 rounded-b-3xl">
               <div className="flex flex-1 justify-between sm:hidden">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="relative inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="relative inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                 >
                   Sebelumnya
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="relative ml-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="relative ml-3 inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                 >
                   Selanjutnya
                 </button>
               </div>
               <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">
-                    Menampilkan <span className="font-bold text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> hingga <span className="font-bold text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-900">{totalItems}</span> {activeTab === 'reports' ? 'laporan' : 'karya'}
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Menampilkan <span className="font-bold text-gray-900 dark:text-white">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> hingga <span className="font-bold text-gray-900 dark:text-white">{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</span> dari <span className="font-bold text-gray-900 dark:text-white">{totalItems}</span> {activeTab === 'reports' ? 'laporan' : 'karya'}
                   </p>
                 </div>
                 <div>
@@ -565,7 +565,7 @@ export default function AdminArtworksPage() {
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center rounded-l-lg px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                      className="relative inline-flex items-center rounded-l-lg px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                     >
                       <span className="sr-only">Previous</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -580,7 +580,7 @@ export default function AdminArtworksPage() {
                         className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 ${
                           page === currentPage 
                             ? 'z-10 bg-[#F26522] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F26522]' 
-                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                            : 'text-gray-900 dark:text-gray-200 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
                         }`}
                       >
                         {page}
@@ -590,7 +590,7 @@ export default function AdminArtworksPage() {
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center rounded-r-lg px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                      className="relative inline-flex items-center rounded-r-lg px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                     >
                       <span className="sr-only">Next</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -609,41 +609,41 @@ export default function AdminArtworksPage() {
         {editingArtwork && (
           <div
             onClick={() => setEditingArtwork(null)}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 cursor-default"
             >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                 Edit Metadata Karya (Admin)
               </h3>
 
               <form onSubmit={handleSaveEdit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                     Judul Karya
                   </label>
                   <input
                     type="text"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-gray-900 focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-[#F26522]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                     Kategori
                   </label>
                   <select
                     value={editCategory}
                     onChange={(e) => setEditCategory(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:border-[#F26522]"
                   >
                     {ARTWORK_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat} value={cat} className="dark:bg-gray-800 dark:text-white">{cat}</option>
                     ))}
                   </select>
                 </div>
@@ -651,32 +651,32 @@ export default function AdminArtworksPage() {
                 {/* Tanggal & Jam Karya (2 Kolom 1 Baris pada Mobile) */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                       Tanggal Karya
                     </label>
                     <div className="relative">
-                      <Calendar size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                      <Calendar size={14} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500 pointer-events-none" />
                       <input
                         type="date"
                         value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                       Jam Karya
                     </label>
                     <div className="relative">
-                      <Clock size={14} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                      <Clock size={14} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500 pointer-events-none" />
                       <input
                         type="time"
                         value={editTime}
                         onChange={(e) => setEditTime(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer"
+                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl pl-8 pr-2 py-2 text-xs font-semibold focus:outline-none focus:border-[#F26522] cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
                         required
                       />
                     </div>
@@ -687,13 +687,13 @@ export default function AdminArtworksPage() {
                   <button
                     type="button"
                     onClick={() => setEditingArtwork(null)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-colors"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
+                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl transition-colors"
                   >
                     Simpan Perubahan
                   </button>

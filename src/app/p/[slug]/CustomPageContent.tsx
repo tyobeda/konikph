@@ -201,7 +201,7 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
 
         {/* Render Layout Blocks */}
         {blocks.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center text-gray-400 text-sm font-semibold">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-8 text-center text-gray-400 dark:text-gray-500 text-sm font-semibold">
             Konten halaman kosong.
           </div>
         ) : (
@@ -216,24 +216,24 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
                     className={`py-2 text-${block.titleAlign || 'left'}`}
                   >
                     {block.titleSize === 'h1' ? (
-                      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
                         {block.title || 'Judul Utama'}
                       </h1>
                     ) : block.titleSize === 'h3' ? (
-                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug">
                         {block.title || 'Judul Section'}
                       </h3>
                     ) : block.titleSize === 'h4' ? (
-                      <h4 className="text-lg sm:text-xl font-semibold text-slate-900 leading-snug">
+                      <h4 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white leading-snug">
                         {block.title || 'Judul Kecil'}
                       </h4>
                     ) : (
-                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">
                         {block.title || 'Judul Utama'}
                       </h2>
                     )}
                     {block.subtitle && (
-                      <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 mt-1.5 leading-relaxed">
                         {block.subtitle}
                       </p>
                     )}
@@ -292,10 +292,10 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
                 return (
                   <div 
                     key={blockIdx}
-                    className={`rounded-3xl p-6 sm:p-8 text-gray-700 leading-relaxed text-sm sm:text-base prose prose-slate max-w-none transition-all ${
+                    className={`rounded-3xl p-6 sm:p-8 text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base prose prose-slate dark:prose-invert max-w-none transition-all ${
                       containerStyle === 'clean' 
                         ? 'bg-transparent border-0 shadow-none px-0' 
-                        : 'bg-white border border-gray-100 shadow-sm'
+                        : 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm'
                     }`}
                     dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(block.content || '') }}
                   />
@@ -309,22 +309,22 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
                     key={blockIdx}
                     className={`rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-all ${
                       containerStyle === 'clean'
-                        ? 'bg-gradient-to-r from-orange-50 to-amber-50/40 border border-orange-100'
-                        : 'bg-[#F26522]/5 border border-[#F26522]/20'
+                        ? 'bg-gradient-to-r from-orange-50 to-amber-50/40 dark:from-orange-950/30 dark:to-amber-950/20 border border-orange-100 dark:border-orange-900/40'
+                        : 'bg-[#F26522]/5 dark:bg-[#F26522]/10 border border-[#F26522]/20 dark:border-[#F26522]/30'
                     }`}
                   >
                     <div className="space-y-1">
-                      <h3 className="text-lg font-extrabold text-gray-900">
+                      <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">
                         {block.title}
                       </h3>
-                      <p className="text-xs text-gray-500 leading-relaxed max-w-xl">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-xl">
                         {block.description}
                       </p>
                     </div>
                     {block.ctaText && block.ctaLink && (
                       <a
                         href={block.ctaLink}
-                        className="inline-block px-5 py-3 bg-black hover:bg-gray-800 text-white text-center text-xs font-bold rounded-xl shadow-md transition-all shrink-0"
+                        className="inline-block px-5 py-3 bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white text-center text-xs font-bold rounded-xl shadow-md transition-all shrink-0"
                       >
                         {block.ctaText}
                       </a>
@@ -337,7 +337,7 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
               if (block.type === 'faq') {
                 return (
                   <div key={blockIdx} className="space-y-4">
-                    <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-1.5 px-2">
+                    <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5 px-2">
                       <HelpCircle size={18} className="text-[#F26522]" />
                       <span>Pertanyaan yang Sering Diajukan (FAQ)</span>
                     </h3>
@@ -349,21 +349,21 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
                         return (
                           <div 
                             key={faqIdx}
-                            className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm transition-all"
+                            className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm transition-all"
                           >
                             <button
                               type="button"
                               onClick={() => toggleFaq(blockIdx, faqIdx)}
-                              className="w-full text-left p-4 flex items-center justify-between gap-4 font-bold text-gray-800 text-sm hover:bg-gray-50/50 transition-colors"
+                              className="w-full text-left p-4 flex items-center justify-between gap-4 font-bold text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
                             >
                               <span>{faq.question}</span>
                               <ChevronDown 
                                 size={16} 
-                                className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                                className={`text-gray-400 dark:text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                               />
                             </button>
                             {isOpen && (
-                              <div className="px-4 pb-4 pt-1 text-xs sm:text-sm text-gray-500 leading-relaxed border-t border-gray-50/50 bg-gray-50/20">
+                              <div className="px-4 pb-4 pt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-gray-50/50 dark:border-gray-800 bg-gray-50/20 dark:bg-gray-800/40">
                                 {faq.answer}
                               </div>
                             )}
@@ -384,7 +384,7 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
                       block.imageAlign === 'left' ? 'justify-start' : block.imageAlign === 'right' ? 'justify-end' : 'justify-center'
                     }`}
                   >
-                    <div className={`overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all ${
+                    <div className={`overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all ${
                       block.imageSize === 'small'
                         ? 'w-1/4'
                         : block.imageSize === 'medium'
@@ -423,9 +423,9 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
               // 6. QUOTE BLOCK
               if (block.type === 'quote') {
                 return (
-                  <div key={blockIdx} className="bg-gradient-to-r from-orange-50/70 to-amber-50/30 border-l-4 border-[#F26522] rounded-r-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+                  <div key={blockIdx} className="bg-gradient-to-r from-orange-50/70 to-amber-50/30 dark:from-orange-950/30 dark:to-amber-950/20 border-l-4 border-[#F26522] rounded-r-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
                     <Quote size={48} className="absolute right-6 top-6 text-[#F26522]/10" />
-                    <blockquote className="relative z-10 text-slate-800 text-base sm:text-lg font-medium italic leading-relaxed">
+                    <blockquote className="relative z-10 text-slate-800 dark:text-slate-200 text-base sm:text-lg font-medium italic leading-relaxed">
                       &quot;{block.quoteText}&quot;
                     </blockquote>
                     {block.quoteAuthor && (
@@ -441,7 +441,7 @@ export default function CustomPageContent({ page }: CustomPageContentProps) {
               if (block.type === 'separator') {
                 return (
                   <div key={blockIdx} className="py-6 flex items-center justify-center">
-                    <div className="w-full border-t border-gray-200" />
+                    <div className="w-full border-t border-gray-200 dark:border-gray-800" />
                   </div>
                 );
               }

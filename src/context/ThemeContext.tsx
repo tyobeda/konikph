@@ -21,8 +21,27 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('system');
-  const [systemIsDark, setSystemIsDark] = useState<boolean>(false);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('pksart_theme') as Theme | null;
+        if (saved === 'light' || saved === 'dark' || saved === 'system') {
+          return saved;
+        }
+      } catch {}
+    }
+    return 'system';
+  });
+
+  const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } catch {}
+    }
+    return false;
+  });
+
   const [mounted, setMounted] = useState<boolean>(false);
 
   // Initialize theme from localStorage and detect system preference
@@ -56,21 +75,26 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const isDark = resolvedTheme === 'dark';
 
-  // Apply theme class to documentElement
+  // Apply theme class to documentElement only when mounted and needed, preventing any flash
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!mounted || typeof window === 'undefined') return;
     const root = document.documentElement;
+    const currentlyDark = root.classList.contains('dark');
 
     if (isDark) {
-      root.classList.add('dark');
+      if (!currentlyDark) {
+        root.classList.add('dark');
+      }
       root.setAttribute('data-theme', 'dark');
       root.style.colorScheme = 'dark';
     } else {
-      root.classList.remove('dark');
+      if (currentlyDark) {
+        root.classList.remove('dark');
+      }
       root.setAttribute('data-theme', 'light');
       root.style.colorScheme = 'light';
     }
-  }, [isDark]);
+  }, [isDark, mounted]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

@@ -69,7 +69,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col md:flex-row font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col md:flex-row font-sans">
       
       {/* 📱 MOBILE STICKY HEADER WITH BURGER MENU */}
       <header className="md:hidden sticky top-0 z-50 bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-slate-700/60">

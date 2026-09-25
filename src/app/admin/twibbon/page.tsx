@@ -143,11 +143,11 @@ export default function AdminTwibbonPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-            <Sparkles className="text-purple-600" />
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="text-purple-600 dark:text-purple-400" />
             <span>Kelola Frame Twibbon</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Manajemen bingkai twibbon resmi, persetujuan uploader, serta pengaturan twibbon pilihan utama.
           </p>
         </div>
@@ -165,15 +165,15 @@ export default function AdminTwibbonPage() {
       </div>
 
       {/* Table Container */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         
         {/* Controls Bar */}
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-extrabold text-gray-900">
+            <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
               Daftar Frame Twibbon
             </h2>
-            <span className="bg-purple-50 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-full border border-purple-100">
+            <span className="bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-2.5 py-1 rounded-full border border-purple-100 dark:border-purple-800/40">
               {filteredTwibbons.length} Bingkai
             </span>
           </div>
@@ -186,14 +186,14 @@ export default function AdminTwibbonPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari judul twibbon atau wilayah..."
-                className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
               />
             </div>
 
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#F26522]"
             >
               <option value="all">Semua Status</option>
               <option value="Disetujui">Disetujui</option>
@@ -205,8 +205,8 @@ export default function AdminTwibbonPage() {
 
         {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-gray-600">
-            <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+          <table className="w-full text-sm text-gray-600 dark:text-gray-300">
+            <thead className="bg-gray-50/80 dark:bg-gray-800/60 text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
               <tr>
                 <th className="py-3.5 px-4 text-left">Frame Twibbon</th>
                 <th className="py-3.5 px-4 text-center">Kategori & Wilayah</th>
@@ -216,22 +216,22 @@ export default function AdminTwibbonPage() {
                 <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {paginatedTwibbons.map((tw) => (
-                <tr key={tw.id} className="hover:bg-gray-50/60 transition-colors">
+                <tr key={tw.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
                   {/* Frame Twibbon - Rata Kiri */}
                   <td className="py-3 px-4 text-left">
                     <div className="flex items-center gap-3">
                       <img
                         src={tw.imageUrl}
                         alt={tw.title}
-                        className="w-12 h-12 rounded-xl object-cover border border-purple-200 shrink-0 p-0.5 bg-purple-50"
+                        className="w-12 h-12 rounded-xl object-cover border border-purple-200 dark:border-purple-800 shrink-0 p-0.5 bg-purple-50 dark:bg-purple-950/40"
                       />
                       <div className="min-w-0">
-                        <p className="font-bold text-gray-900 max-w-xs truncate">
+                        <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
                           {tw.title}
                         </p>
-                        <p className="text-xs text-gray-500 font-normal">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-normal">
                           digunakan {tw.usedCount.toLocaleString()} kali
                         </p>
                       </div>
@@ -241,8 +241,8 @@ export default function AdminTwibbonPage() {
                   {/* Kategori & Wilayah - Rata Tengah */}
                   <td className="py-3 px-4 text-center">
                     <div className="flex flex-col items-center">
-                      <span className="font-bold text-gray-800">{tw.category}</span>
-                      <span className="text-xs text-gray-500">{tw.region}</span>
+                      <span className="font-bold text-gray-800 dark:text-gray-200">{tw.category}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{tw.region}</span>
                     </div>
                   </td>
 
@@ -254,7 +254,7 @@ export default function AdminTwibbonPage() {
                         alt={tw.author.name}
                         className="w-6 h-6 rounded-full object-cover shrink-0"
                       />
-                      <span className="font-semibold text-gray-800 truncate">{tw.author.name}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200 truncate">{tw.author.name}</span>
                     </div>
                   </td>
 
@@ -265,7 +265,7 @@ export default function AdminTwibbonPage() {
                       className={`p-1.5 transition-colors inline-flex items-center justify-center ${
                         tw.isFeatured
                           ? 'text-amber-500 hover:text-amber-600'
-                          : 'text-gray-300 hover:text-amber-400'
+                          : 'text-gray-300 dark:text-gray-600 hover:text-amber-400'
                       }`}
                       title={tw.isFeatured ? 'Pilihan Utama (Featured)' : 'Sematkan Pilihan Utama'}
                     >
@@ -278,10 +278,10 @@ export default function AdminTwibbonPage() {
                     <span
                       className={`inline-flex items-center gap-1.5 text-xs font-bold ${
                         tw.status === 'Disetujui'
-                          ? 'text-emerald-600'
+                          ? 'text-emerald-600 dark:text-emerald-400'
                           : tw.status === 'Pending'
-                          ? 'text-amber-600'
-                          : 'text-red-600'
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-red-600 dark:text-red-400'
                       }`}
                     >
                       <span
@@ -302,7 +302,7 @@ export default function AdminTwibbonPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <Link
                         href="/twibbon"
-                        className="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-colors"
                         title="Coba Twibbon Live"
                       >
                         <Eye size={16} />
@@ -310,7 +310,7 @@ export default function AdminTwibbonPage() {
 
                       <button
                         onClick={() => openEditModal(tw)}
-                        className="p-1.5 text-gray-500 hover:text-[#F26522] hover:bg-orange-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#ff7a38] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors"
                         title="Edit Metadata"
                       >
                         <Edit size={16} />
@@ -319,7 +319,7 @@ export default function AdminTwibbonPage() {
                       {tw.status !== 'Disetujui' && (
                         <button
                           onClick={() => handleApprove(tw.id)}
-                          className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg transition-colors"
                           title="Setujui Twibbon"
                         >
                           <CheckCircle size={16} />
@@ -329,7 +329,7 @@ export default function AdminTwibbonPage() {
                       {tw.status !== 'Ditolak' && (
                         <button
                           onClick={() => handleReject(tw.id)}
-                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          className="p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors"
                           title="Tolak Twibbon"
                         >
                           <XCircle size={16} />
@@ -338,7 +338,7 @@ export default function AdminTwibbonPage() {
 
                       <button
                         onClick={() => handleDelete(tw)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
                         title="Hapus Permanent"
                       >
                         <Trash2 size={16} />
@@ -353,9 +353,9 @@ export default function AdminTwibbonPage() {
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <div>
-              Halaman <span className="font-bold text-gray-900">{currentPage}</span> dari <span className="font-bold text-gray-900">{totalPages}</span>
+              Halaman <span className="font-bold text-gray-900 dark:text-white">{currentPage}</span> dari <span className="font-bold text-gray-900 dark:text-white">{totalPages}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ export default function AdminTwibbonPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm font-bold"
+                className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm font-bold"
               >
                 &larr; Prev
               </button>
@@ -372,7 +372,7 @@ export default function AdminTwibbonPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm font-bold"
+                className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm font-bold"
               >
                 Next &rarr;
               </button>
@@ -389,19 +389,19 @@ export default function AdminTwibbonPage() {
             setIsAddModalOpen(false);
             setEditingTwibbon(null);
           }}
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 cursor-default"
+            className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 cursor-default"
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               {editingTwibbon ? 'Edit Metadata Frame Twibbon' : 'Tambah Frame Twibbon Official Baru'}
             </h3>
 
             <form onSubmit={handleSaveTwibbon} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                   Judul Frame Twibbon
                 </label>
                 <input
@@ -409,18 +409,18 @@ export default function AdminTwibbonPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Contoh: Twibbon Milenial PKS 2026"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
                   Unggah Berkas Gambar Frame PNG (Transparan)
                 </label>
                 
                 {/* File Upload Box */}
-                <label className="border-2 border-dashed border-purple-200 hover:border-[#F26522] bg-purple-50/50 hover:bg-orange-50/30 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
+                <label className="border-2 border-dashed border-purple-200 dark:border-purple-800/60 hover:border-[#F26522] dark:hover:border-[#F26522] bg-purple-50/50 dark:bg-purple-950/20 hover:bg-orange-50/30 dark:hover:bg-orange-950/20 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
                   <input
                     type="file"
                     accept="image/png,image/*"
@@ -433,22 +433,22 @@ export default function AdminTwibbonPage() {
                       <img
                         src={filePreview || formData.imageUrl}
                         alt="Preview Twibbon"
-                        className="w-full max-h-48 aspect-square rounded-xl object-contain border border-purple-200 bg-white p-2 shadow-sm"
+                        className="w-full max-h-48 aspect-square rounded-xl object-contain border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 p-2 shadow-sm"
                       />
-                      <span className="text-xs font-bold text-[#F26522] group-hover:underline">
+                      <span className="text-xs font-bold text-[#F26522] dark:text-[#ff7a38] group-hover:underline">
                         Ganti Berkas Gambar (PNG)
                       </span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2 py-2">
-                      <div className="p-3 bg-white rounded-full text-purple-600 group-hover:text-[#F26522] shadow-sm transition-colors">
+                      <div className="p-3 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400 group-hover:text-[#F26522] shadow-sm transition-colors">
                         <UploadCloud size={24} />
                       </div>
                       <div>
-                        <p className="text-xs font-extrabold text-gray-900">
+                        <p className="text-xs font-extrabold text-gray-900 dark:text-white">
                           Klik di sini untuk mengunggah berkas PNG Twibbon
                         </p>
-                        <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">
                           Disarankan format PNG transparansi (1080x1080px)
                         </p>
                       </div>
@@ -459,13 +459,13 @@ export default function AdminTwibbonPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                     Kategori Twibbon
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#F26522]"
                   >
                     <option value="Nasional">Nasional</option>
                     <option value="Milenial">Milenial</option>
@@ -475,7 +475,7 @@ export default function AdminTwibbonPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
                     Wilayah
                   </label>
                   <input
@@ -483,7 +483,7 @@ export default function AdminTwibbonPage() {
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                     placeholder="DPP PKS / Jawa Barat"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
                     required
                   />
                 </div>
@@ -496,13 +496,13 @@ export default function AdminTwibbonPage() {
                     setIsAddModalOpen(false);
                     setEditingTwibbon(null);
                   }}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl transition-colors"
                 >
                   Simpan Twibbon
                 </button>

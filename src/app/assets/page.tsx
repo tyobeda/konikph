@@ -112,7 +112,7 @@ export default function AssetsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -141,11 +141,11 @@ export default function AssetsPage() {
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                 <Palette className="text-[#F26522]" />
                 <span>Pusat Unduhan Resmi Brand Kit & Pedoman Visual</span>
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Aset identitas resmi untuk menjaga keselarasan standar publikasi PKS se-Indonesia.
               </p>
             </div>
@@ -153,11 +153,11 @@ export default function AssetsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {!isMounted || (!isBrandKitsLoaded && brandKits.length === 0) ? (
-              <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-400 font-medium animate-pulse">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-400 dark:text-gray-500 font-medium animate-pulse">
                 Memuat aset brand kit...
               </div>
             ) : brandKits.length === 0 ? (
-              <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-500">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4 py-8 text-center text-gray-500 dark:text-gray-400">
                 Belum ada aset Brand Kit yang ditambahkan.
               </div>
             ) : (
@@ -167,11 +167,11 @@ export default function AssetsPage() {
                 return (
                   <div
                     key={idx}
-                    className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
                       {displayImage ? (
-                        <div className="w-full h-36 mb-3 flex items-center justify-center group overflow-hidden rounded-xl">
+                        <div className="w-full h-36 mb-3 flex items-center justify-center group overflow-hidden rounded-xl bg-gray-50 dark:bg-gray-800/50">
                           <img
                             src={displayImage}
                             alt={item.title}
@@ -186,18 +186,18 @@ export default function AssetsPage() {
                           <Icon size={20} />
                         </div>
                       )}
-                    <span className="text-[10px] font-extrabold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">
                       {item.category}
                     </span>
-                    <h3 className="font-extrabold text-sm text-gray-900 mt-2 leading-snug">
+                    <h3 className="font-extrabold text-sm text-gray-900 dark:text-white mt-2 leading-snug">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-gray-500 font-medium mt-1 lowercase">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 lowercase">
                       {item.format}
                     </p>
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-end">
+                  <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end">
                     <button
                       onClick={() => item.fileUrl ? triggerDirectDownload(item.fileUrl, item.title) : handleDownloadKit(item.title)}
                       className="px-3.5 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
@@ -215,10 +215,10 @@ export default function AssetsPage() {
         {/* Format Selector Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-base font-extrabold text-gray-900">
+            <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
               Katalog File Master Postingan ({filteredAssets.length})
             </h2>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {totalPages > 1
                 ? `Menampilkan hal. ${currentPage} dari ${totalPages} (20 aset per halaman)`
                 : 'Filter berdasarkan format file karya pengembang'}
@@ -233,7 +233,7 @@ export default function AssetsPage() {
                 className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
                   selectedFormat === fmt
                     ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 {fmt === 'Semua Format' ? 'Semua Format' : `Format ${fmt}`}
@@ -243,13 +243,13 @@ export default function AssetsPage() {
 
           {/* Search Bar */}
           <div className="relative flex-1 max-w-xs">
-            <Search size={16} className="absolute left-3.5 top-3 text-gray-400" />
+            <Search size={16} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari aset PSD, AI, Canva..."
-              className="w-full bg-white text-sm rounded-2xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522] shadow-sm"
+              className="w-full bg-white dark:bg-gray-900 text-sm rounded-2xl pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] shadow-sm"
             />
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function AssetsPage() {
                     window.scrollTo({ top: 400, behavior: 'smooth' });
                   }}
                   disabled={currentPage === 1}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
                 >
                   &laquo; Sebelum
                 </button>
@@ -287,7 +287,7 @@ export default function AssetsPage() {
                     className={`w-9 h-9 rounded-xl text-xs font-extrabold transition-all border ${
                       currentPage === page
                         ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm scale-105'
-                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                   >
                     {page}
@@ -300,7 +300,7 @@ export default function AssetsPage() {
                     window.scrollTo({ top: 400, behavior: 'smooth' });
                   }}
                   disabled={currentPage === totalPages}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
                 >
                   Lanjut &raquo;
                 </button>
@@ -308,12 +308,12 @@ export default function AssetsPage() {
             )}
           </>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center my-8">
-            <FileCode size={48} className="mx-auto text-gray-300 mb-3" />
-            <h3 className="text-base font-bold text-gray-800">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-12 text-center my-8">
+            <FileCode size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+            <h3 className="text-base font-bold text-gray-800 dark:text-gray-200">
               Tidak ada aset master ditemukan
             </h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto mt-1">
               Tidak ada file mentahan yang cocok dengan format "{selectedFormat}" atau kata kunci pencarian Anda.
             </p>
             <button

@@ -91,7 +91,8 @@ export default async function RootLayout({
               (function() {
                 try {
                   var stored = localStorage.getItem('pksart_theme');
-                  var isDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = stored === 'dark' || ((!stored || stored === 'system') && prefersDark);
                   if (isDark) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
@@ -107,7 +108,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100 transition-colors duration-200" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100" suppressHydrationWarning>
         <ThemeProvider>
           <DataProvider initialSettings={initialSettings}>
             <Suspense fallback={null}>

@@ -200,11 +200,11 @@ export default function AdminBrandKit() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
             <Folder className="text-[#F26522]" />
             <span>Brand Kit & Pedoman Visual PKS</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Manajemen aset publikasi resmi, berkas logo vektor, palet warna, dan templat presentasi.
           </p>
         </div>
@@ -219,13 +219,13 @@ export default function AdminBrandKit() {
       </div>
 
       {/* Table Container */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-extrabold text-gray-900">
+            <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
               Daftar Berkas & Aset Brand Kit
             </h2>
-            <span className="bg-orange-50 text-[#F26522] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100">
+            <span className="bg-orange-50 dark:bg-orange-950/40 text-[#F26522] dark:text-[#ff7a38] text-xs font-bold px-2.5 py-1 rounded-full border border-orange-100 dark:border-orange-900/40">
               {filteredKits.length} Aset
             </span>
           </div>
@@ -237,15 +237,15 @@ export default function AdminBrandKit() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari aset, format, atau kategori..."
-              className="w-full bg-gray-50 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+              className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-xl pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
             />
           </div>
         </div>
 
         {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50/80 text-xs text-gray-500 font-bold border-b border-gray-100">
+          <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+            <thead className="bg-gray-50/80 dark:bg-gray-800/60 text-xs text-gray-500 dark:text-gray-400 font-bold border-b border-gray-100 dark:border-gray-800">
               <tr>
                 <th className="py-3.5 px-4">Informasi Aset & Pratinjau</th>
                 <th className="py-3.5 px-4">Kategori</th>
@@ -253,10 +253,10 @@ export default function AdminBrandKit() {
                 <th className="py-3.5 px-4 text-right">Aksi Admin</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {!isMounted || (!isBrandKitsLoaded && brandKits.length === 0) ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-gray-400 font-medium animate-pulse">
+                  <td colSpan={4} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium animate-pulse">
                     Memuat berkas aset brand kit...
                   </td>
                 </tr>
@@ -264,13 +264,13 @@ export default function AdminBrandKit() {
                 paginatedKits.map((kit) => {
                   const displayImg = getDisplayImage(kit);
                   return (
-                    <tr key={kit.id} className="hover:bg-gray-50/60 transition-colors">
+                    <tr key={kit.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           {displayImg ? (
                             <div
                               onClick={() => setPreviewImage(displayImg)}
-                              className="w-11 h-11 rounded-xl overflow-hidden border border-gray-200 shrink-0 bg-gray-50 flex items-center justify-center p-0.5 shadow-sm group cursor-pointer relative"
+                              className="w-11 h-11 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shrink-0 bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-0.5 shadow-sm group cursor-pointer relative"
                               title="Klik untuk memperbesar pratinjau"
                             >
                               <img
@@ -294,19 +294,19 @@ export default function AdminBrandKit() {
                           )}
 
                           <div>
-                            <p className="font-bold text-gray-900">{kit.title}</p>
+                            <p className="font-bold text-gray-900 dark:text-white">{kit.title}</p>
                             {kit.fileUrl && kit.fileUrl !== '#' ? (
                               <button
                                 type="button"
                                 onClick={() => triggerDirectDownload(kit.fileUrl, kit.title)}
-                                className="text-xs text-gray-500 hover:text-[#F26522] flex items-center gap-1 font-mono mt-0.5 cursor-pointer group"
+                                className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#ff7a38] flex items-center gap-1 font-mono mt-0.5 cursor-pointer group"
                                 title={kit.fileUrl}
                               >
-                                <ExternalLink size={11} className="text-[#F26522] shrink-0" />
+                                <ExternalLink size={11} className="text-[#F26522] dark:text-[#ff7a38] shrink-0" />
                                 <span className="truncate max-w-[260px] group-hover:underline">{kit.fileUrl}</span>
                               </button>
                             ) : (
-                              <span className="text-[11px] text-gray-400 font-mono mt-0.5 block italic">
+                              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono mt-0.5 block italic">
                                 Belum ada tautan download
                               </span>
                             )}
@@ -315,12 +315,12 @@ export default function AdminBrandKit() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 bg-orange-50 text-[#F26522] border border-orange-100 rounded-lg text-xs font-bold">
+                        <span className="px-2.5 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] dark:text-[#ff7a38] border border-orange-100 dark:border-orange-900/40 rounded-lg text-xs font-bold">
                           {kit.category}
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 font-semibold text-gray-800 lowercase">
+                      <td className="py-3.5 px-4 font-semibold text-gray-800 dark:text-gray-200 lowercase">
                         {kit.format}
                       </td>
 
@@ -328,14 +328,14 @@ export default function AdminBrandKit() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenModal(kit)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"
                             title="Edit Aset"
                           >
                             <Edit size={16} />
                           </button>
                           <button
                             onClick={() => handleDelete(kit)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
                             title="Hapus Aset"
                           >
                             <Trash2 size={16} />
@@ -347,7 +347,7 @@ export default function AdminBrandKit() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-gray-400 font-medium">
+                  <td colSpan={4} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium">
                     Tidak ada berkas aset brand kit yang sesuai dengan pencarian.
                   </td>
                 </tr>
@@ -357,17 +357,17 @@ export default function AdminBrandKit() {
         </div>
 
         {/* Pagination Bar */}
-        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50">
-          <div className="text-gray-500 font-medium">
+        <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-gray-50/50 dark:bg-gray-800/40">
+          <div className="text-gray-500 dark:text-gray-400 font-medium">
             Menampilkan{' '}
-            <span className="font-bold text-gray-800">
+            <span className="font-bold text-gray-800 dark:text-white">
               {filteredKits.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}
             </span>{' '}
             -{' '}
-            <span className="font-bold text-gray-800">
+            <span className="font-bold text-gray-800 dark:text-white">
               {Math.min(currentPage * ITEMS_PER_PAGE, filteredKits.length)}
             </span>{' '}
-            dari <span className="font-bold text-gray-800">{filteredKits.length}</span> Berkas Aset
+            dari <span className="font-bold text-gray-800 dark:text-white">{filteredKits.length}</span> Berkas Aset
           </div>
 
           <div className="flex items-center gap-1.5 font-bold">
@@ -375,7 +375,7 @@ export default function AdminBrandKit() {
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+              className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm text-xs"
             >
               &larr; Prev
             </button>
@@ -389,7 +389,7 @@ export default function AdminBrandKit() {
                   className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
                     currentPage === page
                       ? 'bg-[#F26522] text-white shadow-sm'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   {page}
@@ -401,7 +401,7 @@ export default function AdminBrandKit() {
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || filteredKits.length === 0}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors shadow-sm text-xs"
+              className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm text-xs"
             >
               Next &rarr;
             </button>
@@ -413,26 +413,26 @@ export default function AdminBrandKit() {
       {isModalOpen && (
         <div
           onClick={() => setIsModalOpen(false)}
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-gray-100 cursor-default animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-gray-100 dark:border-gray-800 cursor-default animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto"
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <span>{editingKit ? 'Edit Aset Brand Kit' : 'Tambah Aset Baru'}</span>
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Judul Aset
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
+                  className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
                   placeholder="Misal: Logo Resmi PKS Vektor"
                   required
                 />
@@ -440,26 +440,26 @@ export default function AdminBrandKit() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                     Kategori
                   </label>
                   <input
                     type="text"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
                     placeholder="Misal: Logo Vektor"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                     Format File
                   </label>
                   <input
                     type="text"
                     value={formData.format}
                     onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold lowercase"
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold lowercase"
                     placeholder="Misal: .ai / .svg / .png"
                   />
                 </div>
@@ -467,7 +467,7 @@ export default function AdminBrandKit() {
 
               {/* Download File Link Input */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center justify-between">
                   <span>Tautan Download Berkas Utama (Drive / Canva / Dropbox)</span>
                   <Link2 size={12} className="text-[#F26522]" />
                 </label>
@@ -475,19 +475,19 @@ export default function AdminBrandKit() {
                   type="text"
                   value={formData.fileUrl}
                   onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
+                  className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
                   placeholder="Paste tautan Google Drive / Canva / Dropbox / URL berkas"
                 />
               </div>
 
               {/* Upload Image Preview Option */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Unggah Gambar Pratinjau (Thumbnail)
                 </label>
                 <div className="flex items-center gap-3">
-                  <label className="flex-1 cursor-pointer bg-orange-50/40 hover:bg-orange-50 border border-dashed border-[#F26522]/40 rounded-xl py-3 px-3 flex items-center justify-center gap-2 text-xs font-bold text-[#F26522] transition-colors">
-                    <Upload size={16} className="text-[#F26522]" />
+                  <label className="flex-1 cursor-pointer bg-orange-50/40 dark:bg-orange-950/20 hover:bg-orange-50 dark:hover:bg-orange-950/30 border border-dashed border-[#F26522]/40 dark:border-[#F26522]/50 rounded-xl py-3 px-3 flex items-center justify-center gap-2 text-xs font-bold text-[#F26522] dark:text-[#ff7a38] transition-colors">
+                    <Upload size={16} className="text-[#F26522] dark:text-[#ff7a38]" />
                     <span>{isUploading ? 'Mengunggah Gambar Preview...' : 'Pilih Foto / Gambar Preview Komputer'}</span>
                     <input
                       type="file"
@@ -502,19 +502,19 @@ export default function AdminBrandKit() {
 
               {/* Live Preview Box in Modal */}
               {(formData.previewUrl || getDisplayImage({ fileUrl: formData.fileUrl })) && (
-                <div className="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-3 shadow-sm">
+                <div className="p-3 bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between gap-3 shadow-sm">
                   <div className="flex items-center gap-3">
                     <img
                       src={formData.previewUrl || getDisplayImage({ fileUrl: formData.fileUrl }) || ''}
                       alt="Pratinjau Aset"
-                      className="w-16 h-16 object-cover rounded-xl border border-gray-200 shadow-sm shrink-0 bg-gray-50"
+                      className="w-16 h-16 object-cover rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 bg-gray-50 dark:bg-gray-800"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = 'none';
                       }}
                     />
                     <div>
-                      <span className="text-xs font-bold text-gray-900 block">Gambar Pratinjau Siap Tampil</span>
-                      <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-0.5 border border-emerald-200">
+                      <span className="text-xs font-bold text-gray-900 dark:text-white block">Gambar Pratinjau Siap Tampil</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md inline-block mt-0.5 border border-emerald-200 dark:border-emerald-800">
                         ✓ File gambar berhasil diunggah
                       </span>
                     </div>
@@ -535,7 +535,7 @@ export default function AdminBrandKit() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                     Tipe Ikon Aset
                   </label>
                   <div className="flex items-center gap-2 py-1">
@@ -552,7 +552,7 @@ export default function AdminBrandKit() {
                         className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${
                           formData.iconType === iconOpt.type
                             ? 'bg-[#F26522] border-[#F26522] text-white shadow-sm'
-                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                            : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                         title={iconOpt.label}
                       >
@@ -563,7 +563,7 @@ export default function AdminBrandKit() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                     Warna Tema Aset
                   </label>
                   <div className="flex items-center gap-2 py-1">
@@ -591,11 +591,11 @@ export default function AdminBrandKit() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-5 mt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2 pt-5 mt-4 border-t border-gray-100 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-colors"
               >
                 Batal
               </button>
@@ -619,7 +619,7 @@ export default function AdminBrandKit() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-3xl max-h-[85vh] p-2 bg-white rounded-2xl shadow-2xl overflow-hidden"
+            className="relative max-w-3xl max-h-[85vh] p-2 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
           >
             <button
               onClick={() => setPreviewImage(null)}
