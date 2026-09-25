@@ -23,6 +23,7 @@ import {
   Info,
   Maximize2,
   Grid,
+  Check,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -268,9 +269,30 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
                   <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white leading-tight">
                     {brandKit.title}
                   </h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
-                    URL Slug: <span className="text-[#F26522]">/assets/{brandKit.slug || brandKit.id}</span>
-                  </p>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1.5">
+                      <span>URL Slug:</span>
+                      <span className="text-[#F26522] font-semibold">/assets/{brandKit.slug || brandKit.id}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md text-[11px] font-semibold transition-colors cursor-pointer"
+                      title="Salin tautan ke clipboard"
+                    >
+                      {showCopiedToast ? (
+                        <>
+                          <Check size={12} className="text-emerald-500" />
+                          <span className="text-emerald-600 dark:text-emerald-400 text-[10px]">Tersalin</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} className="text-gray-500" />
+                          <span className="text-[10px]">Salin</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Description or Usage Guide */}
@@ -318,6 +340,41 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
 
               {/* Action / Download Box */}
               <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-3">
+                {/* Share Button (Direct Copy Link) */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className={`flex-1 py-3 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98 ${
+                      showCopiedToast
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-gray-50 dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700'
+                    }`}
+                    title="Salin tautan aset ke clipboard"
+                  >
+                    {showCopiedToast ? (
+                      <>
+                        <Check size={16} className="text-emerald-500" />
+                        <span>Tautan Berhasil Disalin!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 size={16} className="text-[#F26522]" />
+                        <span>Share (Salin Tautan)</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="p-3 bg-gray-50 dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-2xl transition-all cursor-pointer shadow-xs"
+                    title="Opsi Berbagi Lainnya (WhatsApp, Twitter, dll)"
+                  >
+                    <ExternalLink size={16} />
+                  </button>
+                </div>
+
                 {isAccessible ? (
                   <>
                     <button
