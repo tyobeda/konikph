@@ -14,7 +14,8 @@ import {
   Plus, 
   UploadCloud, 
   X,
-  CheckCircle2
+  CheckCircle2,
+  ShieldAlert
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -28,7 +29,23 @@ export default function TwibbonGalleryPage() {
   const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance, siteSettings } = useData();
   const router = useRouter();
 
-  const isOnlyAdminMode = Boolean(siteSettings?.onlyAdminCanCreateTwibbon);
+  const [liveOnlyAdminMode, setLiveOnlyAdminMode] = useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.data) {
+          setLiveOnlyAdminMode(Boolean(d.data.onlyAdminCanCreateTwibbon));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const isOnlyAdminMode = liveOnlyAdminMode !== null 
+    ? liveOnlyAdminMode 
+    : Boolean(siteSettings?.onlyAdminCanCreateTwibbon);
+
   const isSuperAdmin = currentUser?.role === 'Super Admin';
   const canCreateTwibbon = !isOnlyAdminMode || isSuperAdmin;
 
@@ -213,6 +230,11 @@ export default function TwibbonGalleryPage() {
               >
                 <Plus size={16} />
                 <span>Buat Template Twibbon</span>
+                {isOnlyAdminMode && isSuperAdmin && (
+                  <span className="hidden sm:inline-block ml-1 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-black/30 text-white rounded">
+                    Admin
+                  </span>
+                )}
               </button>
             )}
 
@@ -229,6 +251,18 @@ export default function TwibbonGalleryPage() {
             </div>
           </div>
         </div>
+
+        {/* Pemberitahuan khusus Super Admin saat mode pembatasan aktif */}
+        {isMounted && isOnlyAdminMode && isSuperAdmin && (
+          <div className="mb-6 p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-2xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
+            <div className="flex items-center gap-2.5">
+              <ShieldAlert size={16} className="shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>
+                <strong>Mode Khusus Super Admin Aktif:</strong> Tombol <em>"Buat Template Twibbon"</em> di atas saat ini <u>hanya terlihat oleh Anda karena sedang login sebagai Super Admin</u>. Pengguna umum, kreator biasa, dan pengunjung publik tidak melihat tombol tersebut.
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Tab Filters */}
         <div className="flex border-b border-gray-200 dark:border-gray-800 mb-6 gap-6 text-sm font-bold">

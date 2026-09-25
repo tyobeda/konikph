@@ -150,7 +150,9 @@ export async function updateDBSiteSettings(data: any) {
         maintenanceConfig: data.maintenanceConfig ? (typeof data.maintenanceConfig === 'string' ? data.maintenanceConfig : JSON.stringify(data.maintenanceConfig)) : null,
       }
     });
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
+    revalidatePath('/twibbon');
+    revalidatePath('/admin/twibbon');
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
     let ctaSocialLinksParsed = [];
     if (settings.ctaSocialLinks) {

@@ -30,6 +30,40 @@ export default function AdminTwibbonPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [deletingTwibbon, setDeletingTwibbon] = useState<TwibbonFrame | null>(null);
 
+  // Access Control State for Twibbon Template Creation
+  const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
+  const [accessToast, setAccessToast] = useState<string | null>(null);
+
+  const handleSetTwibbonAccess = async (restrictedToAdmin: boolean) => {
+    if (isUpdatingAccess) return;
+    setIsUpdatingAccess(true);
+    
+    // Optimistically update context
+    updateSiteSettings({ onlyAdminCanCreateTwibbon: restrictedToAdmin });
+
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onlyAdminCanCreateTwibbon: restrictedToAdmin }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Gagal menyimpan perubahan');
+      }
+      setAccessToast(
+        restrictedToAdmin
+          ? 'Mode Aktif: Pembuatan Twibbon dibatasi HANYA untuk Super Admin (Umum dimatikan).'
+          : 'Mode Aktif: Pembuatan Twibbon kini DIBUKA untuk SEMUA pengguna/kreator.'
+      );
+    } catch (err: any) {
+      alert('Gagal update pengaturan: ' + err.message);
+    } finally {
+      setIsUpdatingAccess(false);
+      setTimeout(() => setAccessToast(null), 3500);
+    }
+  };
+
   // Modal State for Adding/Editing Twibbon
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingTwibbon, setEditingTwibbon] = useState<TwibbonFrame | null>(null);
@@ -166,61 +200,82 @@ export default function AdminTwibbonPage() {
         </button>
       </div>
 
+      {/* Toast Feedback */}
+      {accessToast && (
+        <div className="mb-6 p-4 rounded-2xl bg-[#F26522] text-white text-xs sm:text-sm font-bold shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle size={18} />
+            <span>{accessToast}</span>
+          </div>
+          <button onClick={() => setAccessToast(null)} className="text-white/80 hover:text-white">
+            <XCircle size={18} />
+          </button>
+        </div>
+      )}
+
       {/* Switch Akses Pembuatan Template Twibbon */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mb-8 shadow-sm transition-all">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className={`p-2.5 rounded-xl shrink-0 ${
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 sm:p-6 mb-8 shadow-sm transition-all">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className={`p-3 rounded-2xl shrink-0 transition-colors ${
               siteSettings?.onlyAdminCanCreateTwibbon
                 ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40'
                 : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'
             }`}>
-              {siteSettings?.onlyAdminCanCreateTwibbon ? <ShieldCheck size={22} /> : <Users size={22} />}
+              {siteSettings?.onlyAdminCanCreateTwibbon ? <ShieldCheck size={26} /> : <Users size={26} />}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white">
-                  Batasi Pembuatan Template Twibbon Hanya untuk Super Admin
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-white">
+                  Pengaturan Izin Pembuatan Template Twibbon
                 </h3>
-                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider ${
                   siteSettings?.onlyAdminCanCreateTwibbon
                     ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
                     : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'
                 }`}>
-                  {siteSettings?.onlyAdminCanCreateTwibbon ? 'Hanya Super Admin' : 'Semua User'}
+                  {siteSettings?.onlyAdminCanCreateTwibbon ? '🔒 Khusus Super Admin' : '🌐 Terbuka untuk Umum'}
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-2xl leading-relaxed">
                 {siteSettings?.onlyAdminCanCreateTwibbon
-                  ? 'Aktif: Tombol "Buat Template Twibbon" di halaman publik (/twibbon) hanya akan muncul dan dapat diakses oleh Super Admin.'
-                  : 'Nonaktif: Semua pengguna/kreator diperbolehkan membuat dan mengunggah template twibbon baru.'}
+                  ? 'Saat ini pembuatan twibbon DIMATIKAN UNTUK UMUM. Tombol "+ Buat Template Twibbon" di galeri publik (/twibbon) hanya akan muncul dan dapat diakses oleh akun Super Admin.'
+                  : 'Saat ini pembuatan twibbon DIBUKA UNTUK UMUM. Semua pengguna atau kreator yang login diizinkan mengunggah dan membuat template twibbon baru.'}
               </p>
             </div>
           </div>
 
-          {/* Toggle Switch */}
-          <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
-              {siteSettings?.onlyAdminCanCreateTwibbon ? 'Khusus Admin' : 'Terbuka Umum'}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={Boolean(siteSettings?.onlyAdminCanCreateTwibbon)}
-              onClick={async () => {
-                const nextVal = !siteSettings?.onlyAdminCanCreateTwibbon;
-                await updateSiteSettings({ onlyAdminCanCreateTwibbon: nextVal });
-              }}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                siteSettings?.onlyAdminCanCreateTwibbon ? 'bg-[#F26522]' : 'bg-gray-200 dark:bg-gray-700'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  siteSettings?.onlyAdminCanCreateTwibbon ? 'translate-x-5' : 'translate-x-0'
+          {/* Mode Switch & Segmented Options */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            <div className="inline-flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1 border border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => handleSetTwibbonAccess(true)}
+                disabled={isUpdatingAccess}
+                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  siteSettings?.onlyAdminCanCreateTwibbon
+                    ? 'bg-[#F26522] text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
-              />
-            </button>
+              >
+                <ShieldCheck size={14} />
+                <span>Khusus Admin (Matikan Umum)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSetTwibbonAccess(false)}
+                disabled={isUpdatingAccess}
+                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  !siteSettings?.onlyAdminCanCreateTwibbon
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Users size={14} />
+                <span>Buka untuk Semua</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
