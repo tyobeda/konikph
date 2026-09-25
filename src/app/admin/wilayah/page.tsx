@@ -20,6 +20,7 @@ import { PksLogo } from '@/components/PksLogo';
 import { useData, DpwOffice } from '@/context/DataContext';
 import { formatPhoneNumber } from '@/lib/phone';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
+import { getCoordinatesForDpw } from '@/components/IndonesiaMapSection';
 
 const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), {
   ssr: false,
@@ -78,6 +79,25 @@ export default function AdminDpwPage() {
 
   const openEditModal = (dpw: DpwOffice) => {
     setEditingDpw(dpw);
+    let resolvedLat = dpw.lat;
+    let resolvedLng = dpw.lng;
+
+    const isOceanDefault =
+      resolvedLat !== null &&
+      resolvedLat !== undefined &&
+      Math.abs(Number(resolvedLat) - -2.5489) < 0.001 &&
+      resolvedLng !== null &&
+      resolvedLng !== undefined &&
+      Math.abs(Number(resolvedLng) - 118.0149) < 0.001;
+
+    if (resolvedLat == null || resolvedLng == null || isOceanDefault) {
+      const fallback = getCoordinatesForDpw(dpw.name);
+      if (fallback) {
+        resolvedLat = fallback.lat;
+        resolvedLng = fallback.lng;
+      }
+    }
+
     setFormData({
       name: dpw.name,
       code: dpw.code,
@@ -85,8 +105,8 @@ export default function AdminDpwPage() {
       phone: dpw.phone,
       email: dpw.email,
       address: dpw.address,
-      lat: dpw.lat ?? -2.5489,
-      lng: dpw.lng ?? 118.0149,
+      lat: resolvedLat !== null && resolvedLat !== undefined ? Number(resolvedLat) : -2.5489,
+      lng: resolvedLng !== null && resolvedLng !== undefined ? Number(resolvedLng) : 118.0149,
     });
   };
 
@@ -422,7 +442,20 @@ export default function AdminDpwPage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    if (!editingDpw) {
+                      const coords = getCoordinatesForDpw(newName);
+                      const isDefault =
+                        formData.lat == null ||
+                        (Math.abs(formData.lat - -2.5489) < 0.001 && Math.abs((formData.lng || 0) - 118.0149) < 0.001);
+                      if (isDefault && coords && (coords.lat !== -2.5489 || coords.lng !== 118.0149)) {
+                        setFormData((prev) => ({ ...prev, name: newName, lat: coords.lat, lng: coords.lng }));
+                        return;
+                      }
+                    }
+                    setFormData((prev) => ({ ...prev, name: newName }));
+                  }}
                   placeholder=""
                   className="w-full bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 transition-all"
                   required
@@ -432,6 +465,7 @@ export default function AdminDpwPage() {
               {/* Interactive Location Picker Map */}
               <div className="pt-1">
                 <LocationPickerMap
+                  key={`picker-${editingDpw ? editingDpw.id : 'new'}`}
                   initialLat={formData.lat}
                   initialLng={formData.lng}
                   onLocationSelect={(lat, lng) => setFormData((prev) => ({ ...prev, lat, lng }))}

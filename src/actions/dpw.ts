@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { getCoordinatesForDpw } from '@/components/IndonesiaMapSection';
 
 const INITIAL_38_DPW = [
   { name: 'Aceh', code: 'DPW-ACEH', coordinator: 'Koordinator Aceh', phone: '081200000001', email: 'dpw.aceh@pks.art', address: 'Banda Aceh' },
@@ -62,11 +63,23 @@ export async function getDpwList() {
 
     return { 
       success: true, 
-      data: dpwList.map(d => ({ 
-        ...d, 
-        createdAt: d.createdAt?.toISOString() || new Date().toISOString(), 
-        updatedAt: d.updatedAt?.toISOString() || new Date().toISOString() 
-      })) 
+      data: dpwList.map(d => {
+        let lat = d.lat;
+        let lng = d.lng;
+        // If coordinates are missing or null in DB, fallback to province coordinate
+        if (lat == null || lng == null) {
+          const coords = getCoordinatesForDpw(d.name);
+          lat = coords.lat;
+          lng = coords.lng;
+        }
+        return { 
+          ...d, 
+          lat,
+          lng,
+          createdAt: d.createdAt?.toISOString() || new Date().toISOString(), 
+          updatedAt: d.updatedAt?.toISOString() || new Date().toISOString() 
+        };
+      }) 
     };
   } catch (error) {
     console.error('Error fetching DPW list:', error);
@@ -83,6 +96,7 @@ export async function seedAllIndonesianDpw() {
     let createdCount = 0;
     for (const item of INITIAL_38_DPW) {
       if (!existingCodes.has(item.code.toUpperCase()) && !existingNames.has(item.name.toLowerCase())) {
+        const coords = getCoordinatesForDpw(item.name);
         await prisma.dpwOffice.create({
           data: {
             name: item.name,
@@ -91,6 +105,8 @@ export async function seedAllIndonesianDpw() {
             phone: item.phone,
             email: item.email,
             address: item.address,
+            lat: coords.lat,
+            lng: coords.lng,
             activeCreators: 0,
             totalArtworks: 0,
             isActive: true,
@@ -113,6 +129,14 @@ export async function seedAllIndonesianDpw() {
 
 export async function addDpw(data: any) {
   try {
+    let lat = data.lat !== undefined && data.lat !== null && data.lat !== '' ? Number(data.lat) : null;
+    let lng = data.lng !== undefined && data.lng !== null && data.lng !== '' ? Number(data.lng) : null;
+    if (lat == null || lng == null) {
+      const coords = getCoordinatesForDpw(data.name);
+      lat = coords.lat;
+      lng = coords.lng;
+    }
+
     const dpw = await prisma.dpwOffice.create({
       data: {
         name: data.name,
@@ -121,8 +145,8 @@ export async function addDpw(data: any) {
         phone: data.phone,
         email: data.email,
         address: data.address,
-        lat: data.lat !== undefined && data.lat !== null ? Number(data.lat) : null,
-        lng: data.lng !== undefined && data.lng !== null ? Number(data.lng) : null,
+        lat,
+        lng,
         activeCreators: data.activeCreators || 0,
         totalArtworks: data.totalArtworks || 0,
         isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
@@ -142,6 +166,12 @@ export async function addDpw(data: any) {
 export async function updateDpw(id: string, data: any) {
   try {
     const { id: _, createdAt, updatedAt, ...updateData } = data;
+    if (updateData.lat !== undefined) {
+      updateData.lat = updateData.lat !== null && updateData.lat !== '' ? Number(updateData.lat) : null;
+    }
+    if (updateData.lng !== undefined) {
+      updateData.lng = updateData.lng !== null && updateData.lng !== '' ? Number(updateData.lng) : null;
+    }
     const dpw = await prisma.dpwOffice.update({
       where: { id },
       data: updateData,

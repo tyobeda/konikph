@@ -45,10 +45,17 @@ const PROVINCE_COORDINATES: Record<string, { lat: number; lng: number }> = {
   'Maluku Utara': { lat: 1.5709, lng: 127.8087 },
   'Papua Barat': { lat: -1.3361, lng: 133.1747 },
   'Papua': { lat: -4.2699, lng: 138.0804 },
+  'Papua Selatan': { lat: -8.4991, lng: 140.4011 },
+  'Papua Tengah': { lat: -3.3667, lng: 135.5000 },
+  'Papua Pegunungan': { lat: -4.0931, lng: 138.9442 },
+  'Papua Barat Daya': { lat: -0.8762, lng: 131.2558 },
+  'Nasional': { lat: -6.2952, lng: 106.8407 },
+  'Luar Negeri': { lat: 1.3521, lng: 103.8198 },
 };
 
 // Helper function to resolve coordinates from name
-function getCoordinatesForDpw(name: string) {
+export function getCoordinatesForDpw(name: string): { lat: number; lng: number } {
+  if (!name) return { lat: -2.5489, lng: 118.0149 };
   const normalized = name.replace(/^DPW\s+/i, '').replace(/^PKS\s+/i, '').trim();
   if (PROVINCE_COORDINATES[normalized]) {
     return PROVINCE_COORDINATES[normalized];
@@ -60,9 +67,11 @@ function getCoordinatesForDpw(name: string) {
   if (matchKey) {
     return PROVINCE_COORDINATES[matchKey];
   }
-  // Default center Jakarta if unknown
+  // Default center Indonesia if unknown
   return { lat: -2.5489, lng: 118.0149 };
 }
+
+export { PROVINCE_COORDINATES };
 
 // Inner Leaflet Component to run strictly on Client
 function LeafletMapInner() {

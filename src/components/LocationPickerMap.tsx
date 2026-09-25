@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Sparkles } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 interface LocationPickerProps {
   initialLat?: number | null;
@@ -16,9 +16,16 @@ export default function LocationPickerMap({
   onLocationSelect,
 }: LocationPickerProps) {
   const [L, setL] = useState<any>(null);
+
+  const defaultLat = -2.5489;
+  const defaultLng = 118.0149;
+
+  const validLat = initialLat !== null && initialLat !== undefined && !isNaN(initialLat) ? initialLat : defaultLat;
+  const validLng = initialLng !== null && initialLng !== undefined && !isNaN(initialLng) ? initialLng : defaultLng;
+
   const [position, setPosition] = useState<{ lat: number; lng: number }>({
-    lat: initialLat || -2.5489,
-    lng: initialLng || 118.0149,
+    lat: validLat,
+    lng: validLng,
   });
 
   useEffect(() => {
@@ -28,20 +35,21 @@ export default function LocationPickerMap({
   }, []);
 
   useEffect(() => {
-    if (initialLat && initialLng) {
+    if (initialLat !== null && initialLat !== undefined && !isNaN(initialLat) &&
+        initialLng !== null && initialLng !== undefined && !isNaN(initialLng)) {
       setPosition({ lat: initialLat, lng: initialLng });
     }
   }, [initialLat, initialLng]);
 
   if (!L) {
     return (
-      <div className="w-full h-56 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-xs font-bold">
+      <div className="w-full h-56 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center text-gray-400 text-xs font-bold animate-pulse">
         Memuat Peta Pemilih Pinpoint...
       </div>
     );
   }
 
-  const { MapContainer, TileLayer, Marker, useMapEvents } = require('react-leaflet');
+  const { MapContainer, TileLayer, Marker, useMapEvents, useMap } = require('react-leaflet');
 
   const customPinIcon = L.divIcon({
     className: 'custom-picker-pin',
@@ -57,6 +65,30 @@ export default function LocationPickerMap({
     iconAnchor: [16, 16],
   });
 
+  function MapController({ center, isSpecificLocation }: { center: [number, number]; isSpecificLocation: boolean }) {
+    const map = useMap();
+    const initializedRef = React.useRef(false);
+
+    useEffect(() => {
+      if (center && !isNaN(center[0]) && !isNaN(center[1])) {
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+          const targetZoom = isSpecificLocation ? 8 : 5;
+          map.setView(center, targetZoom, { animate: false });
+        } else {
+          const currentZoom = map.getZoom();
+          const targetZoom = isSpecificLocation && currentZoom < 7 ? 7 : currentZoom;
+          if (targetZoom !== currentZoom) {
+            map.setView(center, targetZoom, { animate: true });
+          } else {
+            map.panTo(center, { animate: true });
+          }
+        }
+      }
+    }, [center[0], center[1], isSpecificLocation, map]);
+    return null;
+  }
+
   function MapClickHandler() {
     useMapEvents({
       click(e: any) {
@@ -69,22 +101,24 @@ export default function LocationPickerMap({
     return null;
   }
 
+  const isSpecific = Math.abs(position.lat - defaultLat) > 0.001 || Math.abs(position.lng - defaultLng) > 0.001;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-[11px] gap-2">
-        <span className="font-extrabold text-gray-700 flex items-center gap-1 min-w-0 truncate">
+        <span className="font-extrabold text-gray-700 dark:text-gray-300 flex items-center gap-1 min-w-0 truncate">
           <MapPin size={13} className="text-[#F26522] shrink-0" />
-          <span className="truncate">Klik Peta Untuk Menentukan Titik Wilayah</span>
+          <span className="truncate">Klik Peta Untuk Menentukan Titik Koordinat</span>
         </span>
-        <span className="font-mono text-[11px] text-[#F26522] font-extrabold shrink-0">
+        <span className="font-mono text-[11px] text-[#F26522] font-extrabold shrink-0 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-md border border-orange-200 dark:border-orange-800/40">
           {position.lat}, {position.lng}
         </span>
       </div>
 
-      <div className="w-full h-56 rounded-2xl overflow-hidden relative border border-gray-200 shadow-inner bg-white [&_.leaflet-control-attribution]:hidden">
+      <div className="w-full h-56 rounded-2xl overflow-hidden relative border border-gray-200 dark:border-gray-700 shadow-inner bg-white dark:bg-gray-800 [&_.leaflet-control-attribution]:hidden">
         <MapContainer
           center={[position.lat, position.lng]}
-          zoom={initialLat ? 6 : 5}
+          zoom={isSpecific ? 7 : 5}
           minZoom={4}
           maxZoom={12}
           zoomSnap={0.25}
@@ -102,12 +136,13 @@ export default function LocationPickerMap({
             attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             maxZoom={19}
           />
+          <MapController center={[position.lat, position.lng]} isSpecificLocation={isSpecific} />
           <MapClickHandler />
           <Marker position={[position.lat, position.lng]} icon={customPinIcon} />
         </MapContainer>
       </div>
-      <p className="text-[10px] text-gray-400">
-        * Admin dapat mengeklik posisi pulau di peta untuk menentukan koordinat presisi pin marker.
+      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+        * Klik pada peta untuk memindahkan pin marker ke koordinat kantor sekretariat wilayah.
       </p>
     </div>
   );
