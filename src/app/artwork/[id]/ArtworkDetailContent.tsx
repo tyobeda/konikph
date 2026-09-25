@@ -832,7 +832,7 @@ export default function ArtworkDetailContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left: Freestanding Photo Media (No padding container) */}
           <div className="lg:col-span-7 w-full flex items-center justify-center">
-            <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-gray-100/60 flex items-center justify-center">
+            <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-gray-100/60 dark:border-transparent flex items-center justify-center">
               {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
                 <CarouselViewer
                   images={artwork.imageUrls}
@@ -1249,16 +1249,16 @@ export default function ArtworkDetailContent() {
 
                     {/* Dropdown menu (membuka ke atas agar tidak terpotong container card) */}
                     {showCarouselDownloadMenu && (
-                      <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-2xl shadow-2xl border border-gray-200 py-1.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 divide-y divide-gray-100">
+                      <div className="absolute left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 py-1.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 divide-y divide-gray-100 dark:divide-gray-800">
                         <button
                           type="button"
                           onClick={() => {
                             setShowCarouselDownloadMenu(false);
                             handleDownloadCurrentImage();
                           }}
-                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2.5 transition-colors cursor-pointer"
                         >
-                          <Download size={15} className="text-gray-500 shrink-0" />
+                          <Download size={15} className="text-gray-500 dark:text-gray-400 shrink-0" />
                           <span>Unduh <strong>Slide {activeImageIndex + 1}</strong> Saja</span>
                         </button>
 
@@ -1266,7 +1266,7 @@ export default function ArtworkDetailContent() {
                           type="button"
                           disabled={isDownloadingAll || isZipping}
                           onClick={handleDownloadAllImagesDirect}
-                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-60 cursor-pointer"
+                          className="w-full px-4 py-2.5 text-left text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2.5 transition-colors disabled:opacity-60 cursor-pointer"
                         >
                           {isDownloadingAll ? (
                             <Loader2 size={15} className="animate-spin text-gray-700 shrink-0" />

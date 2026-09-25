@@ -181,7 +181,7 @@ export const CarouselViewer: React.FC<CarouselViewerProps> = ({
       }}
     >
       {images.map((url, idx) => (
-        <div key={idx} className="w-full shrink-0 relative bg-gray-50 flex items-center justify-center pointer-events-none">
+        <div key={idx} className="w-full shrink-0 relative bg-gray-50 dark:bg-transparent flex items-center justify-center pointer-events-none">
           <img
             src={url}
             alt={`${altTitle} - Halaman ${idx + 1}`}
