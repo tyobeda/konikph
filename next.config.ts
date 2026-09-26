@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['192.168.18.14', '192.168.18.14:3000'],
   devIndicators: false,
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
       { protocol: 'http', hostname: '**' },

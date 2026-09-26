@@ -45,9 +45,12 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     currentUser && artwork.likedUserIds && artwork.likedUserIds.includes(currentUser.id)
   );
 
+  const fallbackImage = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="%23F26522"/><circle cx="300" cy="350" r="120" fill="white" opacity="0.2"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="36" font-weight="bold">PKSart Official</text><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20" opacity="0.9">${encodeURIComponent(artwork.title)}</text></svg>`;
+
+  const initialImg = artwork.imageUrl || (artwork.imageUrls && artwork.imageUrls[0]) || '';
   const [likes, setLikes] = useState(artwork.likesCount);
   const [isLiked, setIsLiked] = useState(userLiked);
-  const [imgSrc, setImgSrc] = useState(artwork.imageUrl);
+  const [imgSrc, setImgSrc] = useState(initialImg || fallbackImage);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -377,10 +380,11 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     if (currentUser && artwork.likedUserIds) {
       setIsLiked(artwork.likedUserIds.includes(currentUser.id));
     }
-    if (artwork.imageUrl) {
-      setImgSrc(artwork.imageUrl);
+    const currentImg = artwork.imageUrl || (artwork.imageUrls && artwork.imageUrls[0]) || '';
+    if (currentImg) {
+      setImgSrc(currentImg);
     }
-  }, [artwork.likesCount, artwork.likedUserIds, artwork.imageUrl, currentUser]);
+  }, [artwork.likesCount, artwork.likedUserIds, artwork.imageUrl, artwork.imageUrls, currentUser]);
 
   const isOwner = Boolean(
     currentUser &&
@@ -419,8 +423,6 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fallbackImage = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="%23F26522"/><circle cx="300" cy="350" r="120" fill="white" opacity="0.2"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="36" font-weight="bold">PKSart Official</text><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20" opacity="0.9">${encodeURIComponent(artwork.title)}</text></svg>`;
-
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -456,21 +458,20 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               {!isImgLoaded && (
                 <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 animate-pulse" />
               )}
-              <Image
+              <img
                 src={imgSrc}
                 alt={artwork.title}
-                width={600}
-                height={800}
                 onLoad={() => setIsImgLoaded(true)}
                 onError={() => {
-                  setImgSrc(fallbackImage);
+                  if (imgSrc !== fallbackImage) {
+                    setImgSrc(fallbackImage);
+                  }
                   setIsImgLoaded(true);
                 }}
-                unoptimized={imgSrc.startsWith('data:')}
                 className={`w-full h-auto object-contain block group-hover:scale-[1.02] transition-all duration-300 ${
                   isImgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                 }`}
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                loading="lazy"
               />
               {/* Overlay gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -488,13 +489,13 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               href={`/creators/${getUserSlug(artwork.author)}`}
               className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden block aspect-square ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-[#F26522] transition-all bg-gray-100 dark:bg-gray-800"
             >
-              <Image
+              <img
                 src={artwork.author.avatar || 'https://ui-avatars.com/api/?name=User'}
                 alt={artwork.author.name}
-                width={36}
-                height={36}
-                unoptimized={Boolean(artwork.author.avatar?.startsWith('data:'))}
                 className="w-full h-full object-cover aspect-square rounded-full block"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=User';
+                }}
               />
             </Link>
 
