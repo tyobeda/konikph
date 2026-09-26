@@ -725,14 +725,14 @@ export default function UploadPage() {
                 </label>
                 <textarea
                   rows={4}
-                  maxLength={2000}
+                  maxLength={2200}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all"
                 />
                 <div className="flex justify-end mt-1">
-                  <span className={`text-[11px] font-semibold ${description.length >= 2000 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-                    {description.length}/2000 karakter
+                  <span className={`text-[11px] font-semibold ${description.length >= 2200 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                    {description.length}/2200 karakter
                   </span>
                 </div>
               </div>
