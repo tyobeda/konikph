@@ -103,8 +103,8 @@ export default function AdminDpwPage() {
       code: dpw.code,
       coordinator: dpw.coordinator,
       phone: dpw.phone,
-      email: dpw.email,
-      address: dpw.address,
+      email: dpw.email || '',
+      address: dpw.address || '',
       lat: resolvedLat !== null && resolvedLat !== undefined ? Number(resolvedLat) : -2.5489,
       lng: resolvedLng !== null && resolvedLng !== undefined ? Number(resolvedLng) : 118.0149,
     });
@@ -277,18 +277,24 @@ export default function AdminDpwPage() {
                             <PhoneCall size={12} className="text-[#F26522]" />
                             <span>{dpw.phone}</span>
                           </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                            <Mail size={12} />
-                            <span>{dpw.email}</span>
-                          </p>
+                          {dpw.email ? (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                              <Mail size={12} />
+                              <span>{dpw.email}</span>
+                            </p>
+                          ) : null}
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4 max-w-xs">
-                        <p className="text-xs text-gray-600 dark:text-gray-400 truncate flex items-start gap-1">
-                          <MapPin size={14} className="text-gray-400 dark:text-gray-500 shrink-0 mt-0.5" />
-                          <span>{dpw.address}</span>
-                        </p>
+                        {dpw.address ? (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate flex items-start gap-1">
+                            <MapPin size={14} className="text-gray-400 dark:text-gray-500 shrink-0 mt-0.5" />
+                            <span>{dpw.address}</span>
+                          </p>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">-</span>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -505,33 +511,6 @@ export default function AdminDpwPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>EMAIL KOORDINATOR / WILAYAH</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal lowercase">(tidak wajib)</span>
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder=""
-                  className="w-full bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>ALAMAT SEKRETARIAT</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal lowercase">(tidak wajib)</span>
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder=""
-                  className="w-full bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 transition-all resize-none"
-                />
-              </div>
             </form>
           </div>
         </div>

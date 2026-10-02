@@ -37,8 +37,8 @@ export interface DpwOffice {
   code: string;
   coordinator: string;
   phone: string;
-  email: string;
-  address: string;
+  email?: string;
+  address?: string;
   lat?: number | null;
   lng?: number | null;
   activeCreators: number;
