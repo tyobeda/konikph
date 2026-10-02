@@ -22,13 +22,11 @@ const DEFAULT_SETTINGS = {
   ctaEnabled: true,
   ctaLinks: JSON.stringify([
     { label: 'Beranda', url: '/' },
-    { label: 'Tentang PKSART', url: '#' },
-    { label: 'PKS Bicara', url: '#' },
-    { label: 'Khidmat PKS', url: '#' },
-    { label: 'Galeri PKSART', url: '#' },
-    { label: 'Jejaring', url: '#' },
+    { label: 'Tentang PKSART', url: '/p/profil' },
+    { label: 'Galeri PKSART', url: '/explore' },
+    { label: 'Jejaring', url: '/creators' },
     { label: 'Gabung', url: '/register' },
-    { label: 'Download', url: '#' },
+    { label: 'Download', url: '/assets' },
     { label: 'Login/Upload', url: '/login' }
   ]),
   ctaSocialText: 'Follow Kami',
@@ -151,6 +149,8 @@ export async function updateDBSiteSettings(data: any) {
       }
     });
     revalidatePath('/', 'layout');
+    revalidatePath('/', 'page');
+    revalidatePath('/admin/settings');
     revalidatePath('/twibbon');
     revalidatePath('/admin/twibbon');
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];

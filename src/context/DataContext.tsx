@@ -245,13 +245,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     ctaEnabled: true,
     ctaLinks: [
       { label: 'Beranda', url: '/' },
-      { label: 'Tentang PKSART', url: '#' },
-      { label: 'PKS Bicara', url: '#' },
-      { label: 'Khidmat PKS', url: '#' },
-      { label: 'Galeri PKSART', url: '#' },
-      { label: 'Jejaring', url: '#' },
+      { label: 'Tentang PKSART', url: '/p/profil' },
+      { label: 'Galeri PKSART', url: '/explore' },
+      { label: 'Jejaring', url: '/creators' },
       { label: 'Gabung', url: '/register' },
-      { label: 'Download', url: '#' },
+      { label: 'Download', url: '/assets' },
       { label: 'Login/Upload', url: '/login' }
     ],
     ctaSocialText: 'Follow @pksart',
@@ -268,12 +266,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings
     if (typeof window !== 'undefined') {
       const cached = getClientCookie('pksart_site_settings');
       if (cached) {
-        try { return JSON.parse(cached); } catch (e) {}
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && Array.isArray(parsed.ctaLinks)) {
+            parsed.ctaLinks = parsed.ctaLinks.filter((l: any) => l.label !== 'PKS Bicara' && l.label !== 'Khidmat PKS');
+          }
+          return parsed;
+        } catch (e) {}
       }
     }
     // Priority 3: Hardcoded defaults
     return DEFAULT_SETTINGS;
   });
+
+  useEffect(() => {
+    if (initialSettings) {
+      setSiteSettings(initialSettings);
+      if (typeof window !== 'undefined') {
+        setClientCookie('pksart_site_settings', JSON.stringify(initialSettings), 365);
+      }
+    }
+  }, [initialSettings]);
 
   const [isMounted, setIsMounted] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
