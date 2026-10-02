@@ -11,7 +11,6 @@ import {
   Trash2,
   Download,
   CheckCircle,
-  Sparkles,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { PksLogo } from '@/components/PksLogo';
@@ -30,10 +29,9 @@ const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap')
 });
 
 export default function AdminDpwPage() {
-  const { dpwList, addDpw, updateDpw, deleteDpw, seedDpw38, users = [], artworks = [] } = useData();
+  const { dpwList, addDpw, updateDpw, deleteDpw, users = [], artworks = [] } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSeeding, setIsSeeding] = useState(false);
   const [editingDpw, setEditingDpw] = useState<DpwOffice | null>(null);
   const [deletingDpw, setDeletingDpw] = useState<DpwOffice | null>(null);
 
@@ -108,17 +106,6 @@ export default function AdminDpwPage() {
     });
   };
 
-  const handleSeedAll38 = async () => {
-    if (!confirm('Apakah Anda ingin menginisialisasi / melengkapi seluruh 38 Wilayah PKS se-Indonesia ke dalam database?')) return;
-    setIsSeeding(true);
-    const res = await seedDpw38();
-    setIsSeeding(false);
-    if (res.success) {
-      alert(`Berhasil! ${res.count || 0} wilayah baru berhasil ditambahkan.`);
-    } else {
-      alert(res.error || 'Gagal menginisialisasi wilayah');
-    }
-  };
 
   const handleExportReport = () => {
     alert('Laporan Rekapitulasi Wilayah PKS (.csv) berhasil di-generate dan diunduh.');
@@ -156,16 +143,6 @@ export default function AdminDpwPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleSeedAll38}
-            disabled={isSeeding}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#F26522] to-amber-500 hover:from-[#d85517] hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
-            title="Lengkapi seluruh 38 Wilayah Provinsi Indonesia secara otomatis"
-          >
-            <Sparkles size={15} className={isSeeding ? 'animate-spin' : ''} />
-            <span>{isSeeding ? 'Memproses 38 Wilayah...' : 'Inisialisasi 38 Wilayah'}</span>
-          </button>
 
           <button
             onClick={handleExportReport}
