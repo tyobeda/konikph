@@ -7,11 +7,9 @@ import {
   Plus,
   Search,
   PhoneCall,
-  Mail,
   Edit,
   Trash2,
   Download,
-  MapPin,
   CheckCircle,
   Sparkles,
 } from 'lucide-react';
@@ -222,7 +220,6 @@ export default function AdminDpwPage() {
               <tr>
                 <th className="py-3.5 px-4">Kantor Wilayah</th>
                 <th className="py-3.5 px-4">Koordinator & Kontak</th>
-                <th className="py-3.5 px-4">Sekretariat</th>
                 <th className="py-3.5 px-4">Statistik Karya</th>
                 <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
@@ -277,24 +274,7 @@ export default function AdminDpwPage() {
                             <PhoneCall size={12} className="text-[#F26522]" />
                             <span>{dpw.phone}</span>
                           </p>
-                          {dpw.email ? (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                              <Mail size={12} />
-                              <span>{dpw.email}</span>
-                            </p>
-                          ) : null}
                         </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 max-w-xs">
-                        {dpw.address ? (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate flex items-start gap-1">
-                            <MapPin size={14} className="text-gray-400 dark:text-gray-500 shrink-0 mt-0.5" />
-                            <span>{dpw.address}</span>
-                          </p>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">-</span>
-                        )}
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -347,7 +327,7 @@ export default function AdminDpwPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium">
+                  <td colSpan={4} className="py-12 text-center text-gray-400 dark:text-gray-500 font-medium">
                     Tidak ada data wilayah yang sesuai dengan pencarian.
                   </td>
                 </tr>
