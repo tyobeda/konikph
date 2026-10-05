@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORIES, REGIONS } from '@/lib/data';
 
@@ -19,12 +19,103 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollability = () => {
+    const el = scrollContainerRef.current;
+    if (el) {
+      setCanScrollLeft(el.scrollLeft > 4);
+      setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    }
+  };
+
+  const scrollToCategory = (cat: string, e?: React.MouseEvent<HTMLButtonElement>) => {
+    onSelectCategory(cat);
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const target = e?.currentTarget || (container.querySelector(`[data-category="${cat}"]`) as HTMLElement);
+    if (target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const currentScroll = container.scrollLeft;
+      const targetOffset = targetRect.left - containerRect.left;
+      const targetScroll = currentScroll + targetOffset - (containerRect.width / 2) + (targetRect.width / 2);
+      container.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScrollability, 350);
+    }
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = direction === 'left' ? -220 : 220;
+      const scrollAmount = direction === 'left' ? -240 : 240;
       scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      setTimeout(checkScrollability, 350);
     }
+  };
+
+  useEffect(() => {
+    checkScrollability();
+    const handleResize = () => checkScrollability();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const target = container.querySelector(`[data-category="${activeCategory}"]`) as HTMLElement;
+    if (target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const currentScroll = container.scrollLeft;
+      const targetOffset = targetRect.left - containerRect.left;
+      const targetScroll = currentScroll + targetOffset - (containerRect.width / 2) + (targetRect.width / 2);
+      container.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScrollability, 350);
+    }
+  }, [activeCategory]);
+
+  // Drag-to-scroll support
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftStartRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - container.offsetLeft;
+    scrollLeftStartRef.current = container.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || !scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 6) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollLeftStartRef.current - walk;
+    checkScrollability();
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 50);
+    checkScrollability();
   };
 
   return (
@@ -32,12 +123,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
         {/* Category Pills Container with Modern Scroll Controls */}
-        <div className="relative flex-1 min-w-0 flex items-center group px-1">
+        <div className="relative flex-1 min-w-0 flex items-center gap-1.5 px-0.5">
           {/* Scroll Left Button */}
           <button
+            type="button"
             onClick={() => scroll('left')}
-            className="hidden sm:flex absolute left-0 z-10 w-7 h-7 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full shadow-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:scale-110 items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+            disabled={!canScrollLeft}
+            className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center border transition-all ${
+              canScrollLeft
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-[#F26522] hover:text-white hover:border-[#F26522] shadow-xs active:scale-95 cursor-pointer'
+                : 'opacity-25 text-gray-400 dark:text-gray-600 border-transparent cursor-not-allowed'
+            }`}
             title="Scroll Kiri"
+            aria-label="Scroll Kiri"
           >
             <ChevronLeft size={16} />
           </button>
@@ -45,15 +143,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           {/* Category Pills (Horizontal scrollable, no native browser scrollbar) */}
           <div
             ref={scrollContainerRef}
-            className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth w-full pr-2 sm:pr-0"
+            onScroll={checkScrollability}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth w-full select-none cursor-grab active:cursor-grabbing"
           >
             {CATEGORIES.map((cat) => {
               const isActive = activeCategory === cat;
               return (
                 <button
                   key={cat}
-                  onClick={() => onSelectCategory(cat)}
-                  className={`px-4 py-2 text-xs font-extrabold rounded-xl whitespace-nowrap transition-all duration-200 select-none ${
+                  data-category={cat}
+                  onClick={(e) => {
+                    if (hasDraggedRef.current) return;
+                    scrollToCategory(cat, e);
+                  }}
+                  className={`px-4 py-2 text-xs font-extrabold rounded-xl whitespace-nowrap transition-all duration-200 select-none shrink-0 ${
                     isActive
                       ? 'bg-black dark:bg-white text-white dark:text-gray-950 shadow-md shadow-black/10 scale-[1.02]'
                       : 'bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white border border-transparent'
@@ -67,9 +174,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* Scroll Right Button */}
           <button
+            type="button"
             onClick={() => scroll('right')}
-            className="hidden sm:flex absolute right-0 z-10 w-7 h-7 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full shadow-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:scale-110 items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+            disabled={!canScrollRight}
+            className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center border transition-all ${
+              canScrollRight
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-[#F26522] hover:text-white hover:border-[#F26522] shadow-xs active:scale-95 cursor-pointer'
+                : 'opacity-25 text-gray-400 dark:text-gray-600 border-transparent cursor-not-allowed'
+            }`}
             title="Scroll Kanan"
+            aria-label="Scroll Kanan"
           >
             <ChevronRight size={16} />
           </button>

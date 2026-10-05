@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
@@ -21,6 +21,8 @@ import {
   Clock,
   ArrowUpDown,
   Grid,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 import { MaintenanceContent } from '@/app/maintenance/page';
@@ -38,6 +40,112 @@ export default function ExplorePage() {
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('Semua Format');
   const [sortBy, setSortBy] = useState<'trending' | 'newest' | 'downloads'>('trending');
+
+  // Category Tabs Scroll & Drag state
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollability = () => {
+    const el = categoryScrollRef.current;
+    if (el) {
+      const hasLeft = el.scrollLeft > 4;
+      const hasRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+      setCanScrollLeft(hasLeft);
+      setCanScrollRight(hasRight);
+    }
+  };
+
+  const scrollToCategory = (cat: string, e?: React.MouseEvent<HTMLButtonElement>) => {
+    setActiveCategory(cat);
+    const container = categoryScrollRef.current;
+    if (!container) return;
+
+    const target = e?.currentTarget || (container.querySelector(`[data-category="${cat}"]`) as HTMLElement);
+    if (target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const currentScroll = container.scrollLeft;
+      const targetOffset = targetRect.left - containerRect.left;
+      // Center the active category, bringing neighboring items into view
+      const targetScroll = currentScroll + targetOffset - (containerRect.width / 2) + (targetRect.width / 2);
+      container.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScrollability, 350);
+    }
+  };
+
+  const scrollByAmount = (direction: 'left' | 'right') => {
+    const container = categoryScrollRef.current;
+    if (container) {
+      const scrollAmount = direction === 'left' ? -260 : 260;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      setTimeout(checkScrollability, 350);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollability();
+    const handleResize = () => checkScrollability();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // When activeCategory changes via reset or programmatic update, scroll to it
+  useEffect(() => {
+    const container = categoryScrollRef.current;
+    if (!container) return;
+    const target = container.querySelector(`[data-category="${activeCategory}"]`) as HTMLElement;
+    if (target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const currentScroll = container.scrollLeft;
+      const targetOffset = targetRect.left - containerRect.left;
+      const targetScroll = currentScroll + targetOffset - (containerRect.width / 2) + (targetRect.width / 2);
+      container.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScrollability, 350);
+    }
+  }, [activeCategory]);
+
+  // Mouse Drag-to-Scroll support
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftStartRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const container = categoryScrollRef.current;
+    if (!container) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - container.offsetLeft;
+    scrollLeftStartRef.current = container.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || !categoryScrollRef.current) return;
+    const container = categoryScrollRef.current;
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    if (Math.abs(walk) > 6) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollLeftStartRef.current - walk;
+    checkScrollability();
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 50);
+    checkScrollability();
+  };
 
   const popularTags = ['#SpandukDPW', '#PosterMilenial', '#FeedInstagram', '#TwibbonResmi', '#InfografisPKS'];
   const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'PNG/SVG'];
@@ -187,20 +295,67 @@ export default function ExplorePage() {
             <label className="block text-[11px] font-extrabold text-gray-500 dark:text-gray-400 uppercase mb-2">
               Kategori Desain
             </label>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                    activeCategory === cat
-                      ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm'
-                      : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div className="relative flex items-center gap-1.5 sm:gap-2">
+              {/* Tombol Panah Kiri */}
+              <button
+                type="button"
+                onClick={() => scrollByAmount('left')}
+                disabled={!canScrollLeft}
+                className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center border transition-all ${
+                  canScrollLeft
+                    ? 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-[#F26522] hover:text-white hover:border-[#F26522] shadow-xs active:scale-95 cursor-pointer'
+                    : 'opacity-25 text-gray-400 dark:text-gray-600 border-gray-200/50 dark:border-gray-800/50 cursor-not-allowed'
+                }`}
+                title="Geser kategori ke kiri"
+                aria-label="Geser kategori ke kiri"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              {/* Scrollable Category Row */}
+              <div
+                ref={categoryScrollRef}
+                onScroll={checkScrollability}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUpOrLeave}
+                onMouseLeave={handleMouseUpOrLeave}
+                className="flex items-center gap-2 overflow-x-auto py-1 no-scrollbar scroll-smooth flex-1 select-none cursor-grab active:cursor-grabbing"
+              >
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    data-category={cat}
+                    onClick={(e) => {
+                      if (hasDraggedRef.current) return;
+                      scrollToCategory(cat, e);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border shrink-0 ${
+                      activeCategory === cat
+                        ? 'bg-[#F26522] text-white border-[#F26522] shadow-sm scale-[1.02]'
+                        : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tombol Panah Kanan */}
+              <button
+                type="button"
+                onClick={() => scrollByAmount('right')}
+                disabled={!canScrollRight}
+                className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center border transition-all ${
+                  canScrollRight
+                    ? 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-[#F26522] hover:text-white hover:border-[#F26522] shadow-xs active:scale-95 cursor-pointer'
+                    : 'opacity-25 text-gray-400 dark:text-gray-600 border-gray-200/50 dark:border-gray-800/50 cursor-not-allowed'
+                }`}
+                title="Geser kategori ke kanan"
+                aria-label="Geser kategori ke kanan"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
 
