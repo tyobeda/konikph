@@ -110,6 +110,7 @@ model TwibbonFrame {
   title      String
   slug       String?  @unique
   imageUrl   String
+  imageUrls  String[] @default([])
   category   String
   region     String
   usedCount  Int      @default(0)

@@ -72,8 +72,9 @@ export default function AdminTwibbonPage() {
     title: '',
     category: 'Nasional',
     region: 'DPP PKS',
-    imageUrl: '',
+    imageUrls: [] as string[],
   });
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   const handleApprove = (id: string) => {
     updateTwibbon(id, { status: 'Disetujui' });
@@ -98,39 +99,70 @@ export default function AdminTwibbonPage() {
     }
   };
 
-  const [filePreview, setFilePreview] = useState<string | null>(null);
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingFiles(true);
+    try {
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const formDataPayload = new FormData();
         formDataPayload.append('file', file);
         const res = await fetch('/api/upload', { method: 'POST', body: formDataPayload });
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Upload gagal');
-        setFilePreview(data.url);
-        setFormData((prev) => ({ ...prev, imageUrl: data.url }));
-      } catch (err: any) {
-        alert(err.message || 'Gagal upload gambar Twibbon.');
+        if (data.success && data.url) {
+          newUrls.push(data.url);
+        }
       }
+      setFormData((prev) => ({
+        ...prev,
+        imageUrls: [...prev.imageUrls, ...newUrls],
+      }));
+    } catch (err: any) {
+      alert(err.message || 'Gagal upload gambar Twibbon.');
+    } finally {
+      setIsUploadingFiles(false);
+      e.target.value = '';
     }
+  };
+
+  const handleRemoveFrame = (idxToRemove: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, i) => i !== idxToRemove),
+    }));
+  };
+
+  const handleSetPrimaryFrame = (idx: number) => {
+    setFormData((prev) => {
+      const copy = [...prev.imageUrls];
+      const [item] = copy.splice(idx, 1);
+      return { ...prev, imageUrls: [item, ...copy] };
+    });
   };
 
   const handleSaveTwibbon = (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.imageUrls.length === 0) {
+      alert('Mohon unggah minimal 1 berkas gambar frame PNG transparan!');
+      return;
+    }
+    const primaryUrl = formData.imageUrls[0];
     if (editingTwibbon) {
       updateTwibbon(editingTwibbon.id, {
         title: formData.title,
         category: formData.category,
         region: formData.region,
-        imageUrl: formData.imageUrl || editingTwibbon.imageUrl,
+        imageUrl: primaryUrl,
+        imageUrls: formData.imageUrls,
       });
       setEditingTwibbon(null);
     } else {
       addTwibbon({
         title: formData.title,
-        imageUrl: formData.imageUrl || filePreview || '/img/877859417715829.jpg',
+        imageUrl: primaryUrl,
+        imageUrls: formData.imageUrls,
         category: formData.category,
         region: formData.region,
         author: {
@@ -142,17 +174,17 @@ export default function AdminTwibbonPage() {
       });
       setIsAddModalOpen(false);
     }
-    setFilePreview(null);
+    setFormData({ title: '', category: 'Nasional', region: 'DPP PKS', imageUrls: [] });
   };
 
   const openEditModal = (tw: TwibbonFrame) => {
     setEditingTwibbon(tw);
-    setFilePreview(null);
+    const existingFrames = (tw.imageUrls && tw.imageUrls.length > 0) ? tw.imageUrls : (tw.imageUrl ? [tw.imageUrl] : []);
     setFormData({
       title: tw.title,
       category: tw.category,
       region: tw.region,
-      imageUrl: tw.imageUrl,
+      imageUrls: existingFrames,
     });
   };
 
@@ -190,7 +222,7 @@ export default function AdminTwibbonPage() {
 
         <button
           onClick={() => {
-            setFormData({ title: '', category: 'Nasional', region: 'DPP PKS', imageUrl: '' });
+            setFormData({ title: '', category: 'Nasional', region: 'DPP PKS', imageUrls: [] });
             setIsAddModalOpen(true);
           }}
           className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-bold rounded-xl shadow-sm transition-all"
@@ -347,9 +379,16 @@ export default function AdminTwibbonPage() {
                         <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
                           {tw.title}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-normal">
-                          digunakan {tw.usedCount.toLocaleString()} kali
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                            digunakan {tw.usedCount.toLocaleString()} kali
+                          </p>
+                          {tw.imageUrls && tw.imageUrls.length > 1 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-200/80 dark:border-orange-900/40 px-1.5 py-0.5 rounded-md">
+                              <Layers size={10} /> {tw.imageUrls.length} Pilihan Bingkai
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -531,45 +570,97 @@ export default function AdminTwibbonPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
-                  Unggah Berkas Gambar Frame PNG (Transparan)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
+                    Berkas Gambar Frame PNG ({formData.imageUrls.length} Bingkai)
+                  </label>
+                  <span className="text-[11px] text-[#F26522] font-semibold">
+                    Bisa lebih dari 1 bingkai
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed">
+                  Unggah berkas PNG transparan persegi. Jika Anda mengunggah lebih dari satu, pengguna dapat memilih bingkai mana yang ingin mereka gunakan.
+                </p>
+
+                {/* Previews of Uploaded Frames */}
+                {formData.imageUrls.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-3 max-h-56 overflow-y-auto p-1">
+                    {formData.imageUrls.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className={`relative rounded-xl border p-1.5 flex flex-col items-center justify-between group transition-all ${
+                          idx === 0
+                            ? 'border-[#F26522] bg-orange-50/30 dark:bg-orange-950/20'
+                            : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
+                        }`}
+                      >
+                        <div className="w-full aspect-square rounded-lg overflow-hidden relative flex items-center justify-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:8px_8px] dark:bg-[radial-gradient(#374151_1px,transparent_1px)]">
+                          <img
+                            src={url}
+                            alt={`Bingkai ${idx + 1}`}
+                            className="w-full h-full object-contain p-1"
+                          />
+                        </div>
+                        
+                        <div className="w-full mt-1.5 flex items-center justify-between text-[10px]">
+                          <span className={`font-bold px-1.5 py-0.5 rounded ${
+                            idx === 0
+                              ? 'bg-[#F26522] text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {idx === 0 ? 'Utama' : `Bingkai ${idx + 1}`}
+                          </span>
+
+                          <div className="flex items-center gap-1">
+                            {idx !== 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetPrimaryFrame(idx)}
+                                className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                                title="Jadikan bingkai utama"
+                              >
+                                Set Utama
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFrame(idx)}
+                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-colors"
+                              title="Hapus bingkai ini"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 {/* File Upload Box */}
                 <label className="border-2 border-dashed border-purple-200 dark:border-purple-800/60 hover:border-[#F26522] dark:hover:border-[#F26522] bg-purple-50/50 dark:bg-purple-950/20 hover:bg-orange-50/30 dark:hover:bg-orange-950/20 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
                   <input
                     type="file"
                     accept="image/png,image/*"
+                    multiple
                     onChange={handleFileUpload}
                     className="hidden"
+                    disabled={isUploadingFiles}
                   />
 
-                  {filePreview || formData.imageUrl ? (
-                    <div className="w-full flex flex-col items-center gap-2">
-                      <img
-                        src={filePreview || formData.imageUrl}
-                        alt="Preview Twibbon"
-                        className="w-full max-h-48 aspect-square rounded-xl object-contain border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 p-2 shadow-sm"
-                      />
-                      <span className="text-xs font-bold text-[#F26522] dark:text-[#ff7a38] group-hover:underline">
-                        Ganti Berkas Gambar (PNG)
-                      </span>
+                  <div className="flex flex-col items-center gap-1.5 py-1">
+                    <div className="p-2.5 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400 group-hover:text-[#F26522] shadow-sm transition-colors">
+                      <UploadCloud size={22} />
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 py-2">
-                      <div className="p-3 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400 group-hover:text-[#F26522] shadow-sm transition-colors">
-                        <UploadCloud size={24} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-extrabold text-gray-900 dark:text-white">
-                          Klik di sini untuk mengunggah berkas PNG Twibbon
-                        </p>
-                        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">
-                          Disarankan format PNG transparansi (1080x1080px)
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-xs font-extrabold text-gray-900 dark:text-white">
+                        {isUploadingFiles ? 'Sedang mengunggah berkas...' : formData.imageUrls.length > 0 ? '+ Tambah Desain Bingkai Lain (PNG)' : 'Klik untuk Unggah Berkas Bingkai PNG'}
+                      </p>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">
+                        Bisa pilih banyak file sekaligus (PNG transparan 1080x1080px)
+                      </p>
                     </div>
-                  )}
+                  </div>
                 </label>
               </div>
 

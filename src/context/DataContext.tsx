@@ -19,6 +19,7 @@ export interface TwibbonFrame {
   title: string;
   slug?: string | null;
   imageUrl: string;
+  imageUrls?: string[];
   category: string;
   region: string;
   author: {

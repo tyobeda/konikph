@@ -25,15 +25,20 @@ export async function getTwibbons() {
     }
     
     // Map to include author.name and author.avatar as expected by frontend
-    const mapped = twibbons.map(t => ({
-      ...t,
-      status: t.status as 'Disetujui' | 'Pending' | 'Ditolak',
-      createdAt: t.createdAt.toISOString(),
-      author: {
-        name: t.author.name,
-        avatar: t.author.avatar,
-      }
-    }));
+    const mapped = twibbons.map(t => {
+      const frames = (t.imageUrls && t.imageUrls.length > 0) ? t.imageUrls : (t.imageUrl ? [t.imageUrl] : []);
+      return {
+        ...t,
+        imageUrl: t.imageUrl || frames[0] || '',
+        imageUrls: frames,
+        status: t.status as 'Disetujui' | 'Pending' | 'Ditolak',
+        createdAt: t.createdAt.toISOString(),
+        author: {
+          name: t.author.name,
+          avatar: t.author.avatar,
+        }
+      };
+    });
     return { success: true, data: mapped };
   } catch (error) {
     console.error('Error fetching twibbons:', error);
@@ -63,8 +68,11 @@ export async function getTwibbonBySlugOrId(slugOrId: string) {
           include: { author: true },
         });
       }
+      const frames = (twibbon.imageUrls && twibbon.imageUrls.length > 0) ? twibbon.imageUrls : (twibbon.imageUrl ? [twibbon.imageUrl] : []);
       const mapped = {
         ...twibbon,
+        imageUrl: twibbon.imageUrl || frames[0] || '',
+        imageUrls: frames,
         status: twibbon.status as 'Disetujui' | 'Pending' | 'Ditolak',
         createdAt: twibbon.createdAt.toISOString(),
         author: {
@@ -107,12 +115,16 @@ export async function addTwibbon(data: any) {
     }
     
     const slug = rest.slug || (await generateUniqueTwibbonSlug(rest.title));
+    const rawImageUrls = Array.isArray(rest.imageUrls) ? rest.imageUrls.filter(Boolean) : [];
+    const imageUrl = rest.imageUrl || rawImageUrls[0] || '';
+    const imageUrls = rawImageUrls.length > 0 ? rawImageUrls : (imageUrl ? [imageUrl] : []);
 
     const twibbon = await prisma.twibbonFrame.create({
       data: {
         title: rest.title,
         slug: slug,
-        imageUrl: rest.imageUrl,
+        imageUrl: imageUrl,
+        imageUrls: imageUrls,
         category: rest.category,
         region: rest.region,
         authorId: authorId,
@@ -129,6 +141,8 @@ export async function addTwibbon(data: any) {
       success: true, 
       data: {
         ...twibbon,
+        imageUrl: twibbon.imageUrl,
+        imageUrls: twibbon.imageUrls,
         status: twibbon.status as 'Disetujui' | 'Pending' | 'Ditolak',
         createdAt: twibbon.createdAt.toISOString(),
         author: { name: twibbon.author.name, avatar: twibbon.author.avatar }
@@ -143,6 +157,11 @@ export async function addTwibbon(data: any) {
 export async function updateTwibbon(id: string, data: any) {
   try {
     const { author, authorId, id: _, createdAt, usedCount, ...updateData } = data;
+    if (updateData.imageUrls && Array.isArray(updateData.imageUrls) && updateData.imageUrls.length > 0) {
+      if (!updateData.imageUrl) {
+        updateData.imageUrl = updateData.imageUrls[0];
+      }
+    }
     const twibbon = await prisma.twibbonFrame.update({
       where: { id },
       data: updateData,
@@ -156,6 +175,8 @@ export async function updateTwibbon(id: string, data: any) {
       success: true, 
       data: {
         ...twibbon,
+        imageUrl: twibbon.imageUrl,
+        imageUrls: twibbon.imageUrls,
         status: twibbon.status as 'Disetujui' | 'Pending' | 'Ditolak',
         createdAt: twibbon.createdAt.toISOString(),
         author: { name: twibbon.author.name, avatar: twibbon.author.avatar }

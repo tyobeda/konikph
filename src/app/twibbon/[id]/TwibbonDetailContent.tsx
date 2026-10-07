@@ -40,6 +40,25 @@ export default function TwibbonDetailContent() {
   const userId = currentUser?.id || 'superadmin_1';
   const activeTwibbon = twibbons.find((t) => t.id === id || t.slug === id);
 
+  // Extract all frame variants from this twibbon post
+  const frames = React.useMemo(() => {
+    if (activeTwibbon?.imageUrls && activeTwibbon.imageUrls.length > 0) {
+      return activeTwibbon.imageUrls;
+    }
+    if (activeTwibbon?.imageUrl) {
+      return [activeTwibbon.imageUrl];
+    }
+    return [];
+  }, [activeTwibbon]);
+
+  const [selectedFrameIndex, setSelectedFrameIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedFrameIndex(0);
+  }, [activeTwibbon?.id]);
+
+  const currentFrameUrl = frames[selectedFrameIndex] || activeTwibbon?.imageUrl || '';
+
   useEffect(() => {
     setIsMounted(true);
     if (userId) {
@@ -229,7 +248,7 @@ export default function TwibbonDetailContent() {
       await new Promise((resolve, reject) => {
         frameImg.onload = resolve;
         frameImg.onerror = reject;
-        frameImg.src = activeTwibbon.imageUrl;
+        frameImg.src = currentFrameUrl;
       });
 
       ctx.save();
@@ -396,17 +415,66 @@ export default function TwibbonDetailContent() {
               )}
 
               <img
-                src={activeTwibbon.imageUrl}
+                src={currentFrameUrl}
                 alt={activeTwibbon.title}
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 transition-opacity duration-200"
               />
             </div>
 
             {photoUrl && (
-              <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-3 flex items-center gap-1 font-medium text-center">
+              <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-2.5 flex items-center gap-1 font-medium text-center">
                 <Sparkles size={12} className="text-[#F26522] shrink-0" />
                 <span>Geser 1 jari untuk posisi, 2 jari untuk zoom & rotasi foto</span>
               </p>
+            )}
+
+            {/* 🎨 Pilihan Desain Bingkai (Multi-Frame Selector) */}
+            {frames.length > 1 && (
+              <div className="w-full max-w-[340px] mt-3.5 p-3.5 bg-white dark:bg-gray-900 rounded-2xl border border-amber-200/80 dark:border-gray-800 shadow-sm animate-in fade-in duration-300">
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-gray-900 dark:text-white">
+                    <Layers size={14} className="text-[#F26522]" />
+                    <span>Pilih Template Bingkai</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-[#F26522] bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200/60 dark:border-orange-900/40">
+                    Bingkai {selectedFrameIndex + 1} dari {frames.length}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {frames.map((frameUrl, idx) => {
+                    const isSelected = idx === selectedFrameIndex;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedFrameIndex(idx)}
+                        className={`relative group p-1.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1 shrink-0 cursor-pointer ${
+                          isSelected
+                            ? 'border-[#F26522] bg-orange-50/70 dark:bg-orange-950/50 shadow-sm scale-[1.03]'
+                            : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                        title={`Pilih Bingkai ${idx + 1}`}
+                      >
+                        <div className="w-14 h-14 rounded-lg overflow-hidden relative flex items-center justify-center bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:6px_6px] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] bg-white dark:bg-gray-900 shadow-2xs">
+                          <img
+                            src={frameUrl}
+                            alt={`Bingkai ${idx + 1}`}
+                            className="w-full h-full object-contain p-0.5"
+                          />
+                        </div>
+                        <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
+                          isSelected
+                            ? 'bg-[#F26522] text-white shadow-2xs'
+                            : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                          Bingkai {idx + 1}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             {/* 📱 UNGGAH FOTO & SLIDER (Tampilan Mobile: Di bawah canvas, di atas garis) */}
@@ -516,6 +584,14 @@ export default function TwibbonDetailContent() {
                 <span>Oleh: <strong className="text-gray-900 dark:text-white">{activeTwibbon.author?.name || 'DPP PKS'}</strong></span>
                 <span>•</span>
                 <span>Telah Digunakan: <strong className="text-[#F26522]">{activeTwibbon.usedCount || 0}x</strong></span>
+                {frames.length > 1 && (
+                  <>
+                    <span>•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                      <Layers size={12} /> {frames.length} Desain Tersedia
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
