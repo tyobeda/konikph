@@ -100,10 +100,10 @@ ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.1
 
 ---
 
-## 💡 Status Terakhir Sebelum Handoff
-- ✅ **Hero Banner Carousel**: Banner karya trending (`heroFeaturedArtwork`) di Beranda kini mendukung karya carousel. Slide pertama dijamin langsung tampil, dilengkapi indikator slide/badge, dot navigasi, tombol panah geser, dan transisi auto-slide.
-- ✅ **Navigasi Carousel pada Kartu**: Titik navigasi (dots) pada kartu karya di Beranda dan Explore kini dapat diklik langsung untuk berpindah halaman slide tanpa memicu navigasi link ke halaman detail karya. Dilengkapi juga dengan mini hover arrows di desktop.
-- ✅ **Database & Schema**: Kolom `isFeatured` pada model `Artwork` di PostgreSQL dan Prisma sudah aktif dan tersinkronisasi.
+- ✅ **Twibbon Form & Keterangan**: Input Kategori dan Wilayah pada modal pembuatan & edit template Twibbon (publik dan admin) telah diganti menjadi form **Keterangan** (maksimal 1000 karakter dengan live counter).
+- ✅ **Dynamic Counter Twibbon**: Counter "100+ Dibuat" dan kotak "100+ Lainnya" yang ter-hardcode telah diganti menjadi penghitung riil (`{usedCount}x Dibuat`), dilengkapi fallback pesan ramah saat belum ada yang membuat.
+- ✅ **Metadata Chips & SSR Detail Twibbon**: Baris metadata di halaman detail twibbon telah dipercantik menjadi chip responsif, serta diintegrasikan dengan SSR data fetching langsung (`initialTwibbon`) untuk mencegah kedipan / pesan "Twibbon Tidak Ditemukan" prematur saat refresh.
+- ✅ **Database & Schema**: Kolom `description` pada model `TwibbonFrame` di PostgreSQL dan Prisma sudah aktif dan tersinkronisasi.
 - ✅ Semua fitur terbaru sudah dites menggunakan `npx tsc --noEmit` dan berjalan lancar.
 - ✅ Versi Git terkini di-push ke branch `main` dan sukses dideploy ke VPS `43.133.155.196` (`pksart.site`).
 
