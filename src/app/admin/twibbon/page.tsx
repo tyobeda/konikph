@@ -70,8 +70,7 @@ export default function AdminTwibbonPage() {
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Nasional',
-    region: 'DPP PKS',
+    description: '',
     imageUrls: [] as string[],
   });
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
@@ -152,8 +151,7 @@ export default function AdminTwibbonPage() {
     if (editingTwibbon) {
       updateTwibbon(editingTwibbon.id, {
         title: formData.title,
-        category: formData.category,
-        region: formData.region,
+        description: formData.description,
         imageUrl: primaryUrl,
         imageUrls: formData.imageUrls,
       });
@@ -161,10 +159,11 @@ export default function AdminTwibbonPage() {
     } else {
       addTwibbon({
         title: formData.title,
+        description: formData.description,
         imageUrl: primaryUrl,
         imageUrls: formData.imageUrls,
-        category: formData.category,
-        region: formData.region,
+        category: 'Nasional',
+        region: 'Nasional',
         author: {
           name: 'Super Admin PKS',
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
@@ -174,7 +173,7 @@ export default function AdminTwibbonPage() {
       });
       setIsAddModalOpen(false);
     }
-    setFormData({ title: '', category: 'Nasional', region: 'DPP PKS', imageUrls: [] });
+    setFormData({ title: '', description: '', imageUrls: [] });
   };
 
   const openEditModal = (tw: TwibbonFrame) => {
@@ -182,8 +181,7 @@ export default function AdminTwibbonPage() {
     const existingFrames = (tw.imageUrls && tw.imageUrls.length > 0) ? tw.imageUrls : (tw.imageUrl ? [tw.imageUrl] : []);
     setFormData({
       title: tw.title,
-      category: tw.category,
-      region: tw.region,
+      description: tw.description || '',
       imageUrls: existingFrames,
     });
   };
@@ -198,7 +196,8 @@ export default function AdminTwibbonPage() {
   const filteredTwibbons = twibbons.filter((t) => {
     const matchesSearch =
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.region.toLowerCase().includes(searchQuery.toLowerCase());
+      (t.region || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || t.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -222,7 +221,7 @@ export default function AdminTwibbonPage() {
 
         <button
           onClick={() => {
-            setFormData({ title: '', category: 'Nasional', region: 'DPP PKS', imageUrls: [] });
+            setFormData({ title: '', description: '', imageUrls: [] });
             setIsAddModalOpen(true);
           }}
           className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-bold rounded-xl shadow-sm transition-all"
@@ -664,36 +663,23 @@ export default function AdminTwibbonPage() {
                 </label>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
-                    Kategori Twibbon
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
+                    Keterangan
                   </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#F26522]"
-                  >
-                    <option value="Nasional">Nasional</option>
-                    <option value="Milenial">Milenial</option>
-                    <option value="Pemuda">Pemuda</option>
-                    <option value="Daerah">Daerah</option>
-                  </select>
+                  <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                    {formData.description.length}/1000 karakter
+                  </span>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
-                    Wilayah
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.region}
-                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    placeholder="DPP PKS / Jawa Barat"
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
-                    required
-                  />
-                </div>
+                <textarea
+                  rows={4}
+                  maxLength={1000}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Tulis keterangan atau deskripsi template twibbon ini (opsional, maks 1000 karakter)..."
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] resize-none leading-relaxed transition-colors"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-3">
@@ -702,6 +688,7 @@ export default function AdminTwibbonPage() {
                   onClick={() => {
                     setIsAddModalOpen(false);
                     setEditingTwibbon(null);
+                    setFormData({ title: '', description: '', imageUrls: [] });
                   }}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-colors"
                 >

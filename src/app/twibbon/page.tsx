@@ -66,8 +66,7 @@ export default function TwibbonGalleryPage() {
   // Add Twibbon Template Modal States
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadCategory, setUploadCategory] = useState('Nasional');
-  const [uploadRegion, setUploadRegion] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
   const [uploadFileUrls, setUploadFileUrls] = useState<string[]>([]);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -171,8 +170,9 @@ export default function TwibbonGalleryPage() {
     const primaryUrl = uploadFileUrls[0];
     const res = await addTwibbon({
       title: uploadTitle,
-      category: uploadCategory,
-      region: uploadRegion || 'Nasional',
+      description: uploadDescription,
+      category: 'Nasional',
+      region: 'Nasional',
       imageUrl: primaryUrl,
       imageUrls: uploadFileUrls,
       author: {
@@ -192,7 +192,7 @@ export default function TwibbonGalleryPage() {
     setTimeout(() => {
       setIsUploadModalOpen(false);
       setUploadTitle('');
-      setUploadRegion('');
+      setUploadDescription('');
       setUploadFileUrls([]);
       setUploadSuccess(false);
     }, 2000);
@@ -201,8 +201,9 @@ export default function TwibbonGalleryPage() {
   const filteredTwibbons = approvedTwibbons.filter((t) => {
     const matchesSearch =
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+      (t.region || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesTab = activeFilter === 'all' || favorites.includes(t.id);
     return matchesSearch && matchesTab;
@@ -626,36 +627,23 @@ export default function TwibbonGalleryPage() {
                   </label>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
-                      Kategori Twibbon
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
+                      Keterangan
                     </label>
-                    <select
-                      value={uploadCategory}
-                      onChange={(e) => setUploadCategory(e.target.value)}
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-[#F26522]"
-                    >
-                      <option value="Nasional">Nasional</option>
-                      <option value="Daerah">Daerah</option>
-                      <option value="Milenial">Milenial</option>
-                      <option value="Pemuda">Pemuda</option>
-                    </select>
+                    <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                      {uploadDescription.length}/1000 karakter
+                    </span>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
-                      Wilayah
-                    </label>
-                    <input
-                      type="text"
-                      value={uploadRegion}
-                      onChange={(e) => setUploadRegion(e.target.value)}
-                      placeholder="Contoh: Jawa Timur"
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522]"
-                      required
-                    />
-                  </div>
+                  <textarea
+                    rows={4}
+                    maxLength={1000}
+                    value={uploadDescription}
+                    onChange={(e) => setUploadDescription(e.target.value)}
+                    placeholder="Tulis keterangan atau deskripsi template twibbon ini (opsional, maks 1000 karakter)..."
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] resize-none leading-relaxed transition-colors"
+                  />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">

@@ -125,8 +125,9 @@ export async function addTwibbon(data: any) {
         slug: slug,
         imageUrl: imageUrl,
         imageUrls: imageUrls,
-        category: rest.category,
-        region: rest.region,
+        category: rest.category || 'Nasional',
+        region: rest.region || 'Nasional',
+        description: rest.description ? String(rest.description).slice(0, 1000) : null,
         authorId: authorId,
         status: rest.status || 'Pending',
         isFeatured: rest.isFeatured || false,
@@ -134,8 +135,10 @@ export async function addTwibbon(data: any) {
       include: { author: true },
     });
     
-    revalidatePath('/admin/twibbon');
-    revalidatePath('/twibbon');
+    try {
+      revalidatePath('/admin/twibbon');
+      revalidatePath('/twibbon');
+    } catch (_) {}
     
     return { 
       success: true, 
@@ -162,14 +165,19 @@ export async function updateTwibbon(id: string, data: any) {
         updateData.imageUrl = updateData.imageUrls[0];
       }
     }
+    if (updateData.description !== undefined) {
+      updateData.description = updateData.description ? String(updateData.description).slice(0, 1000) : null;
+    }
     const twibbon = await prisma.twibbonFrame.update({
       where: { id },
       data: updateData,
       include: { author: true },
     });
-    revalidatePath('/admin/twibbon');
-    revalidatePath('/twibbon');
-    revalidatePath(`/twibbon/${id}`);
+    try {
+      revalidatePath('/admin/twibbon');
+      revalidatePath('/twibbon');
+      revalidatePath(`/twibbon/${id}`);
+    } catch (_) {}
     
     return { 
       success: true, 
@@ -193,8 +201,10 @@ export async function deleteTwibbon(id: string) {
     await prisma.twibbonFrame.delete({
       where: { id },
     });
-    revalidatePath('/admin/twibbon');
-    revalidatePath('/twibbon');
+    try {
+      revalidatePath('/admin/twibbon');
+      revalidatePath('/twibbon');
+    } catch (_) {}
     return { success: true };
   } catch (error) {
     console.error('Error deleting twibbon:', error);

@@ -6,13 +6,31 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
-import { getUserTwibbonFavorites, toggleTwibbonFavorite, getRecentTwibbonUsages } from '@/actions/twibbon';
+import { getUserTwibbonFavorites, toggleTwibbonFavorite, getRecentTwibbonUsages, getTwibbonBySlugOrId } from '@/actions/twibbon';
 
-export default function TwibbonDetailContent() {
+interface TwibbonDetailContentProps {
+  initialTwibbon?: any | null;
+}
+
+export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailContentProps = {}) {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const { twibbons, updateTwibbon, currentUser } = useData();
+  const { twibbons, updateTwibbon, currentUser, isTwibbonsLoaded } = useData();
+
+  const [fetchedTwibbon, setFetchedTwibbon] = useState<any | null>(initialTwibbon || null);
+
+  useEffect(() => {
+    if (!initialTwibbon && id) {
+      getTwibbonBySlugOrId(id).then((res) => {
+        if (res && res.success && res.data) {
+          setFetchedTwibbon(res.data);
+        }
+      });
+    }
+  }, [id, initialTwibbon]);
+
+  const activeTwibbon = initialTwibbon || fetchedTwibbon || twibbons.find((t) => t.id === id || t.slug === id);
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -23,6 +41,12 @@ export default function TwibbonDetailContent() {
   const [offsetY, setOffsetY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [touchPinchStart, setTouchPinchStart] = useState<{
+    dist: number;
+    angle: number;
+    initialScale: number;
+    initialRotation: number;
+  } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const [showShareToast, setShowShareToast] = useState(false);
@@ -38,7 +62,6 @@ export default function TwibbonDetailContent() {
   };
 
   const userId = currentUser?.id || 'superadmin_1';
-  const activeTwibbon = twibbons.find((t) => t.id === id || t.slug === id);
 
   // Extract all frame variants from this twibbon post
   const frames = React.useMemo(() => {
@@ -145,13 +168,6 @@ export default function TwibbonDetailContent() {
   };
 
   // Helper distance & angle math for multi-touch pinch-to-zoom & pinch-to-rotate
-  const [touchPinchStart, setTouchPinchStart] = useState<{
-    dist: number;
-    angle: number;
-    initialScale: number;
-    initialRotation: number;
-  } | null>(null);
-
   const getTouchDistance = (t1: React.Touch, t2: React.Touch) => {
     const dx = t2.clientX - t1.clientX;
     const dy = t2.clientY - t1.clientY;
@@ -334,16 +350,16 @@ export default function TwibbonDetailContent() {
     }
   };
 
-  if (!isMounted || twibbons.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 font-sans">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F26522] mb-4"></div>
-        <p className="text-sm font-semibold">Memuat bingkai twibbon...</p>
-      </div>
-    );
-  }
-
   if (!activeTwibbon) {
+    if (!isMounted || !isTwibbonsLoaded) {
+      return (
+        <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 font-sans">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F26522] mb-4"></div>
+          <p className="text-sm font-semibold">Memuat bingkai twibbon...</p>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 font-sans">
         <p className="font-bold text-lg text-gray-900 dark:text-white mb-2">Bingkai Twibbon Tidak Ditemukan</p>
@@ -442,7 +458,7 @@ export default function TwibbonDetailContent() {
                 </div>
 
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                  {frames.map((frameUrl, idx) => {
+                  {frames.map((frameUrl: string, idx: number) => {
                     const isSelected = idx === selectedFrameIndex;
                     return (
                       <button
@@ -527,44 +543,60 @@ export default function TwibbonDetailContent() {
                   Hasil Generate Terbaru
                 </span>
                 <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold">
-                  {(activeTwibbon.usedCount || 0) + 100}+ Dibuat
+                  {(activeTwibbon.usedCount || 0) > 0 ? `${activeTwibbon.usedCount}x Dibuat` : 'Belum Ada'}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {recentThumbnails.slice(0, 5).map((thumbUrl, idx) => (
-                  <div
-                    key={idx}
-                    className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl overflow-hidden border-2 border-white dark:border-gray-800 shadow-md bg-white dark:bg-gray-800 relative group shrink-0"
-                  >
-                    <img
-                      src={thumbUrl}
-                      alt={`Hasil Twibbon ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <img
-                      src={activeTwibbon.imageUrl}
-                      alt="Overlay Frame"
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80"
-                    />
-                  </div>
-                ))}
+              {recentThumbnails.length > 0 ? (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {recentThumbnails.slice(0, 5).map((thumbUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl overflow-hidden border-2 border-white dark:border-gray-800 shadow-md bg-white dark:bg-gray-800 relative group shrink-0"
+                    >
+                      <img
+                        src={thumbUrl}
+                        alt={`Hasil Twibbon ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <img
+                        src={activeTwibbon.imageUrl}
+                        alt="Overlay Frame"
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80"
+                      />
+                    </div>
+                  ))}
 
-                {/* Kotak X: Jumlah 100+ Lainnya */}
-                <div className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl bg-orange-100/70 dark:bg-orange-950/50 border-2 border-orange-200/80 dark:border-orange-900/50 text-[#F26522] flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm hover:bg-orange-100 dark:hover:bg-orange-900/70 transition-colors">
-                  <span className="text-[11px] font-black leading-none">100+</span>
-                  <span className="text-[8px] font-bold text-orange-600 dark:text-orange-400 mt-0.5 leading-none">Lainnya</span>
+                  {/* Tampilkan badge +X Lainnya HANYA jika usedCount lebih banyak dari thumbnail yang tampil */}
+                  {(activeTwibbon.usedCount || 0) > recentThumbnails.length && (
+                    <div className="w-[50px] h-[50px] min-w-[50px] min-h-[50px] rounded-xl bg-orange-100/70 dark:bg-orange-950/50 border-2 border-orange-200/80 dark:border-orange-900/50 text-[#F26522] flex flex-col items-center justify-center shrink-0 cursor-default shadow-sm hover:bg-orange-100 dark:hover:bg-orange-900/70 transition-colors">
+                      <span className="text-[11px] font-black leading-none">
+                        +{(activeTwibbon.usedCount || 0) - recentThumbnails.length}
+                      </span>
+                      <span className="text-[8px] font-bold text-orange-600 dark:text-orange-400 mt-0.5 leading-none">
+                        Lainnya
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-gray-900/40 border border-amber-200/50 dark:border-gray-800 text-[11px] text-gray-500 dark:text-gray-400 font-medium text-center">
+                  Belum ada yang membuat twibbon ini. Yuk pasang fotomu sekarang!
+                </div>
+              )}
             </div>
           </div>
 
           <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between space-y-6">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-100 dark:border-orange-900/40 text-xs font-bold rounded-full">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-100 dark:border-orange-900/40 text-xs font-bold rounded-full">
                   <Sparkles size={12} />
-                  <span>{activeTwibbon.category || 'Twibbon Official'}</span>
+                  <span>
+                    {activeTwibbon.category && activeTwibbon.category !== 'Nasional'
+                      ? activeTwibbon.category
+                      : 'Twibbon Official'}
+                  </span>
                 </span>
 
                 <button
@@ -580,19 +612,36 @@ export default function TwibbonDetailContent() {
                 {activeTwibbon.title}
               </h1>
 
-              <div className="flex items-center gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400 font-medium pb-4 border-b border-gray-100 dark:border-gray-800">
-                <span>Oleh: <strong className="text-gray-900 dark:text-white">{activeTwibbon.author?.name || 'DPP PKS'}</strong></span>
-                <span>•</span>
-                <span>Telah Digunakan: <strong className="text-[#F26522]">{activeTwibbon.usedCount || 0}x</strong></span>
+              {/* Rapi, modern chips / pills tanpa patah kata atau dot melayang */}
+              <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-gray-100 dark:border-gray-800 text-xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full font-medium">
+                  <span className="text-gray-400 dark:text-gray-500 font-normal">Oleh:</span>
+                  <strong className="text-gray-900 dark:text-white font-bold">{activeTwibbon.author?.name || 'DPP PKS'}</strong>
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-100 dark:border-orange-900/40 rounded-full font-semibold">
+                  <span>Telah Digunakan:</span>
+                  <strong className="font-extrabold">{activeTwibbon.usedCount || 0}x</strong>
+                </span>
+
                 {frames.length > 1 && (
-                  <>
-                    <span>•</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                      <Layers size={12} /> {frames.length} Desain Tersedia
-                    </span>
-                  </>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40 rounded-full font-bold">
+                    <Layers size={13} />
+                    <span>{frames.length} Desain Tersedia</span>
+                  </span>
                 )}
               </div>
+
+              {activeTwibbon.description && (
+                <div className="mt-3.5 p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <p className="text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">
+                    Keterangan
+                  </p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                    {activeTwibbon.description}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 🖥️ UNGGAH FOTO & SLIDER (Tampilan Desktop Web: Di bawah info Oleh/Telah Digunakan) */}

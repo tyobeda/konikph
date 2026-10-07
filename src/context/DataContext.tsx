@@ -20,8 +20,9 @@ export interface TwibbonFrame {
   slug?: string | null;
   imageUrl: string;
   imageUrls?: string[];
-  category: string;
-  region: string;
+  category?: string;
+  region?: string;
+  description?: string | null;
   author: {
     name: string;
     avatar?: string | null;

@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import TwibbonDetailContent from './TwibbonDetailContent';
+import { getTwibbonBySlugOrId } from '@/actions/twibbon';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const { id: slugOrId } = await params;
@@ -63,6 +64,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default function TwibbonDetailPage() {
-  return <TwibbonDetailContent />;
+export default async function TwibbonDetailPage({ params }: { params: { id: string } }) {
+  const { id } = await params;
+  const res = await getTwibbonBySlugOrId(id);
+  const initialTwibbon = res?.success && res.data ? res.data : null;
+
+  return <TwibbonDetailContent initialTwibbon={initialTwibbon} />;
 }
