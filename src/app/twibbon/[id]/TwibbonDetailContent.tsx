@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers } from 'lucide-react';
+import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers, Maximize2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useData } from '@/context/DataContext';
 import { getUserTwibbonFavorites, toggleTwibbonFavorite, getRecentTwibbonUsages, getTwibbonBySlugOrId } from '@/actions/twibbon';
+import { getAspectRatioMeta } from '@/components/TwibbonAspectRatioSelector';
 
 interface TwibbonDetailContentProps {
   initialTwibbon?: any | null;
@@ -54,6 +55,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
   const [recentThumbnails, setRecentThumbnails] = useState<string[]>([]);
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   const handleCanvasClick = () => {
     if (!photoUrl && fileInputRef.current) {
@@ -242,9 +244,12 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
     setIsDownloading(true);
 
     try {
+      const targetW = activeTwibbon.width || 1080;
+      const targetH = activeTwibbon.height || 1080;
+
       const canvas = document.createElement('canvas');
-      canvas.width = 1080;
-      canvas.height = 1080;
+      canvas.width = targetW;
+      canvas.height = targetH;
       const ctx = canvas.getContext('2d');
 
       if (!ctx) return;
@@ -267,25 +272,33 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
         frameImg.src = currentFrameUrl;
       });
 
+      const previewW = containerRef.current?.clientWidth || 340;
+      const previewH = containerRef.current?.clientHeight || 340;
+      const scaleX = targetW / previewW;
+      const scaleY = targetH / previewH;
+
       ctx.save();
-      ctx.translate(540 + offsetX * (1080 / 340), 540 + offsetY * (1080 / 340));
+      ctx.translate((targetW / 2) + (offsetX * scaleX), (targetH / 2) + (offsetY * scaleY));
       ctx.rotate((rotation * Math.PI) / 180);
       ctx.scale(scale, scale);
 
-      const aspect = userImg.width / userImg.height;
-      let drawW = 1080;
-      let drawH = 1080;
+      const boxAspect = targetW / targetH;
+      const userAspect = userImg.width / userImg.height;
+      let drawW = targetW;
+      let drawH = targetH;
 
-      if (aspect > 1) {
-        drawW = 1080 * aspect;
+      if (userAspect > boxAspect) {
+        drawH = targetH;
+        drawW = targetH * userAspect;
       } else {
-        drawH = 1080 / aspect;
+        drawW = targetW;
+        drawH = targetW / userAspect;
       }
 
       ctx.drawImage(userImg, -drawW / 2, -drawH / 2, drawW, drawH);
       ctx.restore();
 
-      ctx.drawImage(frameImg, 0, 0, 1080, 1080);
+      ctx.drawImage(frameImg, 0, 0, targetW, targetH);
 
       const generatedDataUrl = canvas.toDataURL('image/jpeg', 0.90);
 
@@ -373,6 +386,10 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
 
   const otherTwibbons = twibbons.filter((t) => t.id !== activeTwibbon.id).slice(0, 4);
 
+  const targetW = activeTwibbon.width || 1080;
+  const targetH = activeTwibbon.height || 1080;
+  const ratioMeta = getAspectRatioMeta(activeTwibbon.aspectRatio, targetW, targetH);
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
       <Header />
@@ -390,10 +407,26 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
 
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
           {/* Canvas Box (Putih Tulang / Off-White Ivory Background) */}
-          <div className="lg:col-span-6 bg-[#FAF7F2] dark:bg-gray-950/60 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] relative select-none overflow-hidden border-r border-amber-100/60 dark:border-gray-800">
+          <div className="lg:col-span-6 bg-[#FAF7F2] dark:bg-gray-950/60 p-4 sm:p-7 flex flex-col items-center justify-center min-h-[380px] sm:min-h-[480px] relative select-none overflow-hidden border-r border-amber-100/60 dark:border-gray-800">
+            {/* Format Tag Header */}
+            <div className="mb-3 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-amber-200/80 dark:border-gray-800 text-[11px] font-black text-gray-800 dark:text-gray-200 shadow-2xs">
+                <Maximize2 size={12} className="text-[#F26522] shrink-0" />
+                <span>{ratioMeta.label}</span>
+                <span className="text-[#F26522] font-black">({targetW} × {targetH} px)</span>
+              </span>
+            </div>
+
             <div
+              ref={containerRef}
               onClick={handleCanvasClick}
-              className={`relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800 bg-amber-50/50 dark:bg-gray-900/50 flex items-center justify-center ${
+              style={{
+                aspectRatio: `${targetW} / ${targetH}`,
+                maxWidth: targetW >= targetH ? 'min(100%, 420px)' : 'min(100%, 300px)',
+                maxHeight: '480px',
+                width: '100%',
+              }}
+              className={`relative mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800 bg-amber-50/50 dark:bg-gray-900/50 flex items-center justify-center transition-all ${
                 photoUrl ? 'cursor-move touch-none' : 'cursor-pointer hover:border-[#F26522] transition-colors group'
               }`}
               onMouseDown={handleMouseDown}
@@ -425,7 +458,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                     Unggah Foto Anda Di Sini
                   </p>
                   <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mt-1">
-                    Klik di dalam bingkai ini untuk memilih foto dari perangkat
+                    Klik di dalam bingkai ({ratioMeta.badge}) untuk memilih foto
                   </p>
                 </div>
               )}
@@ -433,7 +466,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
               <img
                 src={currentFrameUrl}
                 alt={activeTwibbon.title}
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 transition-opacity duration-200"
+                className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10 transition-opacity duration-200"
               />
             </div>
 
@@ -597,11 +630,13 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                       ? activeTwibbon.category
                       : 'Twibbon Official'}
                   </span>
+                  <span className="text-orange-300 dark:text-orange-700">•</span>
+                  <span>{ratioMeta.badge}</span>
                 </span>
 
                 <button
                   onClick={toggleFavorite}
-                  className="p-1.5 text-gray-400 hover:text-red-500 transition-colors inline-flex items-center justify-center"
+                  className="p-1.5 text-gray-400 hover:text-red-500 transition-colors inline-flex items-center justify-center cursor-pointer"
                   title="Simpan Favorit"
                 >
                   <Heart size={20} className={favorites.includes(activeTwibbon.id) ? 'fill-red-500 text-red-500' : ''} />
@@ -622,6 +657,11 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-100 dark:border-orange-900/40 rounded-full font-semibold">
                   <span>Telah Digunakan:</span>
                   <strong className="font-extrabold">{activeTwibbon.usedCount || 0}x</strong>
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 rounded-full font-bold">
+                  <Maximize2 size={11} className="shrink-0" />
+                  <span>{ratioMeta.label} ({ratioMeta.dimensions})</span>
                 </span>
 
                 {frames.length > 1 && (

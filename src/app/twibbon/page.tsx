@@ -12,21 +12,18 @@ import {
   Layers, 
   Heart, 
   Plus, 
-  UploadCloud, 
-  X,
-  CheckCircle2,
   ShieldAlert
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useData } from '@/context/DataContext';
 import { MaintenanceContent } from '@/app/maintenance/page';
-import { compressImageFile } from '@/lib/imageCompressor';
 
 import { getUserTwibbonFavorites, toggleTwibbonFavorite } from '@/actions/twibbon';
+import { getAspectRatioMeta } from '@/components/TwibbonAspectRatioSelector';
 
 export default function TwibbonGalleryPage() {
-  const { twibbons, addTwibbon, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance, siteSettings } = useData();
+  const { twibbons, currentUser, isTwibbonsLoaded, isModuleUnderMaintenance, siteSettings } = useData();
   const router = useRouter();
 
   const [liveOnlyAdminMode, setLiveOnlyAdminMode] = useState<boolean | null>(null);
@@ -62,14 +59,6 @@ export default function TwibbonGalleryPage() {
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, activeFilter]);
-
-  // Add Twibbon Template Modal States
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadDescription, setUploadDescription] = useState('');
-  const [uploadFileUrls, setUploadFileUrls] = useState<string[]>([]);
-  const [isUploadingFile, setIsUploadingFile] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   // Favorites state
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -119,85 +108,6 @@ export default function TwibbonGalleryPage() {
     setIsTogglingFavorite(null);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setIsUploadingFile(true);
-    try {
-      const newUrls: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.success && data.url) {
-          newUrls.push(data.url);
-        }
-      }
-      setUploadFileUrls(prev => [...prev, ...newUrls]);
-    } catch (err: any) {
-      alert(err.message || 'Gagal upload file PNG.');
-    } finally {
-      setIsUploadingFile(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleRemoveUploadFrame = (idxToRemove: number) => {
-    setUploadFileUrls(prev => prev.filter((_, i) => i !== idxToRemove));
-  };
-
-  const handleSetPrimaryUploadFrame = (idx: number) => {
-    setUploadFileUrls(prev => {
-      const copy = [...prev];
-      const [item] = copy.splice(idx, 1);
-      return [item, ...copy];
-    });
-  };
-
-  const handleCreateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isOnlyAdminMode && !isSuperAdmin) {
-      alert('Pembuatan template twibbon saat ini dibatasi hanya untuk Super Admin.');
-      return;
-    }
-    if (uploadFileUrls.length === 0) {
-      alert('Harap unggah minimal 1 berkas gambar bingkai PNG terlebih dahulu.');
-      return;
-    }
-
-    const primaryUrl = uploadFileUrls[0];
-    const res = await addTwibbon({
-      title: uploadTitle,
-      description: uploadDescription,
-      category: 'Nasional',
-      region: 'Nasional',
-      imageUrl: primaryUrl,
-      imageUrls: uploadFileUrls,
-      author: {
-        name: currentUser?.name || 'Desainer PKSart',
-        avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
-      },
-      status: currentUser?.role === 'Super Admin' ? 'Disetujui' : 'Pending',
-      isFeatured: false,
-    });
-
-    if (res?.success === false) {
-      alert(res.message || 'Terjadi kesalahan saat menambahkan Twibbon.');
-      return;
-    }
-
-    setUploadSuccess(true);
-    setTimeout(() => {
-      setIsUploadModalOpen(false);
-      setUploadTitle('');
-      setUploadDescription('');
-      setUploadFileUrls([]);
-      setUploadSuccess(false);
-    }, 2000);
-  };
-
   const filteredTwibbons = approvedTwibbons.filter((t) => {
     const matchesSearch =
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -234,17 +144,11 @@ export default function TwibbonGalleryPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto shrink-0 flex-wrap">
-            {/* Create Template Twibbon Button (Hanya tampil sesuai hak akses pengaturan switch) */}
-            {canCreateTwibbon && (
-              <button
-                onClick={() => {
-                  if (!currentUser) {
-                    router.push('/login?redirect=/twibbon');
-                  } else {
-                    setIsUploadModalOpen(true);
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+            {/* Create Template Button (Super Admin / Open) */}
+            {isMounted && canCreateTwibbon && (
+              <Link
+                href="/twibbon/create"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85517] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer"
               >
                 <Plus size={16} />
                 <span>Buat Template Twibbon</span>
@@ -253,11 +157,11 @@ export default function TwibbonGalleryPage() {
                     Admin
                   </span>
                 )}
-              </button>
+              </Link>
             )}
 
             {/* Search bar */}
-            <div className="relative flex-1 md:max-w-xs">
+            <div className="relative w-full md:w-80">
               <Search size={16} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
@@ -403,6 +307,18 @@ export default function TwibbonGalleryPage() {
                       alt={tw.title}
                       className="w-full h-full object-contain drop-shadow-md group-hover:scale-[1.03] transition-transform duration-300"
                     />
+
+                    {/* Aspect Ratio Badge */}
+                    {(() => {
+                      const ratioMeta = getAspectRatioMeta(tw.aspectRatio, tw.width, tw.height);
+                      return (
+                        <span className="absolute top-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-xs border border-white/10">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#F26522]" />
+                          <span>{ratioMeta.badge}</span>
+                        </span>
+                      );
+                    })()}
+
                     <span className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       {tw.category}
                     </span>
@@ -491,181 +407,6 @@ export default function TwibbonGalleryPage() {
           </>
         )}
       </main>
-
-      {/* Upload Twibbon Template Modal */}
-      {isUploadModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-150 dark:border-gray-800 relative">
-            <button 
-              onClick={() => setIsUploadModalOpen(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <X size={18} />
-            </button>
-
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-1.5">
-              <Plus size={18} className="text-[#F26522]" />
-              <span>Buat Template Twibbon Baru</span>
-            </h3>
-
-            {uploadSuccess ? (
-              <div className="text-center py-8 space-y-3">
-                <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 size={32} />
-                </div>
-                <h4 className="text-base font-bold text-gray-900 dark:text-white">Template Berhasil Diajukan!</h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs mx-auto">
-                  Template twibbon baru Anda berhasil dibuat. Silakan tunggu peninjauan dan persetujuan dari Super Admin agar tampil di galeri.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleCreateTemplate} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
-                    Judul Template Twibbon
-                  </label>
-                  <input
-                    type="text"
-                    value={uploadTitle}
-                    onChange={(e) => setUploadTitle(e.target.value)}
-                    placeholder="Contoh: Twibbon Milad PKS 26"
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
-                      Unggah Bingkai PNG Transparan ({uploadFileUrls.length} Bingkai)
-                    </label>
-                    <span className="text-[10px] text-[#F26522] font-bold">
-                      Bisa lebih dari 1 desain
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed">
-                    Unggah satu atau beberapa desain bingkai PNG transparan (persegi). Pengunjung nantinya dapat memilih bingkai yang ingin dipakai.
-                  </p>
-
-                  {/* Previews of Uploaded Frames */}
-                  {uploadFileUrls.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2 mb-3 max-h-48 overflow-y-auto p-1">
-                      {uploadFileUrls.map((url, idx) => (
-                        <div
-                          key={idx}
-                          className={`relative rounded-xl border p-1.5 flex flex-col items-center justify-between transition-all ${
-                            idx === 0
-                              ? 'border-[#F26522] bg-orange-50/30 dark:bg-orange-950/20'
-                              : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
-                          }`}
-                        >
-                          <div className="w-full aspect-square rounded-lg overflow-hidden relative flex items-center justify-center bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:6px_6px] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] bg-white dark:bg-gray-900">
-                            <img
-                              src={url}
-                              alt={`Bingkai ${idx + 1}`}
-                              className="w-full h-full object-contain p-0.5"
-                            />
-                          </div>
-
-                          <div className="w-full mt-1 flex items-center justify-between text-[9px]">
-                            <span className={`font-bold px-1 rounded ${
-                              idx === 0 ? 'bg-[#F26522] text-white' : 'text-gray-500'
-                            }`}>
-                              {idx === 0 ? 'Utama' : `#${idx + 1}`}
-                            </span>
-
-                            <div className="flex items-center gap-1">
-                              {idx !== 0 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleSetPrimaryUploadFrame(idx)}
-                                  className="text-blue-500 hover:underline"
-                                  title="Set sebagai utama"
-                                >
-                                  Utama
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveUploadFrame(idx)}
-                                className="text-red-500 hover:text-red-700 p-0.5"
-                                title="Hapus bingkai ini"
-                              >
-                                &times;
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <label className="border-2 border-dashed border-purple-200 dark:border-purple-900/50 hover:border-[#F26522] bg-purple-50/50 dark:bg-purple-950/20 hover:bg-orange-50/10 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all text-center group">
-                    <input
-                      type="file"
-                      accept="image/png"
-                      multiple
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      disabled={isUploadingFile}
-                    />
-
-                    <div className="flex flex-col items-center gap-1.5 py-1">
-                      <div className="p-2.5 bg-white dark:bg-gray-800 rounded-full text-purple-600 dark:text-purple-400 group-hover:text-[#F26522] shadow-sm transition-colors">
-                        <UploadCloud size={22} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white">
-                          {isUploadingFile ? 'Sedang memproses berkas...' : uploadFileUrls.length > 0 ? '+ Tambah Desain Bingkai Lain (PNG)' : 'Klik untuk Unggah Berkas Bingkai PNG'}
-                        </p>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                          Bisa pilih banyak berkas sekaligus (rekomendasi PNG 1080x1080px)
-                        </p>
-                      </div>
-                    </div>
-                  </label>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
-                      Keterangan
-                    </label>
-                    <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500">
-                      {uploadDescription.length}/1000 karakter
-                    </span>
-                  </div>
-                  <textarea
-                    rows={4}
-                    maxLength={1000}
-                    value={uploadDescription}
-                    onChange={(e) => setUploadDescription(e.target.value)}
-                    placeholder="Tulis keterangan atau deskripsi template twibbon ini (opsional, maks 1000 karakter)..."
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] resize-none leading-relaxed transition-colors"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setIsUploadModalOpen(false)}
-                    className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl"
-                  >
-                    Ajukan Template
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Footer */}
       <Footer />

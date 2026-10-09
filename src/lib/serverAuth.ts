@@ -7,6 +7,7 @@
 
 import { cookies } from 'next/headers';
 import { createHmac } from 'crypto';
+import prisma from '@/lib/prisma';
 
 const SESSION_COOKIE = 'pksart_session';
 const SECRET = process.env.ADMIN_SECRET || 'pksart_fallback_secret';
@@ -100,3 +101,61 @@ export async function requireSession(): Promise<{ userId: string; role: string; 
   }
   return session;
 }
+
+/**
+ * Fetch currently logged in user on the server for SSR (zero UI flash).
+ */
+export async function getCurrentServerUser(): Promise<{
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isVerified?: boolean;
+  avatar?: string;
+  phone?: string;
+  address?: string;
+  region?: string;
+  status?: string;
+} | null> {
+  try {
+    const session = await getSession();
+    if (!session) return null;
+
+    if (session.userId === 'superadmin_1' || session.role === 'Super Admin') {
+      return {
+        id: 'superadmin_1',
+        name: 'Super Admin PKSart',
+        email: session.email,
+        role: 'Super Admin',
+        isVerified: true,
+        avatar: '/img/877859417715829.jpg',
+        phone: '',
+        address: 'DPP PKS Official',
+        region: 'DPP PKS Official',
+        status: 'Active',
+      };
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
+    if (!user || user.status === 'Suspended' || user.status === 'Pending') {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      address: user.address || '',
+      region: user.region || '',
+      role: user.role || 'Desainer PKS',
+      avatar: user.avatar || '',
+      isVerified: Boolean((user as any).isVerified),
+      status: user.status || 'Aktif',
+    };
+  } catch (error) {
+    console.error('Error fetching current server user:', error);
+    return null;
+  }
+}
+

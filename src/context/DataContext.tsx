@@ -23,6 +23,9 @@ export interface TwibbonFrame {
   category?: string;
   region?: string;
   description?: string | null;
+  aspectRatio?: string | null;
+  width?: number | null;
+  height?: number | null;
   author: {
     name: string;
     avatar?: string | null;
@@ -184,14 +187,30 @@ export const SUPER_ADMIN_USER: User = {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: React.ReactNode; initialSettings?: any }> = ({ children, initialSettings }) => {
+export const DataProvider: React.FC<{ 
+  children: React.ReactNode; 
+  initialSettings?: any;
+  initialUser?: User | null;
+}> = ({ children, initialSettings, initialUser }) => {
   // 1. Artworks State
   const [artworks, setArtworks] = useState<Artwork[]>([]);
 
   // 2. Users State
   const [users, setUsers] = useState<User[]>([]);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    if (initialUser) return initialUser;
+    if (typeof window !== 'undefined') {
+      try {
+        const cachedUser = localStorage.getItem('pksart_user_cache');
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          if (parsed && parsed.id) return parsed;
+        }
+      } catch (_) {}
+    }
+    return null;
+  });
 
   // Reports & Reset Requests State
   const [artworkReports, setArtworkReports] = useState<ArtworkReport[]>([]);

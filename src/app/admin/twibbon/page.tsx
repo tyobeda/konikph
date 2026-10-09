@@ -18,11 +18,18 @@ import {
   UploadCloud,
   ShieldCheck,
   Users,
+  Maximize2,
+  X,
 } from 'lucide-react';
 import { USERS } from '@/lib/data';
 import { useData, TwibbonFrame } from '@/context/DataContext';
-import { compressImageFile } from '@/lib/imageCompressor';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
+import { 
+  TwibbonAspectRatioSelector, 
+  detectImageDimensions, 
+  getAspectRatioMeta, 
+  AspectRatioType 
+} from '@/components/TwibbonAspectRatioSelector';
 
 export default function AdminTwibbonPage() {
   const { twibbons, addTwibbon, updateTwibbon, deleteTwibbon, siteSettings, updateSiteSettings } = useData();
@@ -72,7 +79,11 @@ export default function AdminTwibbonPage() {
     title: '',
     description: '',
     imageUrls: [] as string[],
+    aspectRatio: '1:1' as AspectRatioType,
+    width: 1080,
+    height: 1080,
   });
+  const [autoDetectNotice, setAutoDetectNotice] = useState<string | null>(null);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   const handleApprove = (id: string) => {
@@ -102,6 +113,25 @@ export default function AdminTwibbonPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setIsUploadingFiles(true);
+
+    // Auto-detect dimensions from first uploaded file
+    try {
+      const firstFile = files[0];
+      const detected = await detectImageDimensions(firstFile);
+      setFormData((prev) => ({
+        ...prev,
+        aspectRatio: detected.matchedPreset,
+        width: detected.width,
+        height: detected.height,
+      }));
+
+      const presetLabel = detected.matchedPreset === '1:1' ? '1:1 Persegi' :
+                          detected.matchedPreset === '9:16' ? '9:16 Story' :
+                          detected.matchedPreset === '4:5' ? '4:5 Portrait' :
+                          detected.matchedPreset === '16:9' ? '16:9 Landscape' : 'Kustom';
+      setAutoDetectNotice(`Ukuran PNG terdeteksi: ${detected.width} × ${detected.height} px (Format ${presetLabel} otomatis diterapkan)`);
+    } catch (_) {}
+
     try {
       const newUrls: string[] = [];
       for (let i = 0; i < files.length; i++) {
@@ -154,6 +184,9 @@ export default function AdminTwibbonPage() {
         description: formData.description,
         imageUrl: primaryUrl,
         imageUrls: formData.imageUrls,
+        aspectRatio: formData.aspectRatio,
+        width: formData.width,
+        height: formData.height,
       });
       setEditingTwibbon(null);
     } else {
@@ -162,6 +195,9 @@ export default function AdminTwibbonPage() {
         description: formData.description,
         imageUrl: primaryUrl,
         imageUrls: formData.imageUrls,
+        aspectRatio: formData.aspectRatio,
+        width: formData.width,
+        height: formData.height,
         category: 'Nasional',
         region: 'Nasional',
         author: {
@@ -173,7 +209,15 @@ export default function AdminTwibbonPage() {
       });
       setIsAddModalOpen(false);
     }
-    setFormData({ title: '', description: '', imageUrls: [] });
+    setFormData({
+      title: '',
+      description: '',
+      imageUrls: [],
+      aspectRatio: '1:1',
+      width: 1080,
+      height: 1080,
+    });
+    setAutoDetectNotice(null);
   };
 
   const openEditModal = (tw: TwibbonFrame) => {
@@ -183,7 +227,11 @@ export default function AdminTwibbonPage() {
       title: tw.title,
       description: tw.description || '',
       imageUrls: existingFrames,
+      aspectRatio: (tw.aspectRatio as AspectRatioType) || '1:1',
+      width: tw.width || 1080,
+      height: tw.height || 1080,
     });
+    setAutoDetectNotice(null);
   };
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -221,7 +269,15 @@ export default function AdminTwibbonPage() {
 
         <button
           onClick={() => {
-            setFormData({ title: '', description: '', imageUrls: [] });
+            setFormData({
+              title: '',
+              description: '',
+              imageUrls: [],
+              aspectRatio: '1:1',
+              width: 1080,
+              height: 1080,
+            });
+            setAutoDetectNotice(null);
             setIsAddModalOpen(true);
           }}
           className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-bold rounded-xl shadow-sm transition-all"
@@ -378,10 +434,22 @@ export default function AdminTwibbonPage() {
                         <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
                           {tw.title}
                         </p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                           <p className="text-xs text-gray-500 dark:text-gray-400 font-normal">
                             digunakan {tw.usedCount.toLocaleString()} kali
                           </p>
+
+                          {/* Aspect Ratio Badge */}
+                          {(() => {
+                            const ratioMeta = getAspectRatioMeta(tw.aspectRatio, tw.width, tw.height);
+                            return (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/80 dark:border-blue-900/40 px-1.5 py-0.5 rounded-md">
+                                <Maximize2 size={10} className="shrink-0" />
+                                <span>{ratioMeta.badge}</span>
+                              </span>
+                            );
+                          })()}
+
                           {tw.imageUrls && tw.imageUrls.length > 1 && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-200/80 dark:border-orange-900/40 px-1.5 py-0.5 rounded-md">
                               <Layers size={10} /> {tw.imageUrls.length} Pilihan Bingkai
@@ -547,7 +615,7 @@ export default function AdminTwibbonPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 cursor-default"
+            className="bg-white dark:bg-gray-900 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-gray-100 dark:border-gray-800 cursor-default max-h-[92vh] overflow-y-auto"
           >
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               {editingTwibbon ? 'Edit Metadata Frame Twibbon' : 'Tambah Frame Twibbon Official Baru'}
@@ -568,6 +636,25 @@ export default function AdminTwibbonPage() {
                 />
               </div>
 
+              {/* Multi-Format & Aspect Ratio Selector */}
+              <TwibbonAspectRatioSelector
+                aspectRatio={formData.aspectRatio}
+                onChangeAspectRatio={(ratio, w, h) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    aspectRatio: ratio,
+                    width: w,
+                    height: h,
+                  }));
+                }}
+                width={formData.width}
+                height={formData.height}
+                onChangeWidth={(w) => setFormData((prev) => ({ ...prev, width: w }))}
+                onChangeHeight={(h) => setFormData((prev) => ({ ...prev, height: h }))}
+                autoDetectNotice={autoDetectNotice}
+                onClearAutoDetectNotice={() => setAutoDetectNotice(null)}
+              />
+
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
@@ -578,7 +665,7 @@ export default function AdminTwibbonPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed">
-                  Unggah berkas PNG transparan persegi. Jika Anda mengunggah lebih dari satu, pengguna dapat memilih bingkai mana yang ingin mereka gunakan.
+                  Unggah berkas PNG transparan sesuai rasio ({formData.width} × {formData.height} px). Jika mengunggah lebih dari satu, pengunjung dapat memilih bingkai mana yang ingin digunakan.
                 </p>
 
                 {/* Previews of Uploaded Frames */}
@@ -587,49 +674,46 @@ export default function AdminTwibbonPage() {
                     {formData.imageUrls.map((url, idx) => (
                       <div
                         key={idx}
-                        className={`relative rounded-xl border p-1.5 flex flex-col items-center justify-between group transition-all ${
+                        className={`relative rounded-2xl border-2 p-1 transition-all overflow-hidden group ${
                           idx === 0
-                            ? 'border-[#F26522] bg-orange-50/30 dark:bg-orange-950/20'
-                            : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
+                            ? 'border-[#F26522] bg-orange-50/30 dark:bg-orange-950/20 shadow-xs'
+                            : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 hover:border-gray-300'
                         }`}
                       >
-                        <div className="w-full aspect-square rounded-lg overflow-hidden relative flex items-center justify-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:8px_8px] dark:bg-[radial-gradient(#374151_1px,transparent_1px)]">
+                        {/* Top-Left: Badge Utama / Tombol Jadikan Utama */}
+                        {idx === 0 ? (
+                          <span className="absolute top-2 left-2 z-20 bg-[#F26522] text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 border border-orange-400/40">
+                            <CheckCircle size={10} />
+                            <span>Utama</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryFrame(idx)}
+                            className="absolute top-2 left-2 z-20 bg-white/95 dark:bg-gray-900/95 hover:bg-[#F26522] text-gray-700 hover:text-white dark:text-gray-300 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md border border-gray-200/90 dark:border-gray-700 transition-all cursor-pointer"
+                            title="Klik untuk jadikan bingkai utama"
+                          >
+                            <span>#{idx + 1} Set Utama</span>
+                          </button>
+                        )}
+
+                        {/* Top-Right: Tombol Hapus Bingkai */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFrame(idx)}
+                          className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-white/95 dark:bg-gray-900/95 text-gray-400 hover:text-white hover:bg-red-500 shadow-md border border-gray-200/90 dark:border-gray-700 flex items-center justify-center transition-all cursor-pointer"
+                          title="Hapus bingkai ini"
+                        >
+                          <X size={12} strokeWidth={2.5} />
+                        </button>
+
+                        {/* Canvas Thumbnail Image */}
+                        <div className="w-full aspect-square rounded-xl overflow-hidden relative flex items-center justify-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:8px_8px] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] bg-white dark:bg-gray-900">
                           <img
                             src={url}
                             alt={`Bingkai ${idx + 1}`}
-                            className="w-full h-full object-contain p-1"
+                            className="w-full h-full object-contain p-2"
                           />
-                        </div>
-                        
-                        <div className="w-full mt-1.5 flex items-center justify-between text-[10px]">
-                          <span className={`font-bold px-1.5 py-0.5 rounded ${
-                            idx === 0
-                              ? 'bg-[#F26522] text-white'
-                              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                          }`}>
-                            {idx === 0 ? 'Utama' : `Bingkai ${idx + 1}`}
-                          </span>
-
-                          <div className="flex items-center gap-1">
-                            {idx !== 0 && (
-                              <button
-                                type="button"
-                                onClick={() => handleSetPrimaryFrame(idx)}
-                                className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-semibold"
-                                title="Jadikan bingkai utama"
-                              >
-                                Set Utama
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveFrame(idx)}
-                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-colors"
-                              title="Hapus bingkai ini"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
                         </div>
                       </div>
                     ))}
@@ -656,7 +740,7 @@ export default function AdminTwibbonPage() {
                         {isUploadingFiles ? 'Sedang mengunggah berkas...' : formData.imageUrls.length > 0 ? '+ Tambah Desain Bingkai Lain (PNG)' : 'Klik untuk Unggah Berkas Bingkai PNG'}
                       </p>
                       <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-0.5">
-                        Bisa pilih banyak file sekaligus (PNG transparan 1080x1080px)
+                        Bisa pilih banyak file sekaligus (PNG transparan)
                       </p>
                     </div>
                   </div>
@@ -688,7 +772,15 @@ export default function AdminTwibbonPage() {
                   onClick={() => {
                     setIsAddModalOpen(false);
                     setEditingTwibbon(null);
-                    setFormData({ title: '', description: '', imageUrls: [] });
+                    setFormData({
+                      title: '',
+                      description: '',
+                      imageUrls: [],
+                      aspectRatio: '1:1',
+                      width: 1080,
+                      height: 1080,
+                    });
+                    setAutoDetectNotice(null);
                   }}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-colors"
                 >

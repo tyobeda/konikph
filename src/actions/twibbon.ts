@@ -128,6 +128,9 @@ export async function addTwibbon(data: any) {
         category: rest.category || 'Nasional',
         region: rest.region || 'Nasional',
         description: rest.description ? String(rest.description).slice(0, 1000) : null,
+        aspectRatio: rest.aspectRatio || '1:1',
+        width: rest.width ? Number(rest.width) : 1080,
+        height: rest.height ? Number(rest.height) : 1080,
         authorId: authorId,
         status: rest.status || 'Pending',
         isFeatured: rest.isFeatured || false,
@@ -168,6 +171,8 @@ export async function updateTwibbon(id: string, data: any) {
     if (updateData.description !== undefined) {
       updateData.description = updateData.description ? String(updateData.description).slice(0, 1000) : null;
     }
+    if (updateData.width !== undefined) updateData.width = Number(updateData.width) || 1080;
+    if (updateData.height !== undefined) updateData.height = Number(updateData.height) || 1080;
     const twibbon = await prisma.twibbonFrame.update({
       where: { id },
       data: updateData,

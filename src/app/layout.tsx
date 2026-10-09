@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -7,17 +7,14 @@ import { DataProvider } from "@/context/DataContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 import { getDBSiteSettings } from "@/actions/settings";
+import { getCurrentServerUser } from "@/lib/serverAuth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settingsRes = await getDBSiteSettings();
@@ -70,15 +67,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch site settings on the server so DataProvider starts with real data (zero logo flash)
-  const settingsRes = await getDBSiteSettings();
+  // Fetch site settings and authenticated user on the server so DataProvider starts with real data (zero flash)
+  const [settingsRes, initialUser] = await Promise.all([
+    getDBSiteSettings(),
+    getCurrentServerUser(),
+  ]);
   const initialSettings = settingsRes?.success ? settingsRes.data : undefined;
   const faviconHref = initialSettings?.faviconUrl || '/favicon.ico';
 
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -110,7 +110,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100" suppressHydrationWarning>
         <ThemeProvider>
-          <DataProvider initialSettings={initialSettings}>
+          <DataProvider initialSettings={initialSettings} initialUser={initialUser as any}>
             <Suspense fallback={null}>
               <AnalyticsTracker />
             </Suspense>

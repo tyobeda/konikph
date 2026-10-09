@@ -112,9 +112,12 @@ model TwibbonFrame {
   description String?
   imageUrl   String
   imageUrls  String[] @default([])
-  category   String   @default("Nasional")
-  region     String   @default("Nasional")
-  usedCount  Int      @default(0)
+  category    String   @default("Nasional")
+  region      String   @default("Nasional")
+  aspectRatio String?  @default("1:1")
+  width       Int?     @default(1080)
+  height      Int?     @default(1080)
+  usedCount   Int      @default(0)
   status     String   @default("Pending")
   isFeatured Boolean  @default(false)
   authorId   String

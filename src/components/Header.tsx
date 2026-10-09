@@ -247,13 +247,15 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             {/* Theme Toggle (Dark / Light / System) */}
             <ThemeToggle variant="dropdown" />
 
-            {/* Create Twibbon Button */}
-            <Link
-              href="/twibbon"
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
-            >
-              <span>Buat Twibbon</span>
-            </Link>
+            {/* Create Twibbon Button - Hide when already on /twibbon page */}
+            {!pathname?.startsWith('/twibbon') && (
+              <Link
+                href="/twibbon"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+              >
+                <span>Buat Twibbon</span>
+              </Link>
+            )}
 
             {/* Upload Button - Logged in users only (Desktop/Tablet) */}
             {isMounted && currentUser && (
@@ -363,6 +365,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   </div>
                 )}
               </div>
+            ) : !isMounted ? (
+              <div className="w-20 h-8" />
             ) : (
               <div className="flex items-center gap-2">
                 <Link
