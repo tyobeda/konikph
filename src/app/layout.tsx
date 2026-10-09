@@ -84,7 +84,6 @@ export default async function RootLayout({
         {/* blocking="render" ensures browser pauses rendering until this script runs,
             completely eliminating flash of light mode on dark theme refresh */}
         <script
-          // @ts-expect-error – blocking is a valid HTML attribute but not in React types yet
           blocking="render"
           dangerouslySetInnerHTML={{
             __html: `
