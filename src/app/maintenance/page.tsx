@@ -23,7 +23,7 @@ export function MaintenanceContent() {
   const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20PKSart,%20saya%20ingin%20menanyakan%20status%20pemeliharaan%20sistem.`;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-gray-800 flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden z-50">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-800 dark:text-gray-100 flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden z-50 transition-colors duration-200">
       {/* Light Background Gradients */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-orange-100/60 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-100/60 rounded-full blur-[100px] pointer-events-none" />
@@ -122,10 +122,10 @@ export default function MaintenancePage() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
-        <div className="animate-pulse flex flex-col items-center gap-3 text-gray-700">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex items-center justify-center font-sans transition-colors duration-200">
+        <div className="animate-pulse flex flex-col items-center gap-3 text-gray-700 dark:text-gray-300">
           <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
-          <span className="text-sm font-semibold text-gray-500">Memuat status sistem...</span>
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Memuat status sistem...</span>
         </div>
       </div>
     );

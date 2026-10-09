@@ -332,7 +332,7 @@ export default function ArtworkDetailContent() {
 
   if (!isMounted || artworks.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F26522] mb-4"></div>
         <p>Memuat karya...</p>
       </div>
@@ -341,7 +341,7 @@ export default function ArtworkDetailContent() {
 
   if (!artwork) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col pt-[110px] items-center justify-center text-gray-500">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col pt-[110px] items-center justify-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
         <p>Karya tidak ditemukan.</p>
         <button onClick={() => router.back()} className="mt-4 text-[#F26522] hover:underline">
           Kembali

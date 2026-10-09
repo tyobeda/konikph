@@ -98,12 +98,21 @@ export default function CreatorPublicProfilePage() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px]">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] transition-colors duration-200">
         <Header />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 animate-pulse">
-          <div className="h-6 w-32 bg-gray-200 rounded-xl mb-8" />
-          <div className="h-48 bg-white rounded-3xl border border-gray-100 mb-8" />
-          <div className="h-64 bg-white rounded-3xl border border-gray-100" />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 animate-pulse">
+          <div className="h-6 w-24 bg-gray-200 dark:bg-gray-800 rounded-xl mb-6" />
+          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 mb-8 space-y-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 dark:bg-gray-800 shrink-0" />
+              <div className="space-y-2.5 flex-1">
+                <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded-lg w-48" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded-lg w-28" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded-lg w-64" />
+              </div>
+            </div>
+          </div>
+          <div className="h-64 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800" />
         </main>
       </div>
     );
@@ -111,19 +120,19 @@ export default function CreatorPublicProfilePage() {
 
   if (!creator) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans pt-[110px] md:pt-[70px]">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] transition-colors duration-200">
         <Header />
         <main className="flex-1 max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-16 h-16 bg-orange-50 text-[#F26522] rounded-full flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-orange-50 dark:bg-orange-950/30 text-[#F26522] rounded-full flex items-center justify-center mb-4">
             <LayoutGrid size={30} />
           </div>
-          <h3 className="text-base font-bold text-gray-900">Desainer Tidak Ditemukan</h3>
-          <p className="text-xs text-gray-500 mt-1 mb-6">
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">Desainer Tidak Ditemukan</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-6">
             Profil desainer yang Anda tuju tidak terdaftar atau telah dinonaktifkan dari sistem PKSart.
           </p>
           <button
             onClick={() => router.push('/creators')}
-            className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all"
+            className="px-5 py-2.5 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-bold rounded-xl transition-all"
           >
             Lihat Semua Desainer
           </button>

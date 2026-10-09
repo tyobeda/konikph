@@ -81,10 +81,10 @@ export default function LoginPage() {
 
   if ((!isMounted && !forceShow) || currentUser) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center font-sans">
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex items-center justify-center font-sans transition-colors duration-200">
         <div className="animate-pulse flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
-          <span className="text-sm font-semibold text-gray-500">Memeriksa sesi...</span>
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Memeriksa sesi...</span>
         </div>
       </div>
     );

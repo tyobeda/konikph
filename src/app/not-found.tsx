@@ -7,10 +7,10 @@ import { Footer } from '@/components/Footer';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans transition-colors duration-200">
       <Header />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-20 relative overflow-hidden bg-gradient-to-b from-gray-50/50 via-white to-orange-50/30">
+      <main className="flex-1 flex items-center justify-center px-4 py-20 relative overflow-hidden bg-gradient-to-b from-gray-50/50 via-white to-orange-50/30 dark:from-transparent dark:via-transparent dark:to-transparent">
         {/* Ambient background glow */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -18,11 +18,11 @@ export default function NotFound() {
           {/* Animated / Glowing 404 Badge */}
           <div className="relative mx-auto w-32 h-32 flex items-center justify-center">
             <div className="absolute inset-0 bg-gradient-to-tr from-[#F26522] to-amber-400 rounded-3xl opacity-15 blur-xl" />
-            <div className="relative w-28 h-28 rounded-3xl bg-white border border-orange-200/60 shadow-xl shadow-orange-500/10 flex flex-col items-center justify-center gap-1">
+            <div className="relative w-28 h-28 rounded-3xl bg-white dark:bg-gray-900 border border-orange-200/60 dark:border-orange-500/20 shadow-xl shadow-orange-500/10 flex flex-col items-center justify-center gap-1">
               <span className="text-4xl font-black bg-gradient-to-r from-[#F26522] to-amber-600 bg-clip-text text-transparent tracking-tight">
                 404
               </span>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+              <div className="flex items-center gap-1 text-[10px] font-bold text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full">
                 <Sparkles size={10} />
                 <span>Ups! Hilang</span>
               </div>
@@ -31,10 +31,10 @@ export default function NotFound() {
 
           {/* Text Details */}
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
               Halaman Tidak Ditemukan
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-sm mx-auto">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm mx-auto">
               Karya, twibbon, atau halaman yang Anda cari mungkin sudah dipindahkan, dihapus, atau tautan yang dimasukkan keliru.
             </p>
           </div>
