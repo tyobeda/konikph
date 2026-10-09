@@ -81,10 +81,9 @@ export default async function RootLayout({
         <link rel="icon" href={faviconHref} sizes="any" />
         <link rel="shortcut icon" href={faviconHref} />
         <link rel="apple-touch-icon" href={faviconHref} />
-        {/* blocking="render" ensures browser pauses rendering until this script runs,
-            completely eliminating flash of light mode on dark theme refresh */}
+        {/* Script ini berjalan sebelum render pertama, mencegah flash mode terang saat refresh */}
         <script
-          blocking="render"
+          {...({ blocking: 'render' } as object)}
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
