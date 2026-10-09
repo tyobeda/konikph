@@ -269,14 +269,16 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             )}
 
             {/* Notification Icon */}
-            {currentUser && (
+            {isMounted && currentUser && (
               <Link href="/notifikasi" className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
                 {unreadNotificationCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />}
               </Link>
             )}
             
-            {currentUser ? (
+            {!isMounted ? (
+              <div className="w-20 h-8" />
+            ) : currentUser ? (
               <div suppressHydrationWarning ref={profileDropdownRef} className="relative flex items-center">
                 <div className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                   {/* Clicking Avatar redirects directly to user profile */}
@@ -366,8 +368,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   </div>
                 )}
               </div>
-            ) : !isMounted ? (
-              <div className="w-20 h-8" />
             ) : (
               <div className="flex items-center gap-2">
                 <Link

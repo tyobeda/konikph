@@ -198,19 +198,7 @@ export const DataProvider: React.FC<{
   // 2. Users State
   const [users, setUsers] = useState<User[]>([]);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    if (initialUser) return initialUser;
-    if (typeof window !== 'undefined') {
-      try {
-        const cachedUser = localStorage.getItem('pksart_user_cache');
-        if (cachedUser) {
-          const parsed = JSON.parse(cachedUser);
-          if (parsed && parsed.id) return parsed;
-        }
-      } catch (_) {}
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(() => initialUser || null);
 
   // Reports & Reset Requests State
   const [artworkReports, setArtworkReports] = useState<ArtworkReport[]>([]);
