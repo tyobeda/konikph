@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { flushSync } from 'react-dom';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -44,6 +45,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [mounted, setMounted] = useState<boolean>(false);
 
+  // Helper to apply classes directly to documentElement
+  const applyThemeToDOM = (dark: boolean) => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+      root.style.colorScheme = 'light';
+    }
+  };
+
   // Initialize theme from localStorage and detect system preference
   useEffect(() => {
     setMounted(true);
@@ -52,20 +68,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
         setThemeState(savedTheme);
       }
-    } catch {
-      // Ignore localStorage errors
-    }
+    } catch {}
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setSystemIsDark(mediaQuery.matches);
 
     const handleSystemChange = (e: MediaQueryListEvent) => {
       setSystemIsDark(e.matches);
+      if (theme === 'system') {
+        applyThemeToDOM(e.matches);
+      }
     };
 
     mediaQuery.addEventListener('change', handleSystemChange);
     return () => mediaQuery.removeEventListener('change', handleSystemChange);
-  }, []);
+  }, [theme]);
 
   const resolvedTheme: 'light' | 'dark' = useMemo(() => {
     if (theme === 'dark') return 'dark';
@@ -78,30 +95,49 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Apply theme class to documentElement only when mounted and needed, preventing any flash
   useEffect(() => {
     if (!mounted || typeof window === 'undefined') return;
-    const root = document.documentElement;
-    const currentlyDark = root.classList.contains('dark');
-
-    if (isDark) {
-      if (!currentlyDark) {
-        root.classList.add('dark');
-      }
-      root.setAttribute('data-theme', 'dark');
-      root.style.colorScheme = 'dark';
-    } else {
-      if (currentlyDark) {
-        root.classList.remove('dark');
-      }
-      root.setAttribute('data-theme', 'light');
-      root.style.colorScheme = 'light';
-    }
+    applyThemeToDOM(isDark);
   }, [isDark, mounted]);
 
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+    const targetIsDark =
+      newTheme === 'dark' ? true :
+      newTheme === 'light' ? false :
+      systemIsDark;
+
+    const updateStateAndDOM = () => {
+      applyThemeToDOM(targetIsDark);
+      setThemeState(newTheme);
+      try {
+        localStorage.setItem('pksart_theme', newTheme);
+      } catch {}
+    };
+
+    // Safe Feature Detection for View Transitions API
+    const isSupported =
+      typeof document !== 'undefined' &&
+      typeof (document as any).startViewTransition === 'function' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!isSupported) {
+      // 100% safe fallback for unsupported browsers / devices
+      updateStateAndDOM();
+      return;
+    }
+
     try {
-      localStorage.setItem('pksart_theme', newTheme);
+      // Native GPU-accelerated Cross-Fade
+      (document as any).startViewTransition(() => {
+        applyThemeToDOM(targetIsDark);
+        flushSync(() => {
+          setThemeState(newTheme);
+        });
+        try {
+          localStorage.setItem('pksart_theme', newTheme);
+        } catch {}
+      });
     } catch {
-      // Ignore
+      // Fallback in case of any runtime restriction
+      updateStateAndDOM();
     }
   };
 
