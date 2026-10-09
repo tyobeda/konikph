@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
+import Script from "next/script";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DataProvider } from "@/context/DataContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -81,32 +82,10 @@ export default async function RootLayout({
         <link rel="icon" href={faviconHref} sizes="any" />
         <link rel="shortcut icon" href={faviconHref} />
         <link rel="apple-touch-icon" href={faviconHref} />
-        {/* Script ini berjalan sebelum render pertama, mencegah flash mode terang saat refresh.
-            Inline script di head tanpa async/defer sudah otomatis render-blocking secara default. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var stored = localStorage.getItem('pksart_theme');
-                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var isDark = stored === 'dark' || ((!stored || stored === 'system') && prefersDark);
-                  if (isDark) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    document.documentElement.style.colorScheme = 'dark';
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    document.documentElement.style.colorScheme = 'light';
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
       </head>
       <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+        {/* Jalankan sebelum hydration untuk mencegah flash mode terang saat refresh */}
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <ThemeProvider>
           <DataProvider initialSettings={initialSettings}>
             <Suspense fallback={null}>
