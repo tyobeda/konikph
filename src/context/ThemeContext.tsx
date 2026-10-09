@@ -20,18 +20,43 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 });
 
+/** Write theme to both localStorage and cookie (cookie dipakai server untuk SSR tanpa flash) */
+function persistTheme(theme: Theme): void {
+  try {
+    localStorage.setItem('pksart_theme', theme);
+  } catch {
+    // Ignore
+  }
+  try {
+    // Cookie dibaca layout.tsx saat SSR — max-age 1 tahun
+    document.cookie = `pksart_theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
+  } catch {
+    // Ignore
+  }
+}
+
+/** Baca tema tersimpan dari localStorage atau cookie */
+function readSavedTheme(): Theme {
+  if (typeof window === 'undefined') return 'system';
+  try {
+    const saved = localStorage.getItem('pksart_theme') as Theme | null;
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+  } catch {
+    // Ignore
+  }
+  // Fallback ke cookie jika localStorage kosong
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)pksart_theme=([^;]+)/);
+    const cookieVal = match?.[1] as Theme | undefined;
+    if (cookieVal === 'light' || cookieVal === 'dark' || cookieVal === 'system') return cookieVal;
+  } catch {
+    // Ignore
+  }
+  return 'system';
+}
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('pksart_theme') as Theme | null;
-        if (saved === 'light' || saved === 'dark' || saved === 'system') {
-          return saved;
-        }
-      } catch {}
-    }
-    return 'system';
-  });
+  const [theme, setThemeState] = useState<Theme>(readSavedTheme);
 
   const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -44,17 +69,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [mounted, setMounted] = useState<boolean>(false);
 
-  // Initialize theme from localStorage and detect system preference
+  // Setelah mount: sync state & pasang listener perubahan system preference
   useEffect(() => {
     setMounted(true);
-    try {
-      const savedTheme = localStorage.getItem('pksart_theme') as Theme | null;
-      if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
-        setThemeState(savedTheme);
-      }
-    } catch {
-      // Ignore localStorage errors
-    }
+    setThemeState(readSavedTheme());
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setSystemIsDark(mediaQuery.matches);
@@ -75,22 +93,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const isDark = resolvedTheme === 'dark';
 
-  // Apply theme class to documentElement only when mounted and needed, preventing any flash
+  // Sinkronkan class pada <html> setiap kali tema berubah (setelah mount)
   useEffect(() => {
     if (!mounted || typeof window === 'undefined') return;
     const root = document.documentElement;
-    const currentlyDark = root.classList.contains('dark');
-
     if (isDark) {
-      if (!currentlyDark) {
-        root.classList.add('dark');
-      }
+      root.classList.add('dark');
       root.setAttribute('data-theme', 'dark');
       root.style.colorScheme = 'dark';
     } else {
-      if (currentlyDark) {
-        root.classList.remove('dark');
-      }
+      root.classList.remove('dark');
       root.setAttribute('data-theme', 'light');
       root.style.colorScheme = 'light';
     }
@@ -98,11 +110,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    try {
-      localStorage.setItem('pksart_theme', newTheme);
-    } catch {
-      // Ignore
-    }
+    persistTheme(newTheme);
   };
 
   const toggleTheme = () => {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
-import Script from "next/script";
+import { cookies } from "next/headers";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DataProvider } from "@/context/DataContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -72,10 +72,17 @@ export default async function RootLayout({
   const initialSettings = settingsRes?.success ? settingsRes.data : undefined;
   const faviconHref = initialSettings?.faviconUrl || '/favicon.ico';
 
+  // Read theme cookie server-side to pre-render correct dark class — eliminates flash entirely
+  const cookieStore = await cookies();
+  const savedTheme = cookieStore.get('pksart_theme')?.value;
+  const serverIsDark = savedTheme === 'dark';
+  const htmlClass = `${plusJakartaSans.variable} h-full antialiased${serverIsDark ? ' dark' : ''}`;
+
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} h-full antialiased`}
+      className={htmlClass}
+      data-theme={serverIsDark ? 'dark' : 'light'}
       suppressHydrationWarning
     >
       <head>
@@ -84,8 +91,6 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href={faviconHref} />
       </head>
       <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100" suppressHydrationWarning>
-        {/* Jalankan sebelum hydration untuk mencegah flash mode terang saat refresh */}
-        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <ThemeProvider>
           <DataProvider initialSettings={initialSettings}>
             <Suspense fallback={null}>
@@ -99,4 +104,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
