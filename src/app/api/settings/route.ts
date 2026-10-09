@@ -40,9 +40,9 @@ export async function POST(request: Request) {
         id: 'settings',
         siteName: 'PKSart',
         siteDescription: 'Pusat Unduhan Aset Desain Resmi & Komunitas Desainer PKS',
-        logoUrl: '',
-        logoAdminUrl: '',
-        logoFooterUrl: '',
+        logoUrl: '/uploads/1785832971571.png',
+        logoAdminUrl: '/uploads/1785832976919.png',
+        logoFooterUrl: '/uploads/1785833539740.png',
         faviconUrl: '/favicon.ico',
         onlyAdminCanCreateTwibbon: Boolean(body.onlyAdminCanCreateTwibbon)
       }

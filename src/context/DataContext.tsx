@@ -252,9 +252,9 @@ export const DataProvider: React.FC<{
   const DEFAULT_SETTINGS = {
     siteName: 'PKSart - Galeri Desain & Foto PKS Official',
     siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
-    logoUrl: '',
-    logoAdminUrl: '',
-    logoFooterUrl: '',
+    logoUrl: '/uploads/1785832971571.png',
+    logoAdminUrl: '/uploads/1785832976919.png',
+    logoFooterUrl: '/uploads/1785833539740.png',
     faviconUrl: '/favicon.ico',
     ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
     ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
@@ -282,9 +282,20 @@ export const DataProvider: React.FC<{
 
   const [siteSettings, setSiteSettings] = useState(() => {
     // Priority 1: Server-injected initialSettings (zero flash)
-    if (initialSettings) return initialSettings;
-    // Priority 2: Cookie cache (returning visitors)
+    if (initialSettings && initialSettings.logoUrl) return initialSettings;
+    // Priority 2: LocalStorage cache (fast instant client hydration)
     if (typeof window !== 'undefined') {
+      try {
+        const cachedStorage = localStorage.getItem('pksart_site_settings');
+        if (cachedStorage) {
+          const parsed = JSON.parse(cachedStorage);
+          if (parsed && (parsed.logoUrl || parsed.siteName)) {
+            return { ...DEFAULT_SETTINGS, ...parsed };
+          }
+        }
+      } catch (e) {}
+
+      // Priority 3: Cookie cache (returning visitors)
       const cached = getClientCookie('pksart_site_settings');
       if (cached) {
         try {
@@ -292,11 +303,11 @@ export const DataProvider: React.FC<{
           if (parsed && Array.isArray(parsed.ctaLinks)) {
             parsed.ctaLinks = parsed.ctaLinks.filter((l: any) => l.label !== 'PKS Bicara' && l.label !== 'Khidmat PKS');
           }
-          return parsed;
+          if (parsed && parsed.logoUrl) return { ...DEFAULT_SETTINGS, ...parsed };
         } catch (e) {}
       }
     }
-    // Priority 3: Hardcoded defaults
+    // Priority 4: Hardcoded defaults (with actual official logo URLs)
     return DEFAULT_SETTINGS;
   });
 
@@ -304,6 +315,7 @@ export const DataProvider: React.FC<{
     if (initialSettings) {
       setSiteSettings(initialSettings);
       if (typeof window !== 'undefined') {
+        try { localStorage.setItem('pksart_site_settings', JSON.stringify(initialSettings)); } catch (e) {}
         setClientCookie('pksart_site_settings', JSON.stringify(initialSettings), 365);
       }
     }
@@ -371,6 +383,9 @@ export const DataProvider: React.FC<{
       getDBSiteSettings().then(res => {
         if (res.success && res.data) {
           setSiteSettings(res.data as any);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('pksart_site_settings', JSON.stringify(res.data)); } catch (e) {}
+          }
           setClientCookie('pksart_site_settings', JSON.stringify(res.data), 365);
         }
         setIsSettingsLoaded(true);

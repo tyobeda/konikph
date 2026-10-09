@@ -37,11 +37,11 @@ export default function AdminLayout({
       }
     }
   }, [isMounted, currentUser, router]);
-  const hasCustomAdminLogo = Boolean(
-    siteSettings?.logoAdminUrl &&
-    siteSettings.logoAdminUrl !== '/favicon.ico' &&
-    siteSettings.logoAdminUrl.trim() !== ''
-  );
+  const adminLogoUrl =
+    siteSettings?.logoAdminUrl?.trim() && siteSettings.logoAdminUrl !== '/favicon.ico'
+      ? siteSettings.logoAdminUrl
+      : '/uploads/1785832976919.png';
+  const hasCustomAdminLogo = Boolean(adminLogoUrl);
 
   const isLogoReady = isMounted && isSettingsLoaded;
 
@@ -75,7 +75,7 @@ export default function AdminLayout({
       <header className="md:hidden sticky top-0 z-50 bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-slate-700/60">
         <Link href="/admin" className="flex items-center gap-2 min-h-[28px]">
           {hasCustomAdminLogo ? (
-            <img src={siteSettings.logoAdminUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-7 w-auto object-contain" />
+            <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-7 w-auto object-contain" />
           ) : !isMounted || !isSettingsLoaded ? (
             <div className="h-6 w-20 bg-slate-800 animate-pulse rounded" />
           ) : (
@@ -139,7 +139,7 @@ export default function AdminLayout({
           <div className="p-4 border-b border-slate-700/60 flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-2 min-h-[32px]">
               {hasCustomAdminLogo ? (
-                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-8 w-auto object-contain" />
+                <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-8 w-auto object-contain" />
               ) : !isMounted || !isSettingsLoaded ? (
                 <div className="h-7 w-24 bg-slate-800 animate-pulse rounded" />
               ) : (
@@ -212,7 +212,7 @@ export default function AdminLayout({
           <div className="p-5 border-b border-slate-700/60 flex items-center justify-between shrink-0">
             <Link href="/admin" className="flex items-center gap-2 min-h-[36px]">
               {hasCustomAdminLogo ? (
-                <img src={siteSettings.logoAdminUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-9 w-auto object-contain" />
+                <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-9 w-auto object-contain" />
               ) : !isMounted || !isSettingsLoaded ? (
                 <div className="h-8 w-24 bg-slate-800 animate-pulse rounded" />
               ) : (

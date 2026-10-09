@@ -37,12 +37,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className={`w-9 h-9 rounded-xl bg-slate-800 animate-pulse ${className}`} />
-    );
-  }
-
   // Quick 1-click icon toggle
   if (variant === 'icon') {
     return (
@@ -53,13 +47,10 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
           `relative p-2 rounded-full text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-95 focus:outline-none ${className}`
         }
         aria-label="Ganti mode tema"
-        title={isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
+        title="Ganti Mode Tema"
       >
-        {isDark ? (
-          <Sun size={18} className="text-amber-400 rotate-0 transition-transform duration-300 hover:rotate-45" />
-        ) : (
-          <Moon size={18} className={buttonClassName ? "text-slate-300 hover:text-white transition-colors" : "text-gray-600 rotate-0 transition-transform duration-300 hover:-rotate-12"} />
-        )}
+        <Moon size={18} className="dark:hidden text-gray-600 rotate-0 transition-transform duration-300 hover:-rotate-12" />
+        <Sun size={18} className="hidden dark:block text-amber-400 rotate-0 transition-transform duration-300 hover:rotate-45" />
       </button>
     );
   }
@@ -126,11 +117,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         aria-label="Pilih tema tampilan"
         title="Ganti Tema (Terang / Gelap / Sistem)"
       >
-        {isDark ? (
-          <Sun size={18} className="text-amber-400" />
-        ) : (
-          <Moon size={18} className={buttonClassName ? "text-slate-300 hover:text-white transition-colors" : "text-gray-600 dark:text-gray-300"} />
-        )}
+        <Moon size={18} className={`dark:hidden ${buttonClassName ? "text-slate-300 hover:text-white transition-colors" : "text-gray-600 dark:text-gray-300"} transition-transform hover:-rotate-12`} />
+        <Sun size={18} className="hidden dark:block text-amber-400 transition-transform hover:rotate-45" />
       </button>
 
       {isOpen && (

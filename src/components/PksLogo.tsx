@@ -17,6 +17,10 @@ export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md', f
   const textSize = size === 'sm' ? 'text-lg' : size === 'lg' ? 'text-2xl' : 'text-xl';
   const logoHeight = size === 'sm' ? '28px' : size === 'lg' ? '48px' : '40px';
 
+  // Official custom logos in public/uploads:
+  const FALLBACK_NORMAL_LOGO = '/uploads/1785832971571.png';
+  const FALLBACK_WHITE_LOGO = '/uploads/1785833539740.png';
+
   // White logo preferred in dark mode:
   // 1. logoFooterUrl is explicitly "Logo Putih (Footer)" in admin settings
   // 2. logoAdminUrl is white text variant
@@ -26,14 +30,16 @@ export const PksLogo: React.FC<PksLogoProps> = ({ className = '', size = 'md', f
       ? siteSettings.logoFooterUrl
       : siteSettings?.logoAdminUrl?.trim() && siteSettings.logoAdminUrl !== '/favicon.ico'
       ? siteSettings.logoAdminUrl
-      : siteSettings?.logoUrl || '';
+      : siteSettings?.logoUrl?.trim() && siteSettings.logoUrl !== '/favicon.ico'
+      ? siteSettings.logoUrl
+      : FALLBACK_WHITE_LOGO;
 
   const normalLogoUrl =
     siteSettings?.logoUrl?.trim() && siteSettings.logoUrl !== '/favicon.ico'
       ? siteSettings.logoUrl
-      : whiteLogoUrl;
+      : FALLBACK_NORMAL_LOGO;
 
-  const hasCustomLogo = Boolean(normalLogoUrl && !imageFailed);
+  const hasCustomLogo = !imageFailed;
   const hasDistinctWhiteLogo = Boolean(whiteLogoUrl && whiteLogoUrl !== normalLogoUrl && !imageFailed);
 
   return (
