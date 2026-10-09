@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { flushSync } from 'react-dom';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -104,41 +103,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       newTheme === 'light' ? false :
       systemIsDark;
 
-    const updateStateAndDOM = () => {
-      applyThemeToDOM(targetIsDark);
-      setThemeState(newTheme);
-      try {
-        localStorage.setItem('pksart_theme', newTheme);
-      } catch {}
-    };
-
-    // Safe Feature Detection for View Transitions API
-    const isSupported =
-      typeof document !== 'undefined' &&
-      typeof (document as any).startViewTransition === 'function' &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (!isSupported) {
-      // 100% safe fallback for unsupported browsers / devices
-      updateStateAndDOM();
-      return;
-    }
-
+    applyThemeToDOM(targetIsDark);
+    setThemeState(newTheme);
     try {
-      // Native GPU-accelerated Cross-Fade
-      (document as any).startViewTransition(() => {
-        applyThemeToDOM(targetIsDark);
-        flushSync(() => {
-          setThemeState(newTheme);
-        });
-        try {
-          localStorage.setItem('pksart_theme', newTheme);
-        } catch {}
-      });
-    } catch {
-      // Fallback in case of any runtime restriction
-      updateStateAndDOM();
-    }
+      localStorage.setItem('pksart_theme', newTheme);
+    } catch {}
   };
 
   const toggleTheme = () => {
