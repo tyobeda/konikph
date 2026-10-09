@@ -6,7 +6,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  color-scheme: light;
+  /* light dark: browser uses system preference as initial bg before JS runs */
+  color-scheme: light dark;
 }
 
 .dark {
