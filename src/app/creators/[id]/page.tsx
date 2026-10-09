@@ -96,7 +96,8 @@ export default function CreatorPublicProfilePage() {
     }
   }, [creatorId, creator?.email, id]);
 
-  if (!isMounted) {
+  // Only show skeleton while creator is not yet resolved
+  if (!creator && (!isMounted || users.length === 0)) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] transition-colors duration-200">
         <Header />

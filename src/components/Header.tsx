@@ -48,7 +48,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   }, []);
 
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
-  const [isMounted, setIsMounted] = useState(false);
   const [isTransitionActive, setIsTransitionActive] = useState(false);
 
   const getActiveLinkId = () => {
@@ -81,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const navLinks = [
     { label: 'Beranda', href: '/', id: 'beranda' },
     { label: 'Eksplorasi', href: '/explore', id: 'explore' },
-    ...((isMounted && currentUser) ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
+    ...(currentUser ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
     { label: 'Desainer', href: '/creators', id: 'creators' },
   ];
 
@@ -109,7 +108,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   };
 
   useEffect(() => {
-    setIsMounted(true);
     if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem('pksart_last_nav_pos');
       if (saved) {
@@ -124,15 +122,13 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return;
-
     // Snap to correct position instantly on page render
     updateIndicatorPos(false);
 
     // Enable transition shortly after page loads to ensure smooth glide afterwards
     const timer = setTimeout(() => {
       setIsTransitionActive(true);
-    }, 150);
+    }, 100);
 
     const handleResize = () => updateIndicatorPos(false);
     window.addEventListener('resize', handleResize);
@@ -140,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
       clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
     };
-  }, [activeLinkId, pathname, isMounted]);
+  }, [activeLinkId, pathname]);
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -259,7 +255,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             )}
 
             {/* Upload Button - Logged in users only (Desktop/Tablet) */}
-            {isMounted && currentUser && (
+            {currentUser && (
               <Link
                 href="/upload"
                 className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
@@ -269,16 +265,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
             )}
 
             {/* Notification Icon */}
-            {isMounted && currentUser && (
+            {currentUser && (
               <Link href="/notifikasi" className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white rounded-full transition-colors mx-1" aria-label="Notifications">
                 <Bell size={20} />
                 {unreadNotificationCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />}
               </Link>
             )}
             
-            {!isMounted ? (
-              <div className="w-20 h-8" />
-            ) : currentUser ? (
+            {currentUser ? (
               <div suppressHydrationWarning ref={profileDropdownRef} className="relative flex items-center">
                 <div className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                   {/* Clicking Avatar redirects directly to user profile */}
