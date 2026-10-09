@@ -14,7 +14,6 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 import { getDBSiteSettings } from "@/actions/settings";
-import { getCurrentServerUser } from "@/lib/serverAuth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settingsRes = await getDBSiteSettings();
@@ -67,11 +66,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch site settings and authenticated user on the server so DataProvider starts with real data (zero flash)
-  const [settingsRes, initialUser] = await Promise.all([
-    getDBSiteSettings(),
-    getCurrentServerUser(),
-  ]);
+  // Fetch site settings on the server so DataProvider starts with real data (zero logo flash)
+  const settingsRes = await getDBSiteSettings();
   const initialSettings = settingsRes?.success ? settingsRes.data : undefined;
   const faviconHref = initialSettings?.faviconUrl || '/favicon.ico';
 
@@ -110,7 +106,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col pb-16 md:pb-0 bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100" suppressHydrationWarning>
         <ThemeProvider>
-          <DataProvider initialSettings={initialSettings} initialUser={initialUser as any}>
+          <DataProvider initialSettings={initialSettings}>
             <Suspense fallback={null}>
               <AnalyticsTracker />
             </Suspense>

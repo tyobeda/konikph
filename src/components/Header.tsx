@@ -215,6 +215,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 <Link
                   key={link.id}
                   href={link.href}
+                  prefetch={true}
                   ref={(el) => {
                     navItemRefs.current[link.id] = el;
                   }}

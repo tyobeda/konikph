@@ -65,6 +65,7 @@ export const MobileBottomNav: React.FC = () => {
                 >
                   <Link 
                     href="/upload"
+                    prefetch={true}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 active:bg-orange-100 dark:active:bg-orange-950/40 transition-colors"
                   >
@@ -75,6 +76,7 @@ export const MobileBottomNav: React.FC = () => {
                   </Link>
                   <Link 
                     href="/twibbon"
+                    prefetch={true}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 active:bg-orange-100 dark:active:bg-orange-950/40 transition-colors"
                   >
@@ -104,6 +106,7 @@ export const MobileBottomNav: React.FC = () => {
             <Link
               key={item.label}
               href={item.href}
+              prefetch={true}
               className={`flex flex-col items-center justify-center py-1.5 px-2 min-w-[54px] rounded-xl transition-all ${
                 isActive ? 'text-[#F26522] font-black scale-105' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }`}

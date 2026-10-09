@@ -46,7 +46,6 @@ const DEFAULT_SETTINGS = {
 };
 
 export async function getDBSiteSettings() {
-  noStore();
   try {
     let settings = await (prisma as any).siteSettings.findUnique({
       where: { id: 'settings' }
