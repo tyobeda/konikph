@@ -81,9 +81,9 @@ export default async function RootLayout({
         <link rel="icon" href={faviconHref} sizes="any" />
         <link rel="shortcut icon" href={faviconHref} />
         <link rel="apple-touch-icon" href={faviconHref} />
-        {/* Script ini berjalan sebelum render pertama, mencegah flash mode terang saat refresh */}
+        {/* Script ini berjalan sebelum render pertama, mencegah flash mode terang saat refresh.
+            Inline script di head tanpa async/defer sudah otomatis render-blocking secara default. */}
         <script
-          {...({ blocking: 'render' } as object)}
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
