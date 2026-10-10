@@ -363,18 +363,23 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Mobile: Tombol Twibbon berdampingan dengan tombol Masuk / Daftar */}
+                {!pathname?.startsWith('/twibbon') && (
+                  <Link
+                    href="/twibbon"
+                    className="sm:hidden inline-flex items-center justify-center px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-xl transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    <span>Twibbon</span>
+                  </Link>
+                )}
+
+                {/* Tombol Masuk / Daftar (Satu tombol terpadu di Mobile & Desktop) */}
                 <Link
                   href="/login"
-                  className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 bg-[#F26522] hover:bg-[#d85417] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs sm:shadow-sm transition-all active:scale-95 whitespace-nowrap"
                 >
-                  Masuk
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-3.5 py-2 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-bold rounded-xl transition-all shadow-sm"
-                >
-                  Daftar
+                  <span>Masuk / Daftar</span>
                 </Link>
               </div>
             )}
