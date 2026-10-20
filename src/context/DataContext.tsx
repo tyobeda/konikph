@@ -126,6 +126,7 @@ export interface DataContextType {
     allowCommentLinks?: boolean;
     forbiddenWords?: string;
     onlyAdminCanCreateTwibbon?: boolean;
+    masterFileFormats?: { id: string; label: string }[];
     maintenanceConfig?: {
       globalEnabled: boolean;
       modules: {
@@ -265,7 +266,15 @@ export const DataProvider: React.FC<{
     ctaSocialUrl: '#',
     allowCommentLinks: true,
     forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu',
-    onlyAdminCanCreateTwibbon: false
+    onlyAdminCanCreateTwibbon: false,
+    masterFileFormats: [
+      { id: 'PSD', label: 'PSD (Photoshop)' },
+      { id: 'AI', label: 'AI (Illustrator)' },
+      { id: 'CDR', label: 'CDR (CorelDraw)' },
+      { id: 'CANVA', label: 'CANVA' },
+      { id: 'FIGMA', label: 'FIGMA' },
+      { id: 'PDF', label: 'PDF' },
+    ]
   };
 
   const [siteSettings, setSiteSettings] = useState(() => {

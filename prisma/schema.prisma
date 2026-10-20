@@ -210,6 +210,7 @@ model SiteSettings {
   allowCommentLinks   Boolean @default(true) // Whether links/urls are allowed in user comments
   forbiddenWords  String?  // Comma-separated list or newline-separated list of prohibited words for auto moderation
   onlyAdminCanCreateTwibbon Boolean @default(false) // Batasi pembuatan template twibbon hanya untuk Super Admin
+  masterFileFormats String? // JSON string storing array of master file formats: [{ id, label }]
   updatedAt       DateTime @updatedAt
 }
 

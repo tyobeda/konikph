@@ -34,7 +34,18 @@ import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspend
 
 export default function MyArtworksPage() {
   const router = useRouter();
-  const { artworks, currentUser, updateArtwork, deleteArtwork } = useData();
+  const { artworks, currentUser, siteSettings, updateArtwork, deleteArtwork } = useData();
+
+  const availableFormats = siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
+    ? siteSettings.masterFileFormats
+    : [
+        { id: 'PSD', label: 'PSD (Photoshop)' },
+        { id: 'AI', label: 'AI (Illustrator)' },
+        { id: 'CDR', label: 'CDR (CorelDraw)' },
+        { id: 'CANVA', label: 'CANVA' },
+        { id: 'FIGMA', label: 'FIGMA' },
+        { id: 'PDF', label: 'PDF' },
+      ];
 
   // Filter artworks created by current logged user
   const myArtworks = artworks.filter(
@@ -814,9 +825,18 @@ export default function MyArtworksPage() {
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                     >
                       <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
-                      <option value="PSD">PSD (Photoshop)</option>
-                      <option value="AI">AI (Illustrator)</option>
-                      <option value="CDR">CDR (CorelDraw)</option>
+                      {availableFormats.map((fmt) => (
+                        <option key={fmt.id} value={fmt.id}>
+                          {fmt.label}
+                        </option>
+                      ))}
+                      {editFormat &&
+                        editFormat !== 'Hanya gambar' &&
+                        !availableFormats.some(
+                          (f) => f.id.toUpperCase() === editFormat.toUpperCase()
+                        ) && (
+                          <option value={editFormat}>{editFormat}</option>
+                        )}
                     </select>
                   </div>
 

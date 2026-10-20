@@ -42,8 +42,25 @@ const DEFAULT_SETTINGS = {
   adminWhatsapp: '6281199887766',
   allowCommentLinks: true,
   forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu',
-  onlyAdminCanCreateTwibbon: false
+  onlyAdminCanCreateTwibbon: false,
+  masterFileFormats: JSON.stringify([
+    { id: 'PSD', label: 'PSD (Photoshop)' },
+    { id: 'AI', label: 'AI (Illustrator)' },
+    { id: 'CDR', label: 'CDR (CorelDraw)' },
+    { id: 'CANVA', label: 'CANVA' },
+    { id: 'FIGMA', label: 'FIGMA' },
+    { id: 'PDF', label: 'PDF' },
+  ])
 };
+
+const DEFAULT_MASTER_FILE_FORMATS = [
+  { id: 'PSD', label: 'PSD (Photoshop)' },
+  { id: 'AI', label: 'AI (Illustrator)' },
+  { id: 'CDR', label: 'CDR (CorelDraw)' },
+  { id: 'CANVA', label: 'CANVA' },
+  { id: 'FIGMA', label: 'FIGMA' },
+  { id: 'PDF', label: 'PDF' },
+];
 
 export async function getDBSiteSettings() {
   try {
@@ -74,7 +91,27 @@ export async function getDBSiteSettings() {
         maintenanceConfigParsed = JSON.parse(settings.maintenanceConfig);
       } catch (e) {}
     }
-    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, ctaSocialLinks: ctaSocialLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
+
+    let masterFileFormatsParsed = DEFAULT_MASTER_FILE_FORMATS;
+    if (settings.masterFileFormats) {
+      try {
+        const parsed = JSON.parse(settings.masterFileFormats);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          masterFileFormatsParsed = parsed;
+        }
+      } catch (e) {}
+    }
+
+    return { 
+      success: true, 
+      data: { 
+        ...settings, 
+        ctaLinks: ctaLinksParsed, 
+        ctaSocialLinks: ctaSocialLinksParsed, 
+        maintenanceConfig: maintenanceConfigParsed,
+        masterFileFormats: masterFileFormatsParsed
+      } 
+    };
   } catch (error) {
     console.error('Error fetching site settings:', error);
     return { success: false, error: 'Failed to fetch settings' };
@@ -109,6 +146,11 @@ export async function updateDBSiteSettings(data: any) {
     if (data.allowCommentLinks !== undefined) updateData.allowCommentLinks = Boolean(data.allowCommentLinks);
     if (data.forbiddenWords !== undefined) updateData.forbiddenWords = data.forbiddenWords;
     if (data.onlyAdminCanCreateTwibbon !== undefined) updateData.onlyAdminCanCreateTwibbon = Boolean(data.onlyAdminCanCreateTwibbon);
+    if (data.masterFileFormats !== undefined) {
+      updateData.masterFileFormats = typeof data.masterFileFormats === 'string'
+        ? data.masterFileFormats
+        : JSON.stringify(data.masterFileFormats);
+    }
     if (data.maintenanceConfig !== undefined) {
       updateData.maintenanceConfig = typeof data.maintenanceConfig === 'string' 
         ? data.maintenanceConfig 
@@ -144,12 +186,18 @@ export async function updateDBSiteSettings(data: any) {
         allowCommentLinks: data.allowCommentLinks !== undefined ? Boolean(data.allowCommentLinks) : true,
         forbiddenWords: data.forbiddenWords || DEFAULT_SETTINGS.forbiddenWords,
         onlyAdminCanCreateTwibbon: data.onlyAdminCanCreateTwibbon !== undefined ? Boolean(data.onlyAdminCanCreateTwibbon) : false,
+        masterFileFormats: data.masterFileFormats 
+          ? (typeof data.masterFileFormats === 'string' ? data.masterFileFormats : JSON.stringify(data.masterFileFormats)) 
+          : DEFAULT_SETTINGS.masterFileFormats,
         maintenanceConfig: data.maintenanceConfig ? (typeof data.maintenanceConfig === 'string' ? data.maintenanceConfig : JSON.stringify(data.maintenanceConfig)) : null,
       }
     });
     revalidatePath('/', 'layout');
     revalidatePath('/', 'page');
     revalidatePath('/admin/settings');
+    revalidatePath('/upload');
+    revalidatePath('/explore');
+    revalidatePath('/my-artworks');
     revalidatePath('/twibbon');
     revalidatePath('/admin/twibbon');
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
@@ -169,7 +217,25 @@ export async function updateDBSiteSettings(data: any) {
         maintenanceConfigParsed = JSON.parse(settings.maintenanceConfig);
       } catch (e) {}
     }
-    return { success: true, data: { ...settings, ctaLinks: ctaLinksParsed, ctaSocialLinks: ctaSocialLinksParsed, maintenanceConfig: maintenanceConfigParsed } };
+    let masterFileFormatsParsed = DEFAULT_MASTER_FILE_FORMATS;
+    if (settings.masterFileFormats) {
+      try {
+        const parsed = JSON.parse(settings.masterFileFormats);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          masterFileFormatsParsed = parsed;
+        }
+      } catch (e) {}
+    }
+    return { 
+      success: true, 
+      data: { 
+        ...settings, 
+        ctaLinks: ctaLinksParsed, 
+        ctaSocialLinks: ctaSocialLinksParsed, 
+        maintenanceConfig: maintenanceConfigParsed,
+        masterFileFormats: masterFileFormatsParsed
+      } 
+    };
   } catch (error) {
     console.error('Error updating site settings:', error);
     return { success: false, error: 'Failed to update settings' };

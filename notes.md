@@ -103,8 +103,10 @@ ssh -i "C:\Users\Windows 10\.ssh\id_rsa" -o StrictHostKeyChecking=no ubuntu@43.1
 - ✅ **Twibbon Form & Keterangan**: Input Kategori dan Wilayah pada modal pembuatan & edit template Twibbon (publik dan admin) telah diganti menjadi form **Keterangan** (maksimal 1000 karakter dengan live counter).
 - ✅ **Dynamic Counter Twibbon**: Counter "100+ Dibuat" dan kotak "100+ Lainnya" yang ter-hardcode telah diganti menjadi penghitung riil (`{usedCount}x Dibuat`), dilengkapi fallback pesan ramah saat belum ada yang membuat.
 - ✅ **Metadata Chips & SSR Detail Twibbon**: Baris metadata di halaman detail twibbon telah dipercantik menjadi chip responsif, serta diintegrasikan dengan SSR data fetching langsung (`initialTwibbon`) untuk mencegah kedipan / pesan "Twibbon Tidak Ditemukan" prematur saat refresh.
-- ✅ **Database & Schema**: Kolom `description` pada model `TwibbonFrame` di PostgreSQL dan Prisma sudah aktif dan tersinkronisasi.
+- ✅ **Database & Schema**: Kolom `description` pada model `TwibbonFrame` dan kolom `masterFileFormats` pada model `SiteSettings` di PostgreSQL dan Prisma sudah aktif dan tersinkronisasi.
+- ✅ **Kelola Format Master (Super Admin)**: Panel pengaturan `/admin/settings` memiliki tab khusus "Format Master" untuk mengelola format file master (PSD, AI, CDR, CANVA, FIGMA, PDF, dll.).
+- ✅ **Aturan Unduh Cerdas (`downloadHelper.ts`)**: Alert popup download dihilangkan. Mengunduh file JPG full asli jika tidak ada master; khusus tautan Canva otomatis membuka tab baru; tautan Google Drive otomatis men-trigger download direct; format master lainnya membuka tautan unduhan.
+- ✅ **Halaman Koleksi Logo (`/logo`)**: Halaman khusus publik untuk menampilkan seluruh desain dengan tag `#logo` lengkap dengan filter format berkas, pencarian, dan sorting.
 - ✅ Semua fitur terbaru sudah dites menggunakan `npx tsc --noEmit` dan berjalan lancar.
-- ✅ Versi Git terkini di-push ke branch `main` dan sukses dideploy ke VPS `43.133.155.196` (`pksart.site`).
 
 *Semoga sukses melanjutkan pengembangan proyek PKSart!* 🎨🔥

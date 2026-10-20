@@ -34,6 +34,9 @@ import {
   Lock,
   KeyRound,
   Trash2,
+  Plus,
+  Pencil,
+  Check,
 } from 'lucide-react';
 import { PksLogo } from '@/components/PksLogo';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
@@ -45,7 +48,7 @@ import { verifyAdminPasswordAction, getServerSystemStats, exportBackupDataAction
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, massDeletePosts, massDeleteUsers, massDeleteAll, customPages, currentUser } = useData();
-  const [activeTab, setActiveTab] = useState<'identity' | 'credentials' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'filter' | 'danger'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'credentials' | 'cta' | 'popup' | 'maintenance' | 'resource' | 'backup' | 'filter' | 'formats' | 'danger'>('identity');
 
   const [siteName, setSiteName] = useState(siteSettings.siteName || '');
   const [siteDescription, setSiteDescription] = useState(siteSettings.siteDescription || '');
@@ -97,6 +100,31 @@ export default function AdminSettingsPage() {
   const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
   const [autoApproveArtworks, setAutoApproveArtworks] = useState(siteSettings.autoApproveArtworks !== false);
   const [allowCommentLinks, setAllowCommentLinks] = useState((siteSettings as any).allowCommentLinks !== false);
+
+  // Master File Formats States
+  const [masterFormats, setMasterFormats] = useState<{ id: string; label: string }[]>(() => {
+    return siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
+      ? siteSettings.masterFileFormats
+      : [
+          { id: 'PSD', label: 'PSD (Photoshop)' },
+          { id: 'AI', label: 'AI (Illustrator)' },
+          { id: 'CDR', label: 'CDR (CorelDraw)' },
+          { id: 'CANVA', label: 'CANVA' },
+          { id: 'FIGMA', label: 'FIGMA' },
+          { id: 'PDF', label: 'PDF' },
+        ];
+  });
+  const [newFormatId, setNewFormatId] = useState('');
+  const [newFormatLabel, setNewFormatLabel] = useState('');
+  const [editingFormatIndex, setEditingFormatIndex] = useState<number | null>(null);
+  const [editingFormatLabel, setEditingFormatLabel] = useState('');
+  const [isSavingFormats, setIsSavingFormats] = useState(false);
+
+  useEffect(() => {
+    if (siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0) {
+      setMasterFormats(siteSettings.masterFileFormats);
+    }
+  }, [siteSettings?.masterFileFormats]);
 
   // Dynamic System & Server Storage Stats State
   const [systemStats, setSystemStats] = useState<{
@@ -480,6 +508,73 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleAddMasterFormat = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanId = newFormatId.trim().toUpperCase();
+    if (!cleanId) return;
+
+    if (masterFormats.some((f) => f.id.toUpperCase() === cleanId)) {
+      alert(`Format "${cleanId}" sudah ada di dalam daftar.`);
+      return;
+    }
+
+    const cleanLabel = newFormatLabel.trim() || cleanId;
+    setMasterFormats((prev) => [...prev, { id: cleanId, label: cleanLabel }]);
+    setNewFormatId('');
+    setNewFormatLabel('');
+    triggerToast(`Format "${cleanId}" berhasil ditambahkan ke daftar.`);
+  };
+
+  const handleDeleteMasterFormat = (idToDelete: string) => {
+    if (confirm(`Yakin ingin menghapus format "${idToDelete}"?`)) {
+      setMasterFormats((prev) => prev.filter((f) => f.id !== idToDelete));
+      triggerToast(`Format "${idToDelete}" dihapus dari daftar.`);
+    }
+  };
+
+  const handleStartEditFormat = (index: number) => {
+    setEditingFormatIndex(index);
+    setEditingFormatLabel(masterFormats[index].label);
+  };
+
+  const handleSaveEditFormat = (index: number) => {
+    if (!editingFormatLabel.trim()) return;
+    setMasterFormats((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], label: editingFormatLabel.trim() };
+      return copy;
+    });
+    setEditingFormatIndex(null);
+    setEditingFormatLabel('');
+    triggerToast('Label format berhasil diperbarui.');
+  };
+
+  const handleResetDefaultFormats = () => {
+    if (confirm('Kembalikan format master ke setelan bawaan sistem (PSD, AI, CDR, CANVA, FIGMA, PDF)?')) {
+      const defaultList = [
+        { id: 'PSD', label: 'PSD (Photoshop)' },
+        { id: 'AI', label: 'AI (Illustrator)' },
+        { id: 'CDR', label: 'CDR (CorelDraw)' },
+        { id: 'CANVA', label: 'CANVA' },
+        { id: 'FIGMA', label: 'FIGMA' },
+        { id: 'PDF', label: 'PDF' },
+      ];
+      setMasterFormats(defaultList);
+      triggerToast('Daftar format direset ke setelan bawaan. Klik "Simpan Perubahan" untuk menyimpan ke database.');
+    }
+  };
+
+  const handleSaveMasterFormatsToDB = async () => {
+    setIsSavingFormats(true);
+    try {
+      await updateSiteSettings({ masterFileFormats: masterFormats });
+      triggerToast('Pengaturan format file master berhasil disimpan permanen di database!');
+    } catch (err: any) {
+      alert('Gagal menyimpan format master: ' + (err?.message || 'Error'));
+    } finally {
+      setIsSavingFormats(false);
+    }
+  };
 
   const handleCtaLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -757,6 +852,7 @@ export default function AdminSettingsPage() {
           <button onClick={() => setActiveTab('resource')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'resource' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>Server & Storage</button>
           <button onClick={() => setActiveTab('backup')} className={`pb-3 relative transition-all whitespace-nowrap ${activeTab === 'backup' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>Backup Data</button>
           <button onClick={() => setActiveTab('filter')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'filter' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}><Filter size={14} /> Filter Konten</button>
+          <button onClick={() => setActiveTab('formats')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'formats' ? 'text-[#F26522] border-b-2 border-[#F26522]' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}><FileArchive size={14} /> Format Master</button>
           <button onClick={() => setActiveTab('danger')} className={`pb-3 relative transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'danger' ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400' : 'text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400'}`}><ShieldAlert size={14} /> Danger Zone</button>
         </div>
 
@@ -2396,6 +2492,211 @@ export default function AdminSettingsPage() {
                 </form>
               </div>
             </div>
+            </>
+          )}
+
+          {activeTab === 'formats' && (
+            <>
+              {/* Card: Kelola Format File Master */}
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800 gap-3">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <FileArchive className="text-[#F26522]" />
+                      <span>Kelola Format File Master Karya</span>
+                    </h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Daftar format file mentahan/master yang dapat dipilih kreator saat mengunggah karya atau mengedit karya.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900/50 text-[#F26522] text-xs font-bold shrink-0 self-start sm:self-auto">
+                    <span>{masterFormats.length} Format Aktif</span>
+                  </div>
+                </div>
+
+                {/* Form Tambah Format Baru */}
+                <form onSubmit={handleAddMasterFormat} className="p-4 sm:p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200/80 dark:border-gray-700/80 space-y-3">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    <Plus size={14} className="text-[#F26522]" />
+                    <span>Tambah Format Baru</span>
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-4">
+                      <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                        Kode / Nama Format (Wajib)
+                      </label>
+                      <input
+                        type="text"
+                        value={newFormatId}
+                        onChange={(e) => setNewFormatId(e.target.value.toUpperCase())}
+                        placeholder="Contoh: PDF, INDD, EPS, SVG"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-[#F26522]"
+                        required
+                      />
+                    </div>
+
+                    <div className="sm:col-span-5">
+                      <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                        Label Tampilan di Dropdown (Opsional)
+                      </label>
+                      <input
+                        type="text"
+                        value={newFormatLabel}
+                        onChange={(e) => setNewFormatLabel(e.target.value)}
+                        placeholder="Contoh: PDF, InDesign (.INDD)"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3 flex items-end">
+                      <button
+                        type="submit"
+                        className="w-full py-2.5 px-4 bg-[#F26522] hover:bg-[#d85417] text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
+                      >
+                        <Plus size={14} />
+                        <span>Tambah Format</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                {/* List Format Aktif */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                      Daftar Format Saat Ini
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={handleResetDefaultFormats}
+                      className="text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw size={12} />
+                      <span>Kembalikan Default Sistem</span>
+                    </button>
+                  </div>
+
+                  {masterFormats.length === 0 ? (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Belum ada format file master.</p>
+                      <button
+                        type="button"
+                        onClick={handleResetDefaultFormats}
+                        className="mt-2 text-xs font-bold text-[#F26522] hover:underline cursor-pointer"
+                      >
+                        Isi dengan format bawaan
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {masterFormats.map((fmt, index) => {
+                        const isEditing = editingFormatIndex === index;
+                        return (
+                          <div
+                            key={fmt.id}
+                            className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/40 hover:bg-white dark:hover:bg-gray-800/80 transition-all shadow-xs gap-2"
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <span className="w-16 text-center py-1 px-2 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-[#F26522] text-xs font-black shrink-0 tracking-wide">
+                                {fmt.id}
+                              </span>
+
+                              {isEditing ? (
+                                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                  <input
+                                    type="text"
+                                    value={editingFormatLabel}
+                                    onChange={(e) => setEditingFormatLabel(e.target.value)}
+                                    className="w-full bg-white dark:bg-gray-900 border border-[#F26522] rounded-lg px-2.5 py-1 text-xs font-medium text-gray-900 dark:text-white focus:outline-none"
+                                    autoFocus
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveEditFormat(index)}
+                                    className="p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer"
+                                    title="Simpan"
+                                  >
+                                    <Check size={13} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingFormatIndex(null);
+                                      setEditingFormatLabel('');
+                                    }}
+                                    className="p-1.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
+                                    title="Batal"
+                                  >
+                                    <X size={13} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                    {fmt.label}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                                    Nilai disimpan: <span className="font-mono">{fmt.id}</span>
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            {!isEditing && (
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditFormat(index)}
+                                  className="p-1.5 text-gray-400 hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-lg transition-colors cursor-pointer"
+                                  title="Edit Label"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteMasterFormat(fmt.id)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer"
+                                  title="Hapus Format"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Info Callout */}
+                <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-900/40 text-blue-900 dark:text-blue-300 text-xs space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />
+                    <span>Sinkronisasi Otomatis Seluruh Form & Filter</span>
+                  </p>
+                  <p className="text-[11px] text-blue-700 dark:text-blue-400 leading-relaxed">
+                    Setiap format yang Anda simpan di sini akan langsung terhubung ke dropdown form unggah karya baru (<code className="font-mono bg-blue-100 dark:bg-blue-900/60 px-1 py-0.5 rounded">/upload</code>), modal edit postingan karya, dan filter format berkas master di halaman Jelajahi (<code className="font-mono bg-blue-100 dark:bg-blue-900/60 px-1 py-0.5 rounded">/explore</code>).
+                  </p>
+                  <p className="text-[11px] text-blue-600/90 dark:text-blue-400/90 italic pt-1">
+                    * Opsi <strong>"Hanya gambar (Tanpa File Master)"</strong> selalu terpasang otomatis di urutan teratas sistem untuk karya yang tidak memiliki file mentahan.
+                  </p>
+                </div>
+
+                {/* Bottom Save Bar */}
+                <div className="flex justify-end pt-3 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    type="button"
+                    onClick={handleSaveMasterFormatsToDB}
+                    disabled={isSavingFormats}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                  >
+                    <Save size={16} />
+                    <span>{isSavingFormats ? 'Menyimpan ke Database...' : 'Simpan Perubahan Format'}</span>
+                  </button>
+                </div>
+              </div>
             </>
           )}
 

@@ -34,13 +34,26 @@ import { ConfirmUnsavedModal } from './ConfirmUnsavedModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GdriveTutorialModal } from './GdriveTutorialModal';
 import { CarouselViewer } from './CarouselViewer';
+import { downloadArtworkFile } from '@/lib/downloadHelper';
 
 interface ArtworkCardProps {
   artwork: Artwork;
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { currentUser, addArtworkReport, toggleLikeArtwork, updateArtwork, deleteArtwork, incrementDownloadCount } = useData();
+  const { currentUser, siteSettings, addArtworkReport, toggleLikeArtwork, updateArtwork, deleteArtwork, incrementDownloadCount } = useData();
+
+  const availableFormats = siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
+    ? siteSettings.masterFileFormats
+    : [
+        { id: 'PSD', label: 'PSD (Photoshop)' },
+        { id: 'AI', label: 'AI (Illustrator)' },
+        { id: 'CDR', label: 'CDR (CorelDraw)' },
+        { id: 'CANVA', label: 'CANVA' },
+        { id: 'FIGMA', label: 'FIGMA' },
+        { id: 'PDF', label: 'PDF' },
+      ];
+
   const userLiked = Boolean(
     currentUser && artwork.likedUserIds && artwork.likedUserIds.includes(currentUser.id)
   );
@@ -429,11 +442,18 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     toggleLikeArtwork(artwork.id);
   };
 
-  const handleDownload = (e: React.MouseEvent) => {
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     incrementDownloadCount(artwork.id);
-    alert(`Mengunduh karya "${artwork.title}" format (${artwork.format || 'PSD/AI'})...`);
+
+    await downloadArtworkFile({
+      artwork,
+      onStartDownloadImage: () => setIsDownloading(true),
+      onFinishDownloadImage: () => setIsDownloading(false),
+    });
   };
 
   const [isImgLoaded, setIsImgLoaded] = useState(false);
@@ -541,10 +561,11 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
           <div className="flex items-center gap-0.5 relative" ref={dropdownRef}>
             <button
               onClick={handleDownload}
-              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-lg transition-colors shrink-0"
-              title="Unduh Design Template"
+              disabled={isDownloading}
+              className={`p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-lg transition-colors shrink-0 cursor-pointer ${isDownloading ? 'opacity-60' : ''}`}
+              title="Unduh Karya / File Master"
             >
-              <Download size={18} />
+              <Download size={18} className={isDownloading ? 'animate-bounce text-[#F26522]' : ''} />
             </button>
             
             <button
@@ -945,11 +966,18 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                 >
                   <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
-                  <option value="PSD">PSD (Photoshop)</option>
-                  <option value="AI">AI (Illustrator)</option>
-                  <option value="CDR">CDR (CorelDraw)</option>
-                  <option value="CANVA">CANVA</option>
-                  <option value="FIGMA">FIGMA</option>
+                  {availableFormats.map((fmt) => (
+                    <option key={fmt.id} value={fmt.id}>
+                      {fmt.label}
+                    </option>
+                  ))}
+                  {editFormatInput &&
+                    editFormatInput !== 'Hanya gambar' &&
+                    !availableFormats.some(
+                      (f) => f.id.toUpperCase() === editFormatInput.toUpperCase()
+                    ) && (
+                      <option value={editFormatInput}>{editFormatInput}</option>
+                    )}
                 </select>
               </div>
 

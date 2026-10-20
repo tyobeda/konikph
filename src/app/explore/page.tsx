@@ -29,7 +29,7 @@ import { MaintenanceContent } from '@/app/maintenance/page';
 
 export default function ExplorePage() {
   const router = useRouter();
-  const { artworks, currentUser, isModuleUnderMaintenance } = useData();
+  const { artworks, currentUser, siteSettings, isModuleUnderMaintenance } = useData();
 
   if (isModuleUnderMaintenance('explore')) {
     return <MaintenanceContent />;
@@ -148,7 +148,19 @@ export default function ExplorePage() {
   };
 
   const popularTags = ['#SpandukDPW', '#PosterMilenial', '#FeedInstagram', '#TwibbonResmi', '#InfografisPKS'];
-  const formats = ['Semua Format', 'PSD', 'AI', 'CDR', 'CANVA', 'PNG/SVG'];
+  const formats = useMemo(() => {
+    const list = siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
+      ? siteSettings.masterFileFormats
+      : [
+          { id: 'PSD', label: 'PSD' },
+          { id: 'AI', label: 'AI' },
+          { id: 'CDR', label: 'CDR' },
+          { id: 'CANVA', label: 'CANVA' },
+          { id: 'FIGMA', label: 'FIGMA' },
+          { id: 'PDF', label: 'PDF' },
+        ];
+    return ['Semua Format', ...list.map((f) => f.id), 'PNG/SVG'];
+  }, [siteSettings?.masterFileFormats]);
 
   // Advanced Filter & Sort Logic
   const filteredAndSorted = useMemo(() => {

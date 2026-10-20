@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -50,6 +50,18 @@ import { MaintenanceContent } from '@/app/maintenance/page';
 export default function UploadPage() {
   const router = useRouter();
   const { addArtwork, currentUser, siteSettings, isMounted, isModuleUnderMaintenance } = useData();
+
+  const availableFormats = siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
+    ? siteSettings.masterFileFormats
+    : [
+        { id: 'PSD', label: 'PSD (Photoshop)' },
+        { id: 'AI', label: 'AI (Illustrator)' },
+        { id: 'CDR', label: 'CDR (CorelDraw)' },
+        { id: 'CANVA', label: 'CANVA' },
+        { id: 'FIGMA', label: 'FIGMA' },
+        { id: 'PDF', label: 'PDF' },
+      ];
+  const standardFormatIds = useMemo(() => availableFormats.map(f => f.id), [availableFormats]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -643,7 +655,13 @@ export default function UploadPage() {
                 </label>
                 <div className="space-y-3">
                   <select
-                    value={fileFormat === 'Hanya gambar' ? 'HANYA_GAMBAR' : ['PSD', 'AI', 'CDR'].includes(fileFormat) ? fileFormat : 'CUSTOM'}
+                    value={
+                      fileFormat === 'Hanya gambar'
+                        ? 'HANYA_GAMBAR'
+                        : standardFormatIds.includes(fileFormat)
+                        ? fileFormat
+                        : 'CUSTOM'
+                    }
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === 'CUSTOM') {
@@ -657,26 +675,28 @@ export default function UploadPage() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white font-medium"
                   >
                     <option value="HANYA_GAMBAR">Hanya gambar (Tanpa File Master)</option>
-                    <option value="PSD">PSD (Photoshop)</option>
-                    <option value="AI">AI (Illustrator)</option>
-                    <option value="CDR">CDR (CorelDraw)</option>
+                    {availableFormats.map((fmt) => (
+                      <option key={fmt.id} value={fmt.id}>
+                        {fmt.label}
+                      </option>
+                    ))}
                     <option value="CUSTOM">Format Kustom / Lainnya...</option>
                   </select>
 
-                  {!['Hanya gambar', 'PSD', 'AI', 'CDR'].includes(fileFormat) && (
+                  {!['Hanya gambar', ...standardFormatIds].includes(fileFormat) && (
                     <div className="flex gap-2 animate-fadeIn">
                       <input
                         type="text"
                         value={fileFormat === 'CUSTOM_VAL' ? '' : fileFormat}
                         onChange={(e) => setFileFormat(e.target.value.toUpperCase())}
-                        placeholder="Masukkan format kustom, contoh: CANVA, FIGMA, INDD"
+                        placeholder="Masukkan format kustom, contoh: INDD, SVG, EPS"
                         className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-semibold"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setFileFormat('Hanya gambar')}
-                        className="px-3 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                        className="px-3 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
                       >
                         Batal
                       </button>

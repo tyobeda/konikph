@@ -43,6 +43,7 @@ import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 import { ConfirmUnsavedModal } from '@/components/ConfirmUnsavedModal';
 import { ShareModal } from '@/components/ShareModal';
 import { useData } from '@/context/DataContext';
+import { downloadArtworkFile } from '@/lib/downloadHelper';
 import { ARTWORK_CATEGORIES, REGIONS } from '@/lib/data';
 import { getUserSlug } from '@/lib/slug';
 import { CarouselViewer } from '@/components/CarouselViewer';
@@ -51,7 +52,18 @@ export default function ArtworkDetailContent() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { currentUser, artworks, updateArtwork, deleteArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport, incrementDownloadCount } = useData();
+  const { currentUser, artworks, siteSettings, updateArtwork, deleteArtwork, toggleLikeArtwork, addCommentToArtwork, editCommentInArtwork, deleteCommentFromArtwork, addArtworkReport, incrementDownloadCount } = useData();
+
+  const availableFormats = siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
+    ? siteSettings.masterFileFormats
+    : [
+        { id: 'PSD', label: 'PSD (Photoshop)' },
+        { id: 'AI', label: 'AI (Illustrator)' },
+        { id: 'CDR', label: 'CDR (CorelDraw)' },
+        { id: 'CANVA', label: 'CANVA' },
+        { id: 'FIGMA', label: 'FIGMA' },
+        { id: 'PDF', label: 'PDF' },
+      ];
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -453,33 +465,13 @@ export default function ArtworkDetailContent() {
     setIsShareModalOpen(true);
   };
 
-  const handleDownloadTemplate = () => {
-    if (artwork) {
-      incrementDownloadCount(artwork.id);
-    }
-    if (artwork.downloadUrl && artwork.downloadUrl !== '#' && artwork.downloadUrl !== '') {
-      let finalUrl = artwork.downloadUrl;
-      const driveRegex = /\/file\/d\/([a-zA-Z0-9_-]+)\/(?:view|edit)/;
-      const driveMatch = artwork.downloadUrl.match(driveRegex);
-      
-      if (driveMatch && driveMatch[1]) {
-        const fileId = driveMatch[1];
-        finalUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-        triggerToast(`Mengunduh file langsung dari Google Drive...`);
-        
-        const link = document.createElement('a');
-        link.href = finalUrl;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        triggerToast(`Membuka tautan unduhan file master...`);
-        window.open(finalUrl, '_blank', 'noopener,noreferrer');
-      }
-    } else {
-      handleDownloadCurrentImage();
-    }
+  const handleDownloadTemplate = async () => {
+    if (!artwork) return;
+    incrementDownloadCount(artwork.id);
+    await downloadArtworkFile({
+      artwork,
+      onToast: (msg) => triggerToast(msg),
+    });
   };
 
   // Helper untuk mengunduh satu file gambar secara aman dengan blob trigger
@@ -1645,11 +1637,18 @@ export default function ArtworkDetailContent() {
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                 >
                   <option value="Hanya gambar">Hanya gambar (Tanpa File Master)</option>
-                  <option value="PSD">PSD (Photoshop)</option>
-                  <option value="AI">AI (Illustrator)</option>
-                  <option value="CDR">CDR (CorelDraw)</option>
-                  <option value="CANVA">CANVA</option>
-                  <option value="FIGMA">FIGMA</option>
+                  {availableFormats.map((fmt) => (
+                    <option key={fmt.id} value={fmt.id}>
+                      {fmt.label}
+                    </option>
+                  ))}
+                  {editFormatInput &&
+                    editFormatInput !== 'Hanya gambar' &&
+                    !availableFormats.some(
+                      (f) => f.id.toUpperCase() === editFormatInput.toUpperCase()
+                    ) && (
+                      <option value={editFormatInput}>{editFormatInput}</option>
+                    )}
                 </select>
               </div>
 
