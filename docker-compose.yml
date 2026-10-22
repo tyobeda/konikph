@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5433:5432" # Port 5433 agar tidak bentrok dengan database lain
+      - "127.0.0.1:5435:5432" # Port 5435 agar tidak bentrok dengan database lain di VPS
     networks:
       - konikph_network
     healthcheck:
@@ -36,9 +36,14 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-konikph_admin}:${POSTGRES_PASSWORD:-konikph_secure_pass123}@db:5432/${POSTGRES_DB:-konikph_db}?schema=public
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://konikph.site}
+      ADMIN_SECRET: ${ADMIN_SECRET:-konikph_super_secret_change_me_in_production_2026}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-konikph2026}
+      NEXT_PUBLIC_CARTO_API_KEY: ${NEXT_PUBLIC_CARTO_API_KEY:-cb1_33fp_1_49a64373e8a67929f8e566ca}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-KONI Kepahiang Official <no-reply@konikph.site>}
       PORT: 3000
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3303:3000"
     volumes:
       - ./public/uploads:/app/public/uploads
     networks:
