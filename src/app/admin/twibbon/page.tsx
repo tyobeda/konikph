@@ -128,6 +128,7 @@ export default function AdminTwibbonPage() {
       const presetLabel = detected.matchedPreset === '1:1' ? '1:1 Persegi' :
                           detected.matchedPreset === '9:16' ? '9:16 Story' :
                           detected.matchedPreset === '4:5' ? '4:5 Portrait' :
+                          detected.matchedPreset === '2:3' ? '2:3 Poster' :
                           detected.matchedPreset === '16:9' ? '16:9 Landscape' : 'Kustom';
       setAutoDetectNotice(`Ukuran PNG terdeteksi: ${detected.width} × ${detected.height} px (Format ${presetLabel} otomatis diterapkan)`);
     } catch (_) {}
@@ -425,11 +426,13 @@ export default function AdminTwibbonPage() {
                   {/* Frame Twibbon - Rata Kiri */}
                   <td className="py-3 px-4 text-left">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={tw.imageUrl}
-                        alt={tw.title}
-                        className="w-12 h-12 rounded-xl object-cover border border-purple-200 dark:border-purple-800 shrink-0 p-0.5 bg-purple-50 dark:bg-purple-950/40"
-                      />
+                      <div className="w-12 h-12 rounded-xl border border-purple-200 dark:border-purple-800 shrink-0 p-1 bg-purple-50/50 dark:bg-purple-950/30 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={tw.imageUrl}
+                          alt={tw.title}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
                       <div className="min-w-0">
                         <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
                           {tw.title}

@@ -14,7 +14,7 @@ import {
   Maximize2
 } from 'lucide-react';
 
-export type AspectRatioType = '1:1' | '9:16' | '4:5' | '16:9' | 'custom';
+export type AspectRatioType = '1:1' | '9:16' | '4:5' | '2:3' | '16:9' | 'custom';
 
 export interface AspectRatioOption {
   id: AspectRatioType;
@@ -81,6 +81,22 @@ export const ASPECT_RATIO_PRESETS: AspectRatioOption[] = [
     ),
   },
   {
+    id: '2:3',
+    label: '2:3 Poster',
+    sublabel: 'Cetak, Poster & Portrait',
+    dimensions: '1080 × 1620 px',
+    defaultW: 1080,
+    defaultH: 1620,
+    badge: 'Poster',
+    badgeColor: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900',
+    icon: RectangleVertical,
+    ratioVisual: (
+      <div className="w-4.5 h-6.5 rounded-md border-2 border-current flex items-center justify-center">
+        <div className="w-2 h-3 bg-current rounded-xs opacity-50" />
+      </div>
+    ),
+  },
+  {
     id: '16:9',
     label: '16:9 Landscape',
     sublabel: 'Zoom BG, YouTube, Banner',
@@ -137,6 +153,15 @@ export function getAspectRatioMeta(aspectRatio?: string | null, width?: number |
         cssAspect: '4/5',
         isPortrait: true,
       };
+    case '2:3':
+      return {
+        id: '2:3',
+        label: '2:3 Poster / Portrait',
+        badge: '2:3 Poster',
+        dimensions: `${w} × ${h} px`,
+        cssAspect: '2/3',
+        isPortrait: true,
+      };
     case '16:9':
       return {
         id: '16:9',
@@ -191,7 +216,11 @@ export function detectImageDimensions(file: File): Promise<{ width: number; heig
       // 4:5 = 0.8
       else if (Math.abs(ratio - (4 / 5)) < 0.04) {
         matchedPreset = '4:5';
-      } 
+      }
+      // 2:3 = 0.6666...
+      else if (Math.abs(ratio - (2 / 3)) < 0.04) {
+        matchedPreset = '2:3';
+      }
       // 16:9 = 1.777
       else if (Math.abs(ratio - (16 / 9)) < 0.04) {
         matchedPreset = '16:9';
