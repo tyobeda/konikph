@@ -20,7 +20,11 @@ import { getCurrentServerUser } from "@/lib/serverAuth";
 export async function generateMetadata(): Promise<Metadata> {
   const settingsRes = await getDBSiteSettings();
   const settings = settingsRes?.data;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konikph.site';
+  let baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://koni-kph.site').trim();
+  if (baseUrl.includes('konikph.site') && !baseUrl.includes('koni-kph.site')) {
+    baseUrl = baseUrl.replace('konikph.site', 'koni-kph.site');
+  }
+  baseUrl = baseUrl.replace(/\/$/, '');
   
   const siteTitle = settings?.siteName || "KONI Kabupaten Kepahiang - Media Informasi & Twibbon Resmi";
   const siteDesc = settings?.siteDescription || "Website resmi Komite Olahraga Nasional Indonesia (KONI) Kabupaten Kepahiang. Informasi kegiatan olahraga, cabang olahraga, berita, dan twibbon.";

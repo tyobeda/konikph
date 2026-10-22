@@ -15,7 +15,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   });
 
   const settings = await prisma.siteSettings.findFirst();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konikph.site';
+  let baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://koni-kph.site').trim();
+  if (baseUrl.includes('konikph.site') && !baseUrl.includes('koni-kph.site')) {
+    baseUrl = baseUrl.replace('konikph.site', 'koni-kph.site');
+  }
+  baseUrl = baseUrl.replace(/\/$/, '');
 
   if (!twibbon) {
     return {
@@ -24,11 +28,25 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 
   const title = `Twibbon ${twibbon.title} - Bingkai Foto Resmi KONI Kepahiang`;
-  const description = `Pasang foto Anda pada bingkai twibbon ${twibbon.title} resmi KONI Kabupaten Kepahiang.`;
+  const description = twibbon.description?.trim() 
+    ? `${twibbon.description} - Pasang foto Anda secara instan di bingkai twibbon resmi KONI Kabupaten Kepahiang.`
+    : `Pasang foto Anda pada bingkai twibbon ${twibbon.title} resmi KONI Kabupaten Kepahiang.`;
+
   const rawImage = twibbon.imageUrl || (settings as any)?.ogImageUrl || '/img/877859417715829.jpg';
-  const imageUrl = rawImage.startsWith('/') ? `${baseUrl}${rawImage}` : rawImage;
+  const imageUrl = rawImage.startsWith('http') ? rawImage : `${baseUrl}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
+
+  const imageWidth = twibbon.width || 1080;
+  const imageHeight = twibbon.height || 1080;
+  const imageType = imageUrl.toLowerCase().endsWith('.png') 
+    ? 'image/png' 
+    : imageUrl.toLowerCase().endsWith('.webp') 
+    ? 'image/webp' 
+    : 'image/jpeg';
+
+  const twibbonUrl = `${baseUrl}/twibbon/${twibbon.slug || twibbon.id}`;
 
   return {
+    metadataBase: new URL(baseUrl),
     title: twibbon.title,
     description,
     icons: {
@@ -42,18 +60,20 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     openGraph: {
       title,
       description,
-      url: `${baseUrl}/twibbon/${twibbon.slug || twibbon.id}`,
+      url: twibbonUrl,
       siteName: 'KONI Kabupaten Kepahiang',
       images: [
         {
           url: imageUrl,
-          width: 1200,
-          height: 630,
+          secureUrl: imageUrl,
+          width: imageWidth,
+          height: imageHeight,
+          type: imageType,
           alt: twibbon.title,
         },
       ],
       locale: 'id_ID',
-      type: 'website',
+      type: 'article',
     },
     twitter: {
       card: 'summary_large_image',

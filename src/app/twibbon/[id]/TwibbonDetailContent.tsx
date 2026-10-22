@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Upload, Download, Sparkles, Image as ImageIcon, Loader2, Share2, Heart, Layers, Maximize2, CheckCircle, Link as LinkIcon } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { ShareModal } from '@/components/ShareModal';
 import { useData } from '@/context/DataContext';
 import { getUserTwibbonFavorites, toggleTwibbonFavorite, getRecentTwibbonUsages, getTwibbonBySlugOrId } from '@/actions/twibbon';
 import { getAspectRatioMeta } from '@/components/TwibbonAspectRatioSelector';
@@ -51,6 +52,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
   const [isDownloading, setIsDownloading] = useState(false);
 
   const [showShareToast, setShowShareToast] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recentThumbnails, setRecentThumbnails] = useState<string[]>([]);
 
@@ -355,12 +357,43 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
     }
   };
 
-  const handleShare = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+  const handleCopyLink = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(window.location.href);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setShowShareToast(true);
       setTimeout(() => setShowShareToast(false), 3000);
+    } catch (err) {
+      console.error('Copy link error:', err);
     }
+  };
+
+  const handleShare = async () => {
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+    if (typeof navigator !== 'undefined' && navigator.share && activeTwibbon) {
+      try {
+        await navigator.share({
+          title: activeTwibbon.title,
+          text: `Dukung dan pasang bingkai foto twibbon "${activeTwibbon.title}" resmi KONI Kabupaten Kepahiang:\n`,
+          url: currentUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+    setIsShareModalOpen(true);
   };
 
   if (!activeTwibbon) {
@@ -746,22 +779,47 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                 )}
               </button>
 
-              <button
-                onClick={handleShare}
-                className="w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Share2 size={14} />
-                <span>Salin Tautan Twibbon Ini</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="w-full py-2.5 px-3 bg-[#F26522]/10 hover:bg-[#F26522]/20 dark:bg-[#F26522]/20 dark:hover:bg-[#F26522]/30 text-[#F26522] text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Share2 size={15} />
+                  <span>Bagikan</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="w-full py-2.5 px-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <LinkIcon size={15} />
+                  <span>Salin Tautan</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Floating Top Alert Toast - Guaranteed visible on Mobile */}
         {showShareToast && (
-          <div className="fixed bottom-6 right-6 z-50 bg-gray-900 dark:bg-gray-800 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-gray-700">
-            <Sparkles size={16} className="text-amber-400" />
-            <span>Tautan Twibbon berhasil disalin ke clipboard!</span>
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[9999] bg-gray-900/95 dark:bg-black/90 backdrop-blur-md text-white text-xs sm:text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-emerald-500/40 text-center animate-in fade-in slide-in-from-top-4 duration-200 pointer-events-none ring-4 ring-emerald-500/10">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <CheckCircle size={14} />
+            </div>
+            <span>Tautan Twibbon berhasil disalin!</span>
           </div>
+        )}
+
+        {activeTwibbon && (
+          <ShareModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            url={typeof window !== 'undefined' ? window.location.href : `https://koni-kph.site/twibbon/${activeTwibbon.slug || activeTwibbon.id}`}
+            title={activeTwibbon.title}
+            description={activeTwibbon.description || `Pasang foto Anda pada bingkai twibbon ${activeTwibbon.title} resmi KONI Kabupaten Kepahiang.`}
+          />
         )}
 
         {otherTwibbons.length > 0 && (
