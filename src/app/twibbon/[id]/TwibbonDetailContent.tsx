@@ -275,8 +275,9 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
     setIsDownloading(true);
 
     try {
-      const targetW = activeTwibbon.width || 1080;
-      const targetH = activeTwibbon.height || 1080;
+      const currentDim = framesDimensions[currentFrameUrl];
+      const targetW = currentDim?.width || activeTwibbon.width || 1080;
+      const targetH = currentDim?.height || activeTwibbon.height || 1080;
 
       const canvas = document.createElement('canvas');
       canvas.width = targetW;
@@ -530,7 +531,27 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
               <img
                 src={currentFrameUrl}
                 alt={activeTwibbon.title}
-                className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10 transition-opacity duration-200"
+                onLoad={(e) => {
+                  const nw = e.currentTarget.naturalWidth;
+                  const nh = e.currentTarget.naturalHeight;
+                  if (nw && nh) {
+                    setFramesDimensions((prev) => {
+                      if (prev[currentFrameUrl]?.width === nw && prev[currentFrameUrl]?.height === nh) return prev;
+                      const rVal = nw / nh;
+                      let dPreset = 'custom';
+                      if (Math.abs(rVal - 1) < 0.04) dPreset = '1:1';
+                      else if (Math.abs(rVal - (9 / 16)) < 0.04) dPreset = '9:16';
+                      else if (Math.abs(rVal - (4 / 5)) < 0.04) dPreset = '4:5';
+                      else if (Math.abs(rVal - (2 / 3)) < 0.04) dPreset = '2:3';
+                      else if (Math.abs(rVal - (16 / 9)) < 0.04) dPreset = '16:9';
+                      return {
+                        ...prev,
+                        [currentFrameUrl]: { width: nw, height: nh, ratio: dPreset },
+                      };
+                    });
+                  }
+                }}
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10 transition-all duration-300"
               />
             </div>
 
@@ -564,7 +585,13 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setSelectedFrameIndex(idx)}
+                        onClick={() => {
+                          setSelectedFrameIndex(idx);
+                          setOffsetX(0);
+                          setOffsetY(0);
+                          setScale(1.0);
+                          setRotation(0);
+                        }}
                         className={`relative group p-1.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1 shrink-0 cursor-pointer ${
                           isSelected
                             ? 'border-[#F26522] bg-orange-50/70 dark:bg-orange-950/50 shadow-sm scale-[1.03]'
@@ -576,6 +603,23 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                           <img
                             src={frameUrl}
                             alt={`Bingkai ${idx + 1}`}
+                            onLoad={(e) => {
+                              const nw = e.currentTarget.naturalWidth;
+                              const nh = e.currentTarget.naturalHeight;
+                              if (nw && nh && !framesDimensions[frameUrl]) {
+                                const rVal = nw / nh;
+                                let dPreset = 'custom';
+                                if (Math.abs(rVal - 1) < 0.04) dPreset = '1:1';
+                                else if (Math.abs(rVal - (9 / 16)) < 0.04) dPreset = '9:16';
+                                else if (Math.abs(rVal - (4 / 5)) < 0.04) dPreset = '4:5';
+                                else if (Math.abs(rVal - (2 / 3)) < 0.04) dPreset = '2:3';
+                                else if (Math.abs(rVal - (16 / 9)) < 0.04) dPreset = '16:9';
+                                setFramesDimensions((prev) => ({
+                                  ...prev,
+                                  [frameUrl]: { width: nw, height: nh, ratio: dPreset },
+                                }));
+                              }
+                            }}
                             className="w-full h-full object-contain p-0.5"
                           />
                         </div>
