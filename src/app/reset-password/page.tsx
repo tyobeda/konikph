@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, Clock, ShieldCheck } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { Footer } from '@/components/Footer';
 import { verifyResetTokenAction, executePasswordResetAction } from '@/actions/resetRequest';
 
@@ -119,14 +119,14 @@ function ResetPasswordForm() {
             <span>Mengapa tautan ini kadaluarsa?</span>
           </p>
           <p className="leading-snug text-gray-600">
-            Demi keamanan akun desainer PKSart Anda, tautan reset kata sandi secara ketat dibatasi dan **hanya berlaku selama 5 menit** setelah dibuat oleh Admin.
+            Demi keamanan akun pengurus KONI Kepahiang Anda, tautan reset kata sandi secara ketat dibatasi dan **hanya berlaku selama 5 menit** setelah dibuat oleh Admin.
           </p>
         </div>
 
         <div className="pt-2 space-y-2">
           <Link
             href="/login"
-            className="w-full py-3 bg-[#F26522] hover:bg-[#d85417] text-white font-bold text-xs rounded-xl shadow-sm transition-all block"
+            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all block"
           >
             Minta Reset Kata Sandi Baru di Halaman Login
           </Link>
@@ -273,7 +273,7 @@ export default function ResetPasswordPage() {
           <span>Kembali ke Halaman Login</span>
         </Link>
 
-        <PksLogo size="sm" />
+        <KoniLogo size="sm" />
       </div>
 
       <Suspense fallback={

@@ -169,7 +169,7 @@ export default function CreateTwibbonPage() {
         width: uploadWidth,
         height: uploadHeight,
         author: {
-          name: currentUser.name || 'Desainer PKSart',
+          name: currentUser.name || 'Pengurus KONI Kepahiang',
           avatar:
             currentUser.avatar ||
             'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
@@ -203,7 +203,7 @@ export default function CreateTwibbonPage() {
         <div className="mb-6">
           <Link
             href="/twibbon"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors"
           >
             <ArrowLeft size={16} />
             <span>Kembali ke Galeri Twibbon</span>
@@ -217,7 +217,7 @@ export default function CreateTwibbonPage() {
             <div>
               <p className="font-bold">Akses Dibatasi</p>
               <p className="mt-0.5 leading-relaxed">
-                Pembuatan template twibbon saat ini dibatasi hanya untuk Super Admin PKSart. Jika Anda ingin mengajukan template twibbon resmi, silakan hubungi administrator.
+                Pembuatan template twibbon saat ini dibatasi hanya untuk Super Admin KONI Kepahiang. Jika Anda ingin mengajukan template twibbon resmi, silakan hubungi administrator.
               </p>
             </div>
           </div>
@@ -281,8 +281,8 @@ export default function CreateTwibbonPage() {
                   type="text"
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
-                  placeholder="Contoh: Twibbon Milad PKS ke-26, Spanduk Kemenangan Pilkada..."
-                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30 transition-all"
+                  placeholder="Contoh: Twibbon Semangat Porprov Bengkulu 2026, Porkab Kepahiang..."
+                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/30 transition-all"
                   required
                 />
               </div>

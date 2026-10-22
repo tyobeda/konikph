@@ -167,11 +167,11 @@ export default function AssetsPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                <Palette className="text-[#F26522]" />
-                <span>Pusat Unduhan Resmi Brand Kit & Pedoman Visual</span>
+                <Palette className="text-red-600" />
+                <span>Pusat Unduhan Resmi Brand Kit & Dokumen</span>
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Aset identitas resmi untuk menjaga keselarasan standar publikasi PKS se-Indonesia.
+                Aset identitas resmi dan dokumen pendukung untuk menjaga keselarasan standar publikasi KONI Kabupaten Kepahiang.
               </p>
             </div>
           </div>

@@ -20,10 +20,10 @@ import { getCurrentServerUser } from "@/lib/serverAuth";
 export async function generateMetadata(): Promise<Metadata> {
   const settingsRes = await getDBSiteSettings();
   const settings = settingsRes?.data;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://art.pks.id';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konikph.site';
   
-  const siteTitle = settings?.siteName || "PKSart - Galeri Desain & Foto PKS Official";
-  const siteDesc = settings?.siteDescription || "Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.";
+  const siteTitle = settings?.siteName || "KONI Kabupaten Kepahiang - Media Informasi & Twibbon Resmi";
+  const siteDesc = settings?.siteDescription || "Website resmi Komite Olahraga Nasional Indonesia (KONI) Kabupaten Kepahiang. Informasi kegiatan olahraga, cabang olahraga, berita, dan twibbon.";
   
   // Custom uploaded OG Image -> fallback to default
   const rawOgUrl = settings?.ogImageUrl || '/img/877859417715829.jpg';
@@ -33,10 +33,10 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(baseUrl),
     title: {
       default: siteTitle,
-      template: "%s | PKSart",
+      template: "%s | KONI Kabupaten Kepahiang",
     },
     description: siteDesc,
-    keywords: ["PKS", "Desain PKS", "Poster PKS", "Twibbon PKS", "Brand Kit PKS", "Aset Desain", "Desainer PKS"],
+    keywords: ["KONI", "KONI Kepahiang", "Kabupaten Kepahiang", "Olahraga Kepahiang", "Cabor Kepahiang", "Twibbon KONI", "Porkab Kepahiang"],
     icons: {
       icon: [
         { url: settings?.faviconUrl || '/favicon.ico', sizes: 'any' },
@@ -49,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: siteTitle,
       description: siteDesc,
       url: baseUrl,
-      siteName: 'PKSart',
+      siteName: 'KONI Kabupaten Kepahiang',
       images: [ogImageUrl],
       locale: 'id_ID',
       type: 'website',
@@ -78,7 +78,7 @@ export default async function RootLayout({
 
   // Read theme cookie server-side to pre-render correct dark class — eliminates flash entirely
   const cookieStore = await cookies();
-  const savedTheme = cookieStore.get('pksart_theme')?.value;
+  const savedTheme = cookieStore.get('koni_theme')?.value;
   const serverIsDark = savedTheme === 'dark';
   const htmlClass = `${plusJakartaSans.variable} h-full antialiased${serverIsDark ? ' dark' : ''}`;
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { PksLogo } from './PksLogo';
+import { KoniLogo } from './KoniLogo';
 import { ThemeToggle } from './ThemeToggle';
 import { Search, ChevronDown, Bell } from 'lucide-react';
 import { useData } from '@/context/DataContext';
@@ -51,9 +51,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
   const [isTransitionActive, setIsTransitionActive] = useState(false);
 
   const getActiveLinkId = () => {
+    if (pathname === '/berita' || pathname?.startsWith('/berita/')) return 'berita';
+    if (pathname === '/cabor' || pathname?.startsWith('/cabor/')) return 'cabor';
+    if (pathname === '/agenda' || pathname?.startsWith('/agenda/')) return 'agenda';
+    if (pathname === '/prestasi' || pathname?.startsWith('/prestasi/')) return 'prestasi';
+    if (pathname === '/twibbon' || pathname?.startsWith('/twibbon/')) return 'twibbon';
+    if (pathname === '/profil' || pathname?.startsWith('/profil/')) return 'profil';
+    if (pathname === '/kontak' || pathname?.startsWith('/kontak/')) return 'kontak';
     if (pathname === '/explore') return 'explore';
-    if (pathname === '/assets') return 'assets';
-    if (pathname === '/creators') return 'creators';
     if (pathname === '/') return 'beranda';
     return '';
   };
@@ -79,9 +84,13 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
 
   const navLinks = [
     { label: 'Beranda', href: '/', id: 'beranda' },
-    { label: 'Eksplorasi', href: '/explore', id: 'explore' },
-    ...(currentUser ? [{ label: 'Aset Desain', href: '/assets', id: 'assets' }] : []),
-    { label: 'Desainer', href: '/creators', id: 'creators' },
+    { label: 'Berita', href: '/berita', id: 'berita' },
+    { label: 'Cabor', href: '/cabor', id: 'cabor' },
+    { label: 'Agenda', href: '/agenda', id: 'agenda' },
+    { label: 'Prestasi', href: '/prestasi', id: 'prestasi' },
+    { label: 'Twibbon', href: '/twibbon', id: 'twibbon' },
+    { label: 'Profil', href: '/profil', id: 'profil' },
+    { label: 'Kontak', href: '/kontak', id: 'kontak' },
   ];
 
   const updateIndicatorPos = (enableTransition = true) => {
@@ -102,14 +111,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
         setIsTransitionActive(true);
       }
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('pksart_last_nav_pos', JSON.stringify(newPos));
+        sessionStorage.setItem('koni_last_nav_pos', JSON.stringify(newPos));
       }
     }
   };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem('pksart_last_nav_pos');
+      const saved = sessionStorage.getItem('koni_last_nav_pos');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -162,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
         opacity: 1,
       };
       setIndicatorStyle(currentPos);
-      sessionStorage.setItem('pksart_last_nav_pos', JSON.stringify(currentPos));
+      sessionStorage.setItem('koni_last_nav_pos', JSON.stringify(currentPos));
     }
 
     if (id === 'beranda') {
@@ -183,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
           
           {/* Logo & Search Bar */}
           <div className="flex items-center gap-6 flex-1 max-w-2xl">
-            <PksLogo size="md" />
+            <KoniLogo size="md" />
 
             {/* Search Bar - Desktop */}
             {!pathname?.startsWith('/twibbon') && (
@@ -195,15 +204,15 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   type="text"
                   value={internalSearch}
                   onChange={handleSearchInput}
-                  placeholder="Cari karya, desainer, atau daerah..."
-                  className="w-full bg-[#F3F4F6] dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 focus:outline-none transition-all"
+                  placeholder="Cari cabor, berita, atau twibbon..."
+                  className="w-full bg-[#F3F4F6] dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm rounded-full pl-10 pr-4 py-2 border border-transparent focus:border-red-600 focus:bg-white dark:focus:bg-gray-800 focus:outline-none transition-all"
                 />
               </form>
             )}
           </div>
 
           {/* Desktop Navigation Links with Seamless Cross-Page Sliding Indicator */}
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-700 dark:text-gray-300 relative h-full">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-gray-700 dark:text-gray-300 relative h-full">
             {navLinks.map((link) => {
               const isActive = activeLinkId === link.id;
 
@@ -217,7 +226,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                   }}
                   onClick={(e) => handleNavClick(e, link.id, link.href)}
                   className={`relative py-5 transition-colors duration-200 flex items-center ${
-                    isActive ? 'text-[#F26522] font-extrabold' : 'text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522]'
+                    isActive ? 'text-red-600 dark:text-red-500 font-extrabold' : 'text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500'
                   }`}
                 >
                   {link.label}
@@ -225,10 +234,10 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               );
             })}
 
-            {/* 🟠 Seamless Animated Orange Sliding Line (Cross-Page Persistent) */}
+            {/* Red Sliding Line (Cross-Page Persistent) */}
             <span
               suppressHydrationWarning
-              className={`absolute bottom-0 h-[3px] bg-[#F26522] rounded-t-full pointer-events-none ${
+              className={`absolute bottom-0 h-[3px] bg-red-600 dark:bg-red-500 rounded-t-full pointer-events-none ${
                 isTransitionActive ? 'transition-all duration-300 ease-out' : ''
               }`}
               style={{
@@ -243,26 +252,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
           <div className="flex items-center gap-2">
             {/* Theme Toggle (Dark / Light / System) */}
             <ThemeToggle variant="dropdown" />
-
-            {/* Create Twibbon Button - Hide when already on /twibbon page */}
-            {!pathname?.startsWith('/twibbon') && (
-              <Link
-                href="/twibbon"
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
-              >
-                <span>Buat Twibbon</span>
-              </Link>
-            )}
-
-            {/* Upload Button - Logged in users only (Desktop/Tablet) */}
-            {currentUser && (
-              <Link
-                href="/upload"
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-[#F26522] hover:bg-[#d85517] text-white text-sm font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
-              >
-                <span>Unggah Karya</span>
-              </Link>
-            )}
 
             {/* Notification Icon */}
             {currentUser && (
@@ -364,16 +353,6 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
               </div>
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* Mobile: Tombol Twibbon berdampingan dengan tombol Masuk / Daftar */}
-                {!pathname?.startsWith('/twibbon') && (
-                  <Link
-                    href="/twibbon"
-                    className="sm:hidden inline-flex items-center justify-center px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-xl transition-all active:scale-95 whitespace-nowrap"
-                  >
-                    <span>Twibbon</span>
-                  </Link>
-                )}
-
                 {/* Tombol Masuk / Daftar (Satu tombol terpadu di Mobile & Desktop) */}
                 <Link
                   href="/login"
@@ -398,7 +377,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, searchQuery = ''
                 type="text"
                 value={internalSearch}
                 onChange={handleSearchInput}
-                placeholder="Cari karya, desainer, atau daerah..."
+                placeholder="Cari cabor, berita, atau twibbon..."
                 className="w-full bg-[#F3F4F6] dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-xs rounded-full pl-9 pr-4 py-2 border border-transparent focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 focus:outline-none"
               />
             </form>

@@ -14,16 +14,16 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   });
 
   const settings = await prisma.siteSettings.findFirst();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://art.pks.id';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konikph.site';
 
   if (!artwork) {
     return {
-      title: 'Karya Tidak Ditemukan | PKSart',
+      title: 'Karya Tidak Ditemukan | KONI Kabupaten Kepahiang',
     };
   }
 
-  const title = `${artwork.title} - Karya ${artwork.category} PKS`;
-  const description = artwork.description || `Unduh mentahan aset ${artwork.title} karya ${artwork.region} di PKSart.`;
+  const title = `${artwork.title} - ${artwork.category} KONI Kepahiang`;
+  const description = artwork.description || `Unduh dokumentasi & aset ${artwork.title} cabor ${artwork.region} di portal KONI Kepahiang.`;
   const rawImage = artwork.imageUrl || (settings as any)?.ogImageUrl || '/img/877859417715829.jpg';
   const imageUrl = rawImage.startsWith('/') ? `${baseUrl}${rawImage}` : rawImage;
 
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       title,
       description,
       url: `${baseUrl}/artwork/${artwork.slug || artwork.id}`,
-      siteName: 'PKSart',
+      siteName: 'KONI Kabupaten Kepahiang',
       images: [imageUrl],
       locale: 'id_ID',
       type: 'article',

@@ -15,7 +15,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
   if (resendApiKey && resendApiKey.trim() !== '') {
     try {
       const resend = new Resend(resendApiKey);
-      const fromAddress = process.env.RESEND_FROM || 'PKSart Official <no-reply@art.pks.id>';
+      const fromAddress = process.env.RESEND_FROM || 'KONI Kepahiang Official <no-reply@konikph.site>';
 
       const data = await resend.emails.send({
         from: fromAddress,
@@ -54,7 +54,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
 
     try {
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"PKSart Official" <${user}>`,
+        from: process.env.SMTP_FROM || `"KONI Kepahiang Official" <${user}>`,
         to,
         subject,
         text,

@@ -38,7 +38,7 @@ import {
   Pencil,
   Check,
 } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 import { DEFAULT_WELCOME_POPUP } from '@/components/WelcomePopup';
 import { useData } from '@/context/DataContext';
@@ -72,7 +72,7 @@ export default function AdminSettingsPage() {
       auth: false,
     },
     title: 'Mode Pemeliharaan Sistem',
-    description: 'Kami sedang melakukan pemeliharaan & perawatan sistem rutin untuk meningkatkan kualitas layanan platform PKSart. Terima kasih atas kesabaran Anda.',
+    description: 'Kami sedang melakukan pemeliharaan & perawatan sistem rutin untuk meningkatkan kualitas layanan platform KONI Kepahiang. Terima kasih atas kesabaran Anda.',
     estimatedTime: 'Estimasi Selesai: 1 - 2 Jam',
     allowAdminBypass: true,
   });
@@ -90,12 +90,10 @@ export default function AdminSettingsPage() {
   const [ctaSocialText, setCtaSocialText] = useState(siteSettings.ctaSocialText || '');
   const [ctaSocialUrl, setCtaSocialUrl] = useState(siteSettings.ctaSocialUrl || '');
   const [ctaSocialLinks, setCtaSocialLinks] = useState<{ platform: string; label: string; url: string }[]>(siteSettings.ctaSocialLinks || [
-    { platform: 'instagram', label: '@pksart', url: 'https://instagram.com' },
-    { platform: 'facebook', label: 'PKS Art', url: 'https://facebook.com' },
-    { platform: 'youtube', label: 'PKS Art Official', url: 'https://youtube.com' },
-    { platform: 'tiktok', label: '@pksart', url: 'https://tiktok.com' },
-    { platform: 'twitter', label: '@pksart', url: 'https://twitter.com' },
-    { platform: 'threads', label: '@pksart', url: 'https://threads.net' },
+    { platform: 'instagram', label: '@konikepahiang', url: 'https://instagram.com/konikepahiang' },
+    { platform: 'facebook', label: 'KONI Kabupaten Kepahiang', url: 'https://facebook.com' },
+    { platform: 'youtube', label: 'KONI Kepahiang TV', url: 'https://youtube.com' },
+    { platform: 'tiktok', label: '@konikepahiang', url: 'https://tiktok.com' },
   ]);
   const [adminWhatsapp, setAdminWhatsapp] = useState(siteSettings.adminWhatsapp || '6281199887766');
   const [autoApproveArtworks, setAutoApproveArtworks] = useState(siteSettings.autoApproveArtworks !== false);
@@ -217,6 +215,8 @@ export default function AdminSettingsPage() {
   const isPopupDirty = JSON.stringify(popupConfig) !== JSON.stringify(initialPopupConfig);
 
   const [isSaved, setIsSaved] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successModalMessage, setSuccessModalMessage] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
   // Mass Delete Modal States
@@ -298,9 +298,9 @@ export default function AdminSettingsPage() {
   const handleSendAdminResetLink = async () => {
     setIsSendingResetLink(true);
     const { addResetRequest, generateResetLinkAction } = await import('@/actions/resetRequest');
-    const adminEmail = currentUser?.email || 'admin@pks.art';
+    const adminEmail = currentUser?.email || 'admin@konikph.site';
     const adminPhone = currentUser?.phone || '+6281199887766';
-    const adminName = currentUser?.name || 'Super Admin PKSart';
+    const adminName = currentUser?.name || 'Super Admin KONI Kepahiang';
     
     const res = await addResetRequest({ name: adminName, email: adminEmail, phone: adminPhone });
 
@@ -499,6 +499,8 @@ export default function AdminSettingsPage() {
         forbiddenWords,
       });
       setIsSaved(true);
+      setSuccessModalMessage('Pengaturan identitas situs dan logo berhasil disimpan secara permanen!');
+      setShowSuccessModal(true);
       triggerToast('Pengaturan identitas situs berhasil disimpan permanen!');
       setTimeout(() => setIsSaved(false), 3000);
     } catch (err: any) {
@@ -715,7 +717,7 @@ export default function AdminSettingsPage() {
         const dateStr = new Date().toISOString().split('T')[0];
         const a = document.createElement('a');
         a.href = url;
-        a.download = `pksart_backup_${dateStr}.json`;
+        a.download = `konikph_backup_${dateStr}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -971,7 +973,7 @@ export default function AdminSettingsPage() {
                     {logoPreview && logoPreview !== '/favicon.ico' ? (
                       <img key={`logo-main-${logoPreview}`} src={logoPreview} alt="Logo Web" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <PksLogo key="logo-main-default" size="sm" />
+                      <KoniLogo key="logo-main-default" size="sm" />
                     )}
                   </div>
                   <div className="space-y-1.5">
@@ -1001,8 +1003,8 @@ export default function AdminSettingsPage() {
                       <img key={`logo-admin-${logoAdminPreview}`} src={logoAdminPreview} alt="Logo Admin" className="max-w-full max-h-full object-contain" />
                     ) : (
                       <div key="logo-admin-default" className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-[#F26522] text-white font-black flex items-center justify-center text-[10px]">
-                          PKS
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-red-600 to-amber-500 text-white font-black flex items-center justify-center text-[9px] shadow-sm">
+                          KONI
                         </div>
                         <span className="text-xs text-white font-bold">Admin Standard</span>
                       </div>
@@ -1150,7 +1152,7 @@ export default function AdminSettingsPage() {
                         Pengaturan Email & Kata Sandi Super Admin
                       </h2>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Ubah email masuk dan kata sandi akun Administrator PKSart secara aman.
+                        Ubah email masuk dan kata sandi akun Administrator KONI Kepahiang secara aman.
                       </p>
                     </div>
                   </div>
@@ -1159,18 +1161,18 @@ export default function AdminSettingsPage() {
                 {/* Current Admin Info Card */}
                 <div className="p-4 bg-gray-50/80 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#1e293b] dark:bg-gray-900 text-white font-extrabold flex items-center justify-center text-xs shrink-0 ring-2 ring-orange-200 dark:ring-orange-900/50">
+                    <div className="w-10 h-10 rounded-full bg-[#1e293b] dark:bg-gray-900 text-white font-extrabold flex items-center justify-center text-xs shrink-0 ring-2 ring-red-200 dark:ring-red-900/50">
                       ADMIN
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                        <span>{currentUser?.name || 'Super Admin PKSart'}</span>
-                        <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-950/60 text-[#F26522] dark:text-[#ff7a38] text-[10px] font-black rounded-full uppercase">
+                        <span>{currentUser?.name || 'Super Admin KONI Kepahiang'}</span>
+                        <span className="px-2 py-0.5 bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 text-[10px] font-black rounded-full uppercase">
                           {currentUser?.role || 'Super Admin'}
                         </span>
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
-                        Email Aktif: <strong className="text-gray-800 dark:text-gray-200">{currentUser?.email || 'admin@pks.art'}</strong>
+                        Email Aktif: <strong className="text-gray-800 dark:text-gray-200">{currentUser?.email || 'admin@konikph.site'}</strong>
                       </p>
                     </div>
                   </div>
@@ -1243,8 +1245,8 @@ export default function AdminSettingsPage() {
                         type="email"
                         value={adminNewEmail}
                         onChange={(e) => { setAdminNewEmail(e.target.value); setCredentialsError(''); }}
-                        placeholder="contoh: admin.baru@pks.art"
-                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#F26522]"
+                        placeholder="contoh: admin.baru@konikph.site"
+                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-red-600"
                       />
                     </div>
 
@@ -1451,9 +1453,9 @@ export default function AdminSettingsPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setCtaSocialLinks([...ctaSocialLinks, { platform: 'instagram', label: '@pksart', url: 'https://' }]);
+                      setCtaSocialLinks([...ctaSocialLinks, { platform: 'instagram', label: '@konikepahiang', url: 'https://' }]);
                     }}
-                    className="px-3 py-1.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm"
                     disabled={!ctaEnabled}
                   >
                     <span>+ Tambah Sosmed</span>
@@ -1470,7 +1472,7 @@ export default function AdminSettingsPage() {
                           updated[idx].platform = e.target.value;
                           setCtaSocialLinks(updated);
                         }}
-                        className="w-1/4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#F26522]"
+                        className="w-1/4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-red-600"
                         disabled={!ctaEnabled}
                       >
                         <option value="instagram">Instagram</option>
@@ -1490,8 +1492,8 @@ export default function AdminSettingsPage() {
                           updated[idx].label = e.target.value;
                           setCtaSocialLinks(updated);
                         }}
-                        placeholder="Label (misal: @pksart)"
-                        className="w-1/3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#F26522]"
+                        placeholder="Label (misal: @konikepahiang)"
+                        className="w-1/3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-red-600"
                         required
                         disabled={!ctaEnabled}
                       />
@@ -2362,7 +2364,7 @@ export default function AdminSettingsPage() {
                     <span>Pulihkan Database dari File (.json)</span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mt-1">
-                    Unggah file cadangan PKSart (`.json`) untuk memulihkan seluruh record karya, pengguna, twibbon, dan konfigurasi situs ke database.
+                    Unggah file cadangan KONI Kepahiang (`.json`) untuk memulihkan seluruh record karya, pengguna, twibbon, dan konfigurasi situs ke database.
                   </p>
                 </div>
 
@@ -2961,6 +2963,32 @@ export default function AdminSettingsPage() {
           onConfirm={confirmRestoreDatabase}
           onCancel={() => setRestoreFileState(null)}
         />
+
+        {/* Pop up Berhasil Disimpan Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-[#111622] rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-gray-800 text-center space-y-4 animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-50 dark:ring-emerald-950/20">
+                <CheckCircle size={36} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                  Berhasil Disimpan!
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+                  {successModalMessage || 'Pengaturan berhasil diperbarui dan disimpan secara permanen ke sistem.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-red-600/20"
+              >
+                Oke, Mengerti
+              </button>
+            </div>
+          </div>
+        )}
 
     </>
   );

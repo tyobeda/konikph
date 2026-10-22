@@ -147,7 +147,7 @@ export default function ExplorePage() {
     checkScrollability();
   };
 
-  const popularTags = ['#SpandukDPW', '#PosterMilenial', '#FeedInstagram', '#TwibbonResmi', '#InfografisPKS'];
+  const popularTags = ['#Porprov2026', '#PorkabKepahiang', '#KepahiangJuara', '#TwibbonAtlet', '#InfografisOlahraga'];
   const formats = useMemo(() => {
     const list = siteSettings?.masterFileFormats && siteSettings.masterFileFormats.length > 0
       ? siteSettings.masterFileFormats
@@ -235,17 +235,17 @@ export default function ExplorePage() {
         {/* 🔍 EXPLORATION HERO & SEARCH MATRIX */}
         <div className="bg-gradient-to-br from-[#1E293B] via-[#0f172a] to-[#1E293B] rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
           <div className="relative z-10 max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F26522] text-white text-xs font-bold rounded-full mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full mb-3">
               <Compass size={14} />
-              <span>Eksplorasi & Discovery Engine</span>
+              <span>Eksplorasi Galeri & Aset Olahraga</span>
             </span>
 
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-              Temukan Aset Desain Resmi PKS Lebih Cepat
+              Temukan Dokumentasi & Poster Olahraga Kepahiang
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-              Cari dan saring ribuan karya poster, spanduk, feeds media sosial, dan templat CDR/PSD dari seluruh Wilayah PKS se-Indonesia.
+              Cari dan saring karya dokumentasi, poster kejuaraan, infografis, dan materi publikasi dari 23 Cabang Olahraga KONI Kabupaten Kepahiang.
             </p>
 
             {/* Big Search Bar */}

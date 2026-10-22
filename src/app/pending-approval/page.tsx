@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Clock, ShieldAlert, ArrowLeft, LogOut, MessageSquare, RefreshCw } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useData } from '@/context/DataContext';
 
@@ -14,7 +14,7 @@ export default function PendingApprovalPage() {
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const adminWa = (siteSettings?.adminWhatsapp || '6281199887766').replace(/[^0-9]/g, '');
-  const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20PKSart,%20saya%20sudah%20mendaftar%20akun%20baru%20(${encodeURIComponent(currentUser?.name || '')}%20-%20${encodeURIComponent(currentUser?.email || '')}).%20Mohon%20bantuannya%20untuk%20persetujuan%20(approval).`;
+  const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20KONI%20Kepahiang,%20saya%20sudah%20mendaftar%20akun%20baru%20(${encodeURIComponent(currentUser?.name || '')}%20-%20${encodeURIComponent(currentUser?.email || '')}).%20Mohon%20bantuannya%20untuk%20persetujuan%20(approval).`;
 
   const handleCheckStatus = async () => {
     setIsRefreshing(true);
@@ -40,7 +40,7 @@ export default function PendingApprovalPage() {
     return (
       <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex items-center justify-center font-sans">
         <div className="animate-pulse flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-4 border-[#F26522] border-t-transparent animate-spin"></div>
+          <div className="w-8 h-8 rounded-full border-4 border-red-600 border-t-transparent animate-spin"></div>
           <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Memeriksa status akun...</span>
         </div>
       </div>
@@ -51,14 +51,14 @@ export default function PendingApprovalPage() {
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden transition-colors">
       
       {/* Background Decorative Gradient Blobs */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-orange-100 dark:bg-orange-950/20 rounded-full blur-3xl opacity-60 dark:opacity-20 pointer-events-none" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-red-100 dark:bg-red-950/20 rounded-full blur-3xl opacity-60 dark:opacity-20 pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-100 dark:bg-amber-950/20 rounded-full blur-3xl opacity-60 dark:opacity-20 pointer-events-none" />
 
       {/* Top Header */}
       <div className="max-w-md w-full mx-auto mb-6 flex items-center justify-between relative z-10">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition-colors"
         >
           <ArrowLeft size={16} />
           <span>Kembali ke Beranda</span>
@@ -66,9 +66,9 @@ export default function PendingApprovalPage() {
         <div className="flex items-center gap-2">
           <ThemeToggle
             variant="dropdown"
-            buttonClassName="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
+            buttonClassName="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
           />
-          <PksLogo size="sm" />
+          <KoniLogo size="sm" />
         </div>
       </div>
 
@@ -76,13 +76,13 @@ export default function PendingApprovalPage() {
       <div className="max-w-md w-full mx-auto bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 relative z-10 text-center animate-in fade-in zoom-in-95 duration-300">
         
         {/* Animated Clock Icon Header */}
-        <div className="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-500 to-orange-500 rounded-3xl p-0.5 shadow-lg shadow-orange-500/20 mb-6 flex items-center justify-center relative">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-500 to-red-600 rounded-3xl p-0.5 shadow-lg shadow-red-500/20 mb-6 flex items-center justify-center relative">
           <div className="w-full h-full bg-white dark:bg-gray-800 rounded-[22px] flex items-center justify-center">
-            <Clock size={38} className="text-[#F26522] animate-bounce" />
+            <Clock size={38} className="text-red-600 animate-bounce" />
           </div>
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-[#F26522]"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600"></span>
           </span>
         </div>
 
@@ -97,7 +97,7 @@ export default function PendingApprovalPage() {
         </h1>
 
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-          Terima kasih telah mendaftar di <strong className="text-gray-900 dark:text-gray-200">PKSart</strong>. Demi menjaga kualitas & keamanan karya resmi, akun Anda saat ini sedang dalam proses peninjauan oleh tim Admin PKSart.
+          Terima kasih telah mendaftar di <strong className="text-gray-900 dark:text-gray-200">KONI Kabupaten Kepahiang</strong>. Akun Anda saat ini sedang dalam proses peninjauan oleh tim Admin Sekretariat KONI Kepahiang.
         </p>
 
         {/* Account Summary Box */}
@@ -112,8 +112,8 @@ export default function PendingApprovalPage() {
               <span className="font-bold text-gray-900 dark:text-white truncate max-w-[200px]">{currentUser.email}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-500 dark:text-gray-400 font-semibold">Wilayah:</span>
-              <span className="font-bold text-[#F26522]">{currentUser.region || 'PKS Official'}</span>
+              <span className="text-gray-500 dark:text-gray-400 font-semibold">Cabor / Wilayah:</span>
+              <span className="font-bold text-red-600">{currentUser.region || 'KONI Kepahiang'}</span>
             </div>
           </div>
         )}
@@ -123,7 +123,7 @@ export default function PendingApprovalPage() {
           <button
             onClick={handleCheckStatus}
             disabled={isRefreshing}
-            className="w-full py-3 bg-[#F26522] hover:bg-[#d85417] text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
+            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
           >
             <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
             <span>{isRefreshing ? 'Memeriksa...' : 'Cek Status Persetujuan'}</span>
@@ -152,7 +152,7 @@ export default function PendingApprovalPage() {
 
       {/* Footer copyright note */}
       <div className="mt-8 text-center text-[11px] text-gray-400 dark:text-gray-500 font-semibold relative z-10">
-        &copy; {new Date().getFullYear()} PKSart Designer Community. Official PKS Creative Platform.
+        &copy; {new Date().getFullYear()} KONI Kabupaten Kepahiang.
       </div>
     </div>
   );

@@ -65,8 +65,8 @@ export default function UploadPage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Hikmah-Motivasi');
-  const [region, setRegion] = useState(REGIONS[1] || 'Wilayah Jawa Barat');
+  const [category, setCategory] = useState(ARTWORK_CATEGORIES[0] || 'Dokumentasi Kegiatan');
+  const [region, setRegion] = useState(currentUser?.region || 'KONI (Umum)');
   const [fileFormat, setFileFormat] = useState('Hanya gambar');
   const [downloadUrl, setDownloadUrl] = useState('');
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -331,7 +331,7 @@ export default function UploadPage() {
         imageUrls: previewUrls,
         downloadUrl: downloadUrl || '#',
         category,
-        region: currentUser?.region || region || 'DPP PKS Official',
+        region: currentUser?.region || region || 'KONI (Umum)',
         format: fileFormat,
         tags: parsedTags,
         author: currentUser!,
@@ -408,10 +408,10 @@ export default function UploadPage() {
               <p className="text-xs sm:text-sm text-gray-500 max-w-md mb-6 leading-relaxed">
                 {isPendingModeration ? (
                   <span>
-                    Karya Anda saat ini berstatus <strong className="text-amber-600">Pending</strong> dan sedang menunggu peninjauan serta persetujuan oleh Administrator PKSart sebelum dipublikasikan ke galeri umum.
+                    Konten Anda saat ini berstatus <strong className="text-amber-600">Pending</strong> dan sedang menunggu peninjauan serta persetujuan oleh Administrator KONI Kepahiang sebelum dipublikasikan ke galeri umum.
                   </span>
                 ) : (
-                  <span>Karya Anda telah disetujui dan kini siap diakses publik di galeri utama PKSart. Mengalihkan kembali...</span>
+                  <span>Konten Anda telah disetujui dan kini siap diakses publik di galeri utama KONI Kepahiang. Mengalihkan kembali...</span>
                 )}
               </p>
 
@@ -587,7 +587,7 @@ export default function UploadPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Contoh: POSTER PKS MILENIAL JABAR"
+                  placeholder="Contoh: DOKUMENTASI KEJUARAAN PENCAK SILAT BUPATI CUP 2026"
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 placeholder:font-normal rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white transition-all font-semibold"
                   required
                 />
@@ -741,7 +741,7 @@ export default function UploadPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
                   <span>Deskripsi Karya</span>
-                  <span className="text-xs font-normal text-[#F26522]">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
+                  <span className="text-xs font-normal text-red-600">Hashtag dapat diketik langsung di sini (contoh: #Porprov2026 #KepahiangJuara)</span>
                 </label>
                 <textarea
                   rows={4}

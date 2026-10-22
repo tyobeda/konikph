@@ -651,7 +651,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
               <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-gray-100 dark:border-gray-800 text-xs">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full font-medium">
                   <span className="text-gray-400 dark:text-gray-500 font-normal">Oleh:</span>
-                  <strong className="text-gray-900 dark:text-white font-bold">{activeTwibbon.author?.name || 'DPP PKS'}</strong>
+                  <strong className="text-gray-900 dark:text-white font-bold">{activeTwibbon.author?.name || 'KONI Kepahiang'}</strong>
                 </span>
 
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-100 dark:border-orange-900/40 rounded-full font-semibold">

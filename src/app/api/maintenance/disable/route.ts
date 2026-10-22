@@ -6,9 +6,9 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const pass = searchParams.get('pass');
 
-  const expectedPass = process.env.ADMIN_PASSWORD || 'pksart2026';
+  const expectedPass = process.env.ADMIN_PASSWORD || 'konikph2026';
 
-  if (pass !== expectedPass && pass !== 'pksart2026') {
+  if (pass !== expectedPass && pass !== 'konikph2026') {
     return NextResponse.json(
       { success: false, error: 'Kata sandi darurat tidak valid.' },
       { status: 401 }
@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
       },
       create: {
         id: 'settings',
-        siteName: 'PKSart - Galeri Desain & Foto PKS Official',
-        siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
+        siteName: 'KONI Kabupaten Kepahiang',
+        siteDescription: 'Portal Resmi Komite Olahraga Nasional Indonesia Kabupaten Kepahiang.',
         logoUrl: '/uploads/1785832971571.png',
         logoAdminUrl: '/uploads/1785832976919.png',
         logoFooterUrl: '/uploads/1785833539740.png',

@@ -123,12 +123,12 @@ export async function addArtwork(data: any) {
         update: {},
         create: {
           id: authorId,
-          name: data.author?.name || 'Super Admin PKSart',
-          email: data.author?.email || 'admin@pks.art',
-          phone: data.author?.phone || '081199887766',
-          address: data.author?.address || 'DPP PKS Official, Jakarta Selatan',
-          region: data.author?.region || data.region || 'DPP PKS Official',
-          avatar: data.author?.avatar || '/img/877859417715829.jpg',
+          name: data.author?.name || 'Super Admin KONI Kepahiang',
+          email: data.author?.email || 'admin@konikph.site',
+          phone: data.author?.phone || '081234567890',
+          address: data.author?.address || 'GOR Tebat Monok, Kepahiang, Bengkulu',
+          region: data.author?.region || data.region || 'KONI Kabupaten Kepahiang',
+          avatar: data.author?.avatar || '/favicon.ico',
           role: data.author?.role || 'Super Admin',
         }
       });
@@ -218,12 +218,6 @@ export async function updateArtwork(id: string, data: any) {
     }
     if (data.isFeatured !== undefined) {
       updateData.isFeatured = Boolean(data.isFeatured);
-      if (updateData.isFeatured) {
-        await prisma.artwork.updateMany({
-          where: { isFeatured: true, id: { not: id } },
-          data: { isFeatured: false },
-        }).catch(() => {});
-      }
     }
     delete updateData.author;
     delete updateData.comments;

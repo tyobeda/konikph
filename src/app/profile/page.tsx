@@ -94,6 +94,8 @@ export default function ProfilePage() {
   const [resetSuccessMessage, setResetSuccessMessage] = useState(false);
 
   const [isSaved, setIsSaved] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successModalMessage, setSuccessModalMessage] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(userData.avatar);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -172,15 +174,17 @@ export default function ProfilePage() {
         const res = await fetch('/api/upload', { method: 'POST', body: formDataPayload });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Upload gagal');
-        setAvatarPreview(data.url);
-        setUserData((prev) => {
-          const next = { ...prev, avatar: data.url };
-          if (currentUser?.id) {
-            updateUser(currentUser.id, next);
-          }
-          return next;
-        });
+        
+        const newAvatarUrl = data.url;
+        setAvatarPreview(newAvatarUrl);
+        setUserData((prev) => ({ ...prev, avatar: newAvatarUrl }));
+        
+        if (currentUser?.id) {
+          await updateUser(currentUser.id, { ...userData, avatar: newAvatarUrl });
+        }
         setIsSaved(true);
+        setSuccessModalMessage('Foto profil baru Anda berhasil diunggah dan disimpan!');
+        setShowSuccessModal(true);
         setTimeout(() => setIsSaved(false), 3000);
       } catch (err: any) {
         alert(err.message || 'Gagal upload foto profil.');
@@ -188,13 +192,15 @@ export default function ProfilePage() {
     }
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentUser?.id) {
       const finalData = { ...userData, avatar: avatarPreview || userData.avatar };
-      updateUser(currentUser.id, finalData);
+      await updateUser(currentUser.id, finalData);
     }
     setIsSaved(true);
+    setSuccessModalMessage('Perubahan profil akun Anda telah berhasil disimpan!');
+    setShowSuccessModal(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
 
@@ -337,8 +343,8 @@ export default function ProfilePage() {
                     type="email"
                     value={userData.email}
                     onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                    placeholder="contoh: roni@pks.art"
-                    className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] focus:bg-white dark:focus:bg-gray-800 font-medium"
+                    placeholder="contoh: pengurus@konikph.site"
+                    className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white dark:focus:bg-gray-800 font-medium"
                     required
                   />
                 </div>
@@ -559,8 +565,8 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <h4 className="font-extrabold text-sm text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#F26522] transition-colors">
-                        {item.twibbon?.title || 'Frame Twibbon PKS'}
+                      <h4 className="font-extrabold text-sm text-gray-900 dark:text-white line-clamp-1 group-hover:text-red-600 transition-colors">
+                        {item.twibbon?.title || 'Frame Twibbon KONI'}
                       </h4>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                         Kategori: {item.twibbon?.category || 'Nasional'} • {item.twibbon?.region || 'Official'}
@@ -572,7 +578,7 @@ export default function ProfilePage() {
                       <div className="mt-3 pt-2 border-t border-gray-200/60 dark:border-gray-700/60 flex items-center justify-between">
                         <Link
                           href={`/twibbon/${item.twibbon?.slug || item.twibbon?.id}`}
-                          className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
+                          className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1"
                         >
                           <Sparkles size={12} />
                           <span>Buat Lagi</span>
@@ -581,7 +587,7 @@ export default function ProfilePage() {
                         {item.resultImageUrl && (
                           <a
                             href={item.resultImageUrl}
-                            download={`Twibbon_${item.twibbon?.title || 'PKS'}.png`}
+                            download={`Twibbon_${item.twibbon?.title || 'KONI'}.png`}
                             className="p-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] hover:border-orange-200 rounded-lg shadow-sm transition-all"
                             title="Unduh Lagi"
                           >
@@ -694,6 +700,32 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Pop up Berhasil Disimpan */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#111622] rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-gray-800 text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-50 dark:ring-emerald-950/20">
+              <CheckCircle size={36} />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                Berhasil Disimpan!
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+                {successModalMessage || 'Informasi profil dan perubahan akun Anda telah berhasil disimpan.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-red-600/20"
+            >
+              Oke, Mengerti
+            </button>
           </div>
         </div>
       )}

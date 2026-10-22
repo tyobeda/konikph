@@ -1,4 +1,4 @@
-// Prisma schema for PKS.art PostgreSQL database
+// Prisma schema for KONI Kabupaten Kepahiang (konikph.site) PostgreSQL database
 
 generator client {
   provider = "prisma-client-js"
@@ -18,8 +18,8 @@ model User {
   password      String? // Password hashed / plain for admin security
   address       String // Alamat Lengkap (Wajib)
   avatar        String?
-  region        String // e.g. "Jawa Barat", "DIY", "Sumut"
-  role          String?        @default("Kreator") // e.g. "DPW PKS", "Kreator"
+  region        String // e.g. "FORKI", "PASI", "KONI (Umum)"
+  role          String?        @default("Pengurus Cabor") // e.g. "Pengurus KONI", "Pengurus Cabor"
   status        String?        @default("Pending") // e.g. "Pending", "Active", "Suspended"
   isVerified    Boolean        @default(false)
   artworks      Artwork[]
@@ -140,16 +140,21 @@ model UserTwibbonUsage {
 
 model DpwOffice {
   id             String   @id @default(uuid())
-  name           String
-  code           String   @unique
-  coordinator    String
-  phone          String
-  email          String
-  address        String
-  lat            Float?
-  lng            Float?
-  activeCreators Int      @default(0)
-  totalArtworks  Int      @default(0)
+  name           String   // Nama resmi cabor (e.g. "Karate (FORKI)", "Pencak Silat (IPSI)")
+  code           String   @unique // Singkatan cabor (e.g. "FORKI", "IPSI", "PSSI")
+  coordinator    String   // Ketua Cabor
+  phone          String   // WhatsApp Ketua/Sekretaris
+  email          String   // Email Cabor
+  address        String   // Sekretariat Cabor
+  lat            Float?   // Lokasi latihan (lat)
+  lng            Float?   // Lokasi latihan (lng)
+  category       String?  @default("Umum") // Kategori olahraga: Bela Diri, Bola Besar, Akurasi, dll.
+  logoUrl        String?  // Logo cabor
+  schedule       String?  // Jadwal latihan
+  description    String?  // Deskripsi ringkas cabor
+  orderIndex     Int      @default(0)
+  activeCreators Int      @default(0) // Atlet & Pengurus
+  totalArtworks  Int      @default(0) // Konten / Dokumentasi
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -257,5 +262,46 @@ model ResetRequest {
   status    String    @default("Pending") // "Pending", "Selesai", "Expired"
   createdAt DateTime  @default(now())
 }
+
+model News {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String
+  imageUrl    String?
+  imagePosition String? @default("50% 50%")
+  category    String    @default("Kegiatan") // "Pengumuman", "Kegiatan", "Prestasi", "Hasil Pertandingan", "Opini"
+  caborCode   String?   // Kode cabor terkait, e.g. "IPSI", "FORKI", or null / "KONI"
+  authorName  String    @default("Humas KONI Kepahiang")
+  status      String    @default("Published") // "Draft", "Published", "Scheduled"
+  viewsCount  Int       @default(0)
+  isFeatured  Boolean   @default(false)
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([caborCode])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model BoardMember {
+  id         String   @id @default(uuid())
+  name       String
+  role       String   // e.g. "Ketua Umum", "Wakil Ketua Umum I", "Sekretaris Umum", "Bendahara Umum"
+  photo      String?
+  hierarchy  Int      @default(3) // 1 = Pimpinan Utama, 2 = Wakil/Sekretaris/Bendahara, 3 = Bidang
+  department String   // e.g. "Pimpinan Utama", "Kesekretariatan", "Keuangan", "Pembinaan Prestasi"
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([hierarchy])
+  @@index([orderIndex])
+}
+
 
 

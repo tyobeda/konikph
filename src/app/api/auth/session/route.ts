@@ -9,20 +9,21 @@ export async function GET() {
       return NextResponse.json({ authenticated: false, user: null });
     }
 
-    // Super Admin — return static profile (not in DB)
+    // Super Admin — fetch from DB to get latest avatar and info
     if (session.userId === 'superadmin_1' || session.role === 'Super Admin') {
+      const dbAdmin = await prisma.user.findUnique({ where: { id: 'superadmin_1' } });
       return NextResponse.json({
         authenticated: true,
         user: {
           id: 'superadmin_1',
-          name: 'Super Admin PKSart',
-          email: session.email,
+          name: dbAdmin?.name || 'Super Admin KONI Kepahiang',
+          email: dbAdmin?.email || session.email,
           role: 'Super Admin',
           isVerified: true,
-          avatar: '/img/877859417715829.jpg',
-          phone: '',
-          address: 'DPP PKS Official',
-          region: 'DPP PKS Official',
+          avatar: dbAdmin?.avatar || '/uploads/1792673968064_t0rm3q.png',
+          phone: dbAdmin?.phone || '081199887766',
+          address: dbAdmin?.address || 'GOR Tebat Monok, Kepahiang',
+          region: dbAdmin?.region || 'KONI Kepahiang',
         },
       });
     }

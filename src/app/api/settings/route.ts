@@ -38,8 +38,8 @@ export async function POST(request: Request) {
       update: updateData,
       create: {
         id: 'settings',
-        siteName: 'PKSart',
-        siteDescription: 'Pusat Unduhan Aset Desain Resmi & Komunitas Desainer PKS',
+        siteName: 'KONI Kabupaten Kepahiang',
+        siteDescription: 'Portal Resmi Komite Olahraga Nasional Indonesia Kabupaten Kepahiang',
         logoUrl: '/uploads/1785832971571.png',
         logoAdminUrl: '/uploads/1785832976919.png',
         logoFooterUrl: '/uploads/1785833539740.png',

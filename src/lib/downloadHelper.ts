@@ -95,7 +95,7 @@ export async function downloadArtworkFile({
 
   const cleanTitle =
     artwork.title.replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_') ||
-    'karya_pksart';
+    'karya_konikph';
 
   try {
     const res = await fetch(targetImgUrl);

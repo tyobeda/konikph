@@ -14,15 +14,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!res.success || !res.data) {
     return {
-      title: 'Aset Desain Tidak Ditemukan - PKSart',
-      description: 'Berkas aset desain yang Anda cari tidak tersedia atau telah dihapus.',
+      title: 'Aset & Dokumen Tidak Ditemukan - KONI Kepahiang',
+      description: 'Berkas aset atau dokumen resmi yang Anda cari tidak tersedia atau telah dihapus.',
     };
   }
 
   const kit = res.data;
-  const pageTitle = `${kit.title} | Pusat Aset Desain Resmi PKS`;
-  const pageDesc = kit.description || `Unduh berkas mentahan resmi ${kit.title} (${kit.format}) kategori ${kit.category} di PKSart.`;
-  const ogImage = kit.previewUrl || '/pks-logo.png';
+  const pageTitle = `${kit.title} | Pusat Dokumen & Aset Resmi KONI Kepahiang`;
+  const pageDesc = kit.description || `Unduh berkas resmi ${kit.title} (${kit.format}) kategori ${kit.category} di portal resmi KONI Kabupaten Kepahiang.`;
+  const ogImage = kit.previewUrl || '/favicon.ico';
 
   return {
     title: pageTitle,

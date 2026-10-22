@@ -142,17 +142,17 @@ export default function LogoArtworksPage() {
         {/* 🎨 HERO BANNER */}
         <div className="bg-gradient-to-br from-[#1E293B] via-[#0f172a] to-[#1E293B] rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
           <div className="relative z-10 max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F26522] text-white text-xs font-bold rounded-full mb-3 shadow-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full mb-3 shadow-sm">
               <Tag size={13} />
               <span>Tag Khusus: #logo</span>
             </span>
 
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-              Koleksi Desain & Lambang Logo PKS
+              Koleksi Logo KONI & Cabang Olahraga Kepahiang
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-              Kumpulan seluruh karya desain, lambang partai, logo kegiatan, dan identitas visual resmi PKS dengan tag <strong>#logo</strong>. Dilengkapi berkas master asli (CDR, AI, PSD, CANVA, FIGMA, PDF).
+              Kumpulan logo resmi KONI Kabupaten Kepahiang, 23 cabor naungan, dan materi identitas visual kegiatan olahraga dengan tag <strong>#logo</strong>. Dilengkapi berkas vektor dan transparansi HD.
             </p>
 
             {/* Search Input Bar */}
@@ -162,8 +162,8 @@ export default function LogoArtworksPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari logo (contoh: Logo Fraksi, PKS Muda, Garuda, Sayap)..."
-                className="w-full bg-white text-gray-900 text-sm font-semibold rounded-2xl pl-11 pr-4 py-3 border border-transparent focus:outline-none focus:ring-4 focus:ring-orange-500/30 shadow-lg"
+                placeholder="Cari logo (contoh: KONI Kepahiang, FORKI, PASI, PSSI, TI)..."
+                className="w-full bg-white text-gray-900 text-sm font-semibold rounded-2xl pl-11 pr-4 py-3 border border-transparent focus:outline-none focus:ring-4 focus:ring-red-500/30 shadow-lg"
               />
             </div>
           </div>

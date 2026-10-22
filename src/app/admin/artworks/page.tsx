@@ -16,6 +16,7 @@ import {
   Trash2,
   Edit,
   Star,
+  Pin,
   Download,
   ArrowUpRight,
   Filter,
@@ -24,7 +25,7 @@ import {
   Calendar,
   Clock,
 } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
@@ -380,15 +381,23 @@ export default function AdminArtworksPage() {
                             className="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-gray-700 shrink-0"
                           />
                           {art.isFeatured && (
-                            <span className="absolute -top-1 -right-1 bg-amber-400 text-white p-0.5 rounded-full shadow-sm" title="Karya Pilihan (Featured)">
-                              <Star size={10} className="fill-white" />
+                            <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white p-1 rounded-full shadow-md" title="Disematkan di Hero Banner">
+                              <Pin size={10} className="fill-white rotate-45" />
                             </span>
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
-                            {art.title}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
+                              {art.title}
+                            </p>
+                            {art.isFeatured && (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900 shrink-0">
+                                <Pin size={9} className="fill-red-600" />
+                                Pinned
+                              </span>
+                            )}
+                          </div>
                           <span className="inline-block mt-0.5 text-[10px] font-mono font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-700">
                             {art.format || 'PSD/AI'}
                           </span>
@@ -471,14 +480,15 @@ export default function AdminArtworksPage() {
 
                         <button
                           onClick={() => handleToggleFeatured(art.id, art.isFeatured)}
-                          className={`p-1.5 rounded-lg transition-colors ${
+                          className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
                             art.isFeatured
-                              ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30'
-                              : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                              ? 'text-red-700 bg-red-100 dark:bg-red-950/60 dark:text-red-300 border border-red-300 dark:border-red-800 shadow-xs'
+                              : 'text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 border border-transparent'
                           }`}
-                          title={art.isFeatured ? 'Hapus dari Pilihan Utama' : 'Jadikan Pilihan Utama (Featured)'}
+                          title={art.isFeatured ? 'Batalkan Pin dari Hero Banner Beranda' : 'Pin / Sematkan ke Hero Banner Beranda'}
                         >
-                          <Star size={16} className={art.isFeatured ? 'fill-amber-500' : ''} />
+                          <Pin size={14} className={art.isFeatured ? 'fill-red-600 rotate-45 text-red-600' : ''} />
+                          <span className="hidden sm:inline">{art.isFeatured ? 'Pinned' : 'Pin'}</span>
                         </button>
 
                         <Link
@@ -489,7 +499,7 @@ export default function AdminArtworksPage() {
                           <Eye size={16} />
                         </Link>
 
-                        {(art.author?.id === 'superadmin_1' || art.author?.email?.toLowerCase() === 'admin@pks.art') && (
+                        {(art.author?.id === 'superadmin_1' || art.author?.email?.toLowerCase() === 'admin@konikph.site' || art.author?.email?.toLowerCase() === 'kepahiangkoni@gmail.com') && (
                           <button
                             onClick={() => handleOpenEdit(art)}
                             className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"

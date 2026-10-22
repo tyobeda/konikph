@@ -6,38 +6,34 @@ import { requireAdminSession } from '@/lib/serverAuth';
 
 const DEFAULT_SETTINGS = {
   id: 'settings',
-  siteName: 'PKSart - Galeri Desain & Foto PKS Official',
-  siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
-  logoUrl: '/uploads/1785832971571.png',
-  logoAdminUrl: '/uploads/1785832976919.png',
-  logoFooterUrl: '/uploads/1785833539740.png',
+  siteName: 'KONI Kabupaten Kepahiang',
+  siteDescription: 'Website Resmi Komite Olahraga Nasional Indonesia (KONI) Kabupaten Kepahiang. Media informasi, cabor, kegiatan, dan twibbon.',
+  logoUrl: '/favicon.ico',
+  logoAdminUrl: '/favicon.ico',
+  logoFooterUrl: '/favicon.ico',
   faviconUrl: '/favicon.ico',
-  ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
-  ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
-  ctaButtonText: 'Daftar Sekarang',
-  ctaButtonLink: '/register',
+  ctaTitle: 'Dukung Kemajuan Olahraga Kabupaten Kepahiang!',
+  ctaDescription: 'Media resmi informasi cabang olahraga, agenda kegiatan, berita olahraga, serta twibbon kampanye dan prestasi atlet Kabupaten Kepahiang.',
+  ctaButtonText: 'Lihat Cabor',
+  ctaButtonLink: '/cabor',
   ctaLogoUrl: '',
   ctaImageUrl: '',
   ctaBgUrl: '',
   ctaEnabled: true,
   ctaLinks: JSON.stringify([
     { label: 'Beranda', url: '/' },
-    { label: 'Tentang PKSART', url: '/p/profil' },
-    { label: 'Galeri PKSART', url: '/explore' },
-    { label: 'Jejaring', url: '/creators' },
-    { label: 'Gabung', url: '/register' },
-    { label: 'Download', url: '/assets' },
-    { label: 'Login/Upload', url: '/login' }
+    { label: 'Berita', url: '/berita' },
+    { label: 'Cabor', url: '/cabor' },
+    { label: 'Twibbon', url: '/twibbon' },
+    { label: 'Profil', url: '/p/profil' },
+    { label: 'Kontak', url: '/p/kontak' }
   ]),
-  ctaSocialText: 'Follow Kami',
+  ctaSocialText: 'Media Sosial Resmi',
   ctaSocialUrl: '#',
   ctaSocialLinks: JSON.stringify([
-    { platform: 'instagram', label: '@pksart', url: 'https://instagram.com' },
-    { platform: 'facebook', label: 'PKS Art', url: 'https://facebook.com' },
-    { platform: 'youtube', label: 'PKS Art Official', url: 'https://youtube.com' },
-    { platform: 'tiktok', label: '@pksart', url: 'https://tiktok.com' },
-    { platform: 'twitter', label: '@pksart', url: 'https://twitter.com' },
-    { platform: 'threads', label: '@pksart', url: 'https://threads.net' },
+    { platform: 'instagram', label: '@konikepahiang', url: 'https://instagram.com' },
+    { platform: 'facebook', label: 'KONI Kepahiang', url: 'https://facebook.com' },
+    { platform: 'youtube', label: 'KONI Kepahiang Official', url: 'https://youtube.com' },
   ]),
   adminWhatsapp: '6281199887766',
   allowCommentLinks: true,
@@ -64,14 +60,11 @@ const DEFAULT_MASTER_FILE_FORMATS = [
 
 export async function getDBSiteSettings() {
   try {
-    let settings = await (prisma as any).siteSettings.findUnique({
-      where: { id: 'settings' }
+    let settings = await (prisma as any).siteSettings.upsert({
+      where: { id: 'settings' },
+      update: {},
+      create: DEFAULT_SETTINGS,
     });
-    if (!settings) {
-      settings = await (prisma as any).siteSettings.create({
-        data: DEFAULT_SETTINGS
-      });
-    }
     // Parse ctaLinks, ctaSocialLinks & maintenanceConfig JSON strings back into objects
     const ctaLinksParsed = settings.ctaLinks ? JSON.parse(settings.ctaLinks) : [];
     let ctaSocialLinksParsed = [];
@@ -245,7 +238,7 @@ export async function updateDBSiteSettings(data: any) {
 export async function verifyAdminPasswordAction(password: string) {
   try {
     await requireAdminSession();
-    const expectedPassword = process.env.ADMIN_PASSWORD || 'pksart2026';
+    const expectedPassword = process.env.ADMIN_PASSWORD || 'konikph2026';
     if (password === expectedPassword) {
       return { success: true };
     }
@@ -379,7 +372,7 @@ export async function exportBackupDataAction() {
     const backupPayload = {
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
-      appName: 'PKSart',
+      appName: 'KONI Kepahiang',
       data: {
         users,
         artworks,
@@ -439,7 +432,7 @@ export async function importRestoreDataAction(jsonString: string) {
               phone: u.phone || '',
               address: u.address || '',
               region: u.region || '',
-              role: u.role || 'Desainer PKS',
+              role: u.role || 'Pengurus Cabor',
               avatar: u.avatar || null,
               status: u.status || 'Active',
             },
@@ -451,7 +444,7 @@ export async function importRestoreDataAction(jsonString: string) {
               password: u.password || null,
               address: u.address || '',
               region: u.region || '',
-              role: u.role || 'Desainer PKS',
+              role: u.role || 'Pengurus Cabor',
               avatar: u.avatar || null,
               status: u.status || 'Active',
             },
@@ -576,7 +569,7 @@ export async function updateSuperAdminCredentialsAction(data: { currentPassword?
 
     // 1. Verify current password
     if (data.currentPassword) {
-      const storedPassword = superAdminUser.password || process.env.ADMIN_PASSWORD || 'pksart2026';
+      const storedPassword = superAdminUser.password || process.env.ADMIN_PASSWORD || 'konikph2026';
       let isMatch = false;
       if (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$')) {
         isMatch = await bcrypt.compare(data.currentPassword, storedPassword).catch(() => false);

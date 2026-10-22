@@ -20,7 +20,7 @@ import {
   LogIn,
   UserPlus
 } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { useData } from '@/context/DataContext';
 import { Footer } from '@/components/Footer';
 import { formatPhoneNumber } from '@/lib/phone';
@@ -244,7 +244,7 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
       region: sanitizedRegion,
       gender: sanitizedGender,
       avatar: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23E5E7EB%22/><path d=%22M50 50C41.7157 50 35 43.2843 35 35C35 26.7157 41.7157 20 50 20C58.2843 20 65 26.7157 65 35C65 43.2843 58.2843 50 50 50ZM50 55C66.5685 55 80 68.4315 80 85H20C20 68.4315 33.4315 55 50 55Z%22 fill=%22%239CA3AF%22/></svg>',
-      role: 'Desainer PKS',
+      role: 'Pengurus Cabor',
     } as any);
 
     setIsRegisterSubmitting(false);
@@ -287,7 +287,7 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
           <span>Kembali ke Beranda</span>
         </Link>
 
-        <PksLogo size="sm" />
+        <KoniLogo size="sm" />
       </div>
 
       {/* Main Auth Card with Tabs */}
@@ -335,7 +335,7 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
           <div className="animate-in fade-in duration-200">
             <div className="text-center mb-6">
               <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                Masuk ke PKSart
+                Masuk ke Portal KONI Kepahiang
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Masukkan email dan kata sandi akun Anda.
@@ -449,10 +449,10 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
           <div className="animate-in fade-in duration-200">
             <div className="text-center mb-6">
               <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                Daftar Akun PKSart
+                Daftar Akun KONI Kepahiang
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Bergabunglah bersama komunitas desainer & pengurus wilayah PKS seluruh Indonesia.
+                Bergabung bersama pengurus cabor, pelatih, kontributor media, dan atlet binaan KONI Kepahiang.
               </p>
             </div>
 
@@ -467,16 +467,16 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
                 <CheckCircle2 size={56} className="text-emerald-500 mx-auto animate-bounce" />
                 <h3 className="text-lg font-black text-gray-900 dark:text-white">Pendaftaran Berhasil!</h3>
                 <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-semibold px-2">
-                  Akun Anda telah diajukan ke sistem. Untuk alasan keamanan, akun desainer baru harus disetujui oleh Administrator PKSart terlebih dahulu sebelum dapat digunakan untuk masuk.
+                  Akun Anda telah diajukan ke sistem. Untuk alasan keamanan dan validitas data, akun baru akan diverifikasi oleh Administrator KONI Kepahiang terlebih dahulu sebelum dapat digunakan.
                 </p>
-                <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/50 text-[#F26522] dark:text-[#ff7a38] text-xs font-bold py-2.5 px-4 rounded-xl max-w-xs mx-auto">
+                <div className="bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold py-2.5 px-4 rounded-xl max-w-xs mx-auto">
                   Status: Menunggu Persetujuan Admin
                 </div>
                 <div className="pt-2 flex flex-col gap-2">
                   <button
                     type="button"
                     onClick={() => setActiveTab('login')}
-                    className="w-full py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white font-bold text-xs rounded-xl shadow-md transition-all text-center cursor-pointer"
+                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md transition-all text-center cursor-pointer"
                   >
                     Masuk ke Halaman Login
                   </button>
@@ -524,8 +524,8 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
                           name="email"
                           value={registerData.email}
                           onChange={handleRegisterChange}
-                          placeholder="contoh: email@pks.art"
-                          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#F26522] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
+                          placeholder="contoh: pengurus@konikph.site"
+                          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal transition-colors"
                           required
                         />
                       </div>
@@ -581,10 +581,10 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
 
                   {/* Right Column */}
                   <div className="space-y-4">
-                    {/* Wilayah DPW Search Combobox */}
+                    {/* Cabang Olahraga / Afiliasi Search Combobox */}
                     <div className="relative">
                       <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">
-                        Wilayah <span className="text-red-500">*</span>
+                        Cabang Olahraga / Afiliasi <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <Building size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500 z-10 pointer-events-none" />
@@ -602,8 +602,8 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
                           onBlur={() => {
                             setTimeout(() => setShowRegionDropdown(false), 250);
                           }}
-                          placeholder="Pilih atau cari wilayah resmi..."
-                          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#F26522] text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal cursor-pointer transition-colors"
+                          placeholder="Pilih Cabor atau KONI (Umum)..."
+                          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-red-600 text-gray-900 dark:text-white font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:font-normal cursor-pointer transition-colors"
                           required
                         />
                         <button
@@ -613,7 +613,7 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
                             e.preventDefault();
                             setShowRegionDropdown((prev) => !prev);
                           }}
-                          className="absolute right-3 top-3 text-gray-400 dark:text-gray-500 hover:text-[#F26522] dark:hover:text-[#F26522] transition-colors p-0.5 cursor-pointer"
+                          className="absolute right-3 top-3 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-500 transition-colors p-0.5 cursor-pointer"
                         >
                           <ChevronDown
                             size={16}
@@ -650,7 +650,7 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
                             })
                           ) : (
                             <div className="px-4 py-3 text-xs text-gray-400 dark:text-gray-500 italic text-center">
-                              {!dpwList || dpwList.length === 0 ? 'Memuat daftar wilayah...' : 'Wilayah tidak ditemukan'}
+                              {!dpwList || dpwList.length === 0 ? 'Memuat daftar cabor...' : 'Cabang olahraga tidak ditemukan'}
                             </div>
                           )}
                         </div>
@@ -805,8 +805,8 @@ function AuthCardContent({ defaultTab = 'login' }: AuthCardProps) {
                     required 
                     value={resetEmail} 
                     onChange={e => setResetEmail(e.target.value)} 
-                    placeholder="email@pks.art" 
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs text-gray-900 dark:text-white font-semibold focus:outline-none focus:border-[#F26522]" 
+                    placeholder="pengurus@konikph.site" 
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-xs text-gray-900 dark:text-white font-semibold focus:outline-none focus:border-red-600" 
                   />
                 </div>
                 <div>

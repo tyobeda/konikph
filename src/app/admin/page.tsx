@@ -37,7 +37,7 @@ const IndonesiaMapSection = dynamic(() => import('@/components/IndonesiaMapSecti
     </div>
   ),
 });
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
@@ -237,9 +237,9 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">
                 <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                   <Trophy size={18} className="text-amber-500" />
-                  <span>10 Desainer Terpopuler</span>
+                  <span>Pengurus & Kontributor Teraktif</span>
                 </h3>
-                <Link href="/admin/desainer" className="text-xs font-bold text-[#F26522] hover:underline">
+                <Link href="/admin/creators" className="text-xs font-bold text-red-600 hover:underline">
                   Lihat Semua
                 </Link>
               </div>

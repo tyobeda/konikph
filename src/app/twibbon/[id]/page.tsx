@@ -15,16 +15,16 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   });
 
   const settings = await prisma.siteSettings.findFirst();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://art.pks.id';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konikph.site';
 
   if (!twibbon) {
     return {
-      title: 'Twibbon Tidak Ditemukan | PKSart',
+      title: 'Twibbon Tidak Ditemukan | KONI Kabupaten Kepahiang',
     };
   }
 
-  const title = `Twibbon ${twibbon.title} - Bingkai Foto Official PKS`;
-  const description = `Pasang foto Anda pada bingkai twibbon ${twibbon.title} official PKS secara online di PKSart.`;
+  const title = `Twibbon ${twibbon.title} - Bingkai Foto Resmi KONI Kepahiang`;
+  const description = `Pasang foto Anda pada bingkai twibbon ${twibbon.title} resmi KONI Kabupaten Kepahiang.`;
   const rawImage = twibbon.imageUrl || (settings as any)?.ogImageUrl || '/img/877859417715829.jpg';
   const imageUrl = rawImage.startsWith('/') ? `${baseUrl}${rawImage}` : rawImage;
 
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       title,
       description,
       url: `${baseUrl}/twibbon/${twibbon.slug || twibbon.id}`,
-      siteName: 'PKSart',
+      siteName: 'KONI Kabupaten Kepahiang',
       images: [
         {
           url: imageUrl,

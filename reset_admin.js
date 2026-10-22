@@ -10,7 +10,7 @@ async function main() {
     console.log('\n======================================================');
     console.log('❌ HARAP SERTAKAN KATA SANDI BARU!');
     console.log('Penggunaan: node reset_admin.js "kata_sandi_baru_anda"');
-    console.log('Contoh:     node reset_admin.js "SuperPksart2026!"');
+    console.log('Contoh:     node reset_admin.js "KoniKph2026!"');
     console.log('======================================================\n');
     process.exit(1);
   }
@@ -31,7 +31,7 @@ async function main() {
       OR: [
         { id: 'superadmin_1' },
         { role: 'Super Admin' },
-        { email: 'admin@pks.art' }
+        { email: 'admin@konikph.site' }
       ]
     }
   });
@@ -55,14 +55,14 @@ async function main() {
     const newUser = await prisma.user.create({
       data: {
         id: 'superadmin_1',
-        name: 'Super Admin PKSart',
-        email: 'admin@pks.art',
+        name: 'Super Admin KONI Kepahiang',
+        email: 'admin@konikph.site',
         phone: '+6281199887766',
         password: hashedPassword,
         role: 'Super Admin',
         status: 'Active',
-        region: 'DPP PKS Official',
-        address: 'DPP PKS Official, Jakarta',
+        region: 'KONI Kabupaten Kepahiang',
+        address: 'KONI Kabupaten Kepahiang, Bengkulu',
       }
     });
 

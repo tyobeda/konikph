@@ -2,8 +2,8 @@ import { AuthCard } from '@/components/AuthCard';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Masuk / Daftar Akun - PKSart Official',
-  description: 'Masuk atau daftar akun desainer resmi PKSart.',
+  title: 'Masuk / Login - KONI Kabupaten Kepahiang',
+  description: 'Masuk ke portal resmi KONI Kabupaten Kepahiang untuk pengurus dan kontributor.',
 };
 
 export default function LoginPage() {

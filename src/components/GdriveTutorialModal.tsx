@@ -79,9 +79,9 @@ export const GdriveTutorialModal: React.FC<GdriveTutorialModalProps> = ({ isOpen
               3
             </span>
             <div className="space-y-1">
-              <p className="font-bold text-gray-900 text-xs">Salin Link & Tempel di Form PKSart</p>
+              <p className="font-bold text-gray-900 text-xs">Salin Link & Tempel di Form Unggah</p>
               <p className="text-gray-500 leading-relaxed text-[11px]">
-                Klik tombol <strong className="text-blue-600">"Salin Link (Copy Link)"</strong>, kemudian tempelkan (paste) tautan tersebut pada kolom <span className="font-semibold text-gray-800">Tautan File Master / Tautan Berbagi</span> di form PKSart.
+                Klik tombol <strong className="text-blue-600">"Salin Link (Copy Link)"</strong>, kemudian tempelkan (paste) tautan tersebut pada kolom <span className="font-semibold text-gray-800">Tautan Berkas Master / Berbagi</span> di form KONI Kepahiang.
               </p>
             </div>
           </div>

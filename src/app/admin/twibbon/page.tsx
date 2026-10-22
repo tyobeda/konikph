@@ -201,8 +201,8 @@ export default function AdminTwibbonPage() {
         category: 'Nasional',
         region: 'Nasional',
         author: {
-          name: 'Super Admin PKS',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+          name: 'Super Admin KONI',
+          avatar: '/favicon.ico',
         },
         status: 'Disetujui',
         isFeatured: true,
@@ -630,8 +630,8 @@ export default function AdminTwibbonPage() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Contoh: Twibbon Milenial PKS 2026"
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#F26522]"
+                  placeholder="Contoh: Twibbon Semangat Porprov Bengkulu 2026"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-red-600"
                   required
                 />
               </div>

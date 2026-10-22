@@ -2,8 +2,8 @@ import { AuthCard } from '@/components/AuthCard';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Daftar Akun Baru - PKSart Official',
-  description: 'Daftar akun desainer resmi PKSart.',
+  title: 'Daftar Akun Pengurus - KONI Kabupaten Kepahiang',
+  description: 'Daftar akun pengurus cabang olahraga dan kontributor resmi KONI Kabupaten Kepahiang.',
 };
 
 export default function RegisterPage() {

@@ -76,7 +76,8 @@ export default function ArtworkDetailContent() {
       currentUser.role?.toLowerCase() === 'super admin' ||
       currentUser.role?.toLowerCase() === 'admin' ||
       currentUser.role?.toLowerCase().includes('admin') ||
-      currentUser.email?.toLowerCase() === 'admin@pks.art' ||
+      currentUser.email?.toLowerCase() === 'admin@konikph.site' ||
+      currentUser.email?.toLowerCase() === 'kepahiangkoni@gmail.com' ||
       currentUser.id === 'superadmin_1'
     )
   );
@@ -369,7 +370,7 @@ export default function ArtworkDetailContent() {
       return comment.author;
     }
     return {
-      name: comment?.name || 'Pengguna PKS',
+      name: comment?.name || 'Pengguna KONI',
       region: comment?.region || 'Nasional',
       avatar: comment?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
       email: comment?.email || '',
@@ -815,7 +816,7 @@ export default function ArtworkDetailContent() {
             <AlertTriangle className="text-amber-600 shrink-0" size={22} />
             <div className="text-xs sm:text-sm leading-relaxed">
               <p className="font-bold text-amber-900">Karya Sedang Menunggu Peninjauan (Pending Review)</p>
-              <p className="text-amber-700">Karya ini sedang dalam antrean moderasi oleh Administrator PKSart sebelum dapat diakses publik di galeri utama.</p>
+              <p className="text-amber-700">Karya ini sedang dalam antrean moderasi oleh Administrator KONI Kepahiang sebelum dapat diakses publik di galeri utama.</p>
             </div>
           </div>
         )}
@@ -852,20 +853,20 @@ export default function ArtworkDetailContent() {
                   >
                     <img
                       src={artwork.author?.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200'}
-                      alt={artwork.author?.name || 'Desainer PKS'}
+                      alt={artwork.author?.name || 'Pengurus KONI'}
                       className="w-full h-full object-cover aspect-square rounded-full block"
                     />
                   </Link>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <Link href={`/creators/${getUserSlug(artwork.author)}`}>
-                        <h2 className="text-sm font-extrabold text-gray-900 dark:text-gray-100 leading-snug hover:text-[#F26522] transition-colors">
-                          {artwork.author?.name || 'Desainer PKS'}
+                        <h2 className="text-sm font-extrabold text-gray-900 dark:text-gray-100 leading-snug hover:text-red-600 transition-colors">
+                          {artwork.author?.name || 'Pengurus KONI'}
                         </h2>
                       </Link>
                       {(artwork.author?.isVerified || artwork.author?.role === 'Super Admin') && (
-                        <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
-                          <BadgeCheck size={16} className="text-[#F26522] fill-orange-50 dark:fill-orange-950" />
+                        <span title="Verified Pengurus KONI" className="shrink-0 flex items-center">
+                          <BadgeCheck size={16} className="text-red-600 fill-red-50 dark:fill-red-950" />
                         </span>
                       )}
                     </div>
@@ -1026,8 +1027,8 @@ export default function ArtworkDetailContent() {
                               <span className="font-bold text-gray-900 dark:text-gray-100 hover:text-[#F26522] transition-colors">{author.name}</span>
                             </Link>
                             {(author.isVerified || author.role === 'Super Admin') && (
-                              <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
-                                <BadgeCheck size={13} className="text-[#F26522] fill-orange-50 dark:fill-orange-950" />
+                              <span title="Verified Pengurus KONI" className="shrink-0 flex items-center">
+                                <BadgeCheck size={13} className="text-red-600 fill-red-50 dark:fill-red-950" />
                               </span>
                             )}
                             {comment.isEdited && (
@@ -1558,7 +1559,7 @@ export default function ArtworkDetailContent() {
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
                   <span>Deskripsi Karya</span>
-                  <span className="text-[11px] font-normal text-[#F26522] lowercase">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
+                  <span className="text-[11px] font-normal text-red-600 lowercase">Hashtag dapat diketik langsung di sini (contoh: #Porprov2026 #KepahiangJuara)</span>
                 </label>
                 <textarea
                   rows={3}

@@ -23,13 +23,13 @@ const ThemeContext = createContext<ThemeContextType>({
 /** Write theme to both localStorage and cookie (cookie dipakai server untuk SSR tanpa flash) */
 function persistTheme(theme: Theme): void {
   try {
-    localStorage.setItem('pksart_theme', theme);
+    localStorage.setItem('koni_theme', theme);
   } catch {
     // Ignore
   }
   try {
     // Cookie dibaca layout.tsx saat SSR — max-age 1 tahun
-    document.cookie = `pksart_theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `koni_theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
   } catch {
     // Ignore
   }
@@ -39,14 +39,14 @@ function persistTheme(theme: Theme): void {
 function readSavedTheme(): Theme {
   if (typeof window === 'undefined') return 'system';
   try {
-    const saved = localStorage.getItem('pksart_theme') as Theme | null;
+    const saved = localStorage.getItem('koni_theme') as Theme | null;
     if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
   } catch {
     // Ignore
   }
   // Fallback ke cookie jika localStorage kosong
   try {
-    const match = document.cookie.match(/(?:^|;\s*)pksart_theme=([^;]+)/);
+    const match = document.cookie.match(/(?:^|;\s*)koni_theme=([^;]+)/);
     const cookieVal = match?.[1] as Theme | undefined;
     if (cookieVal === 'light' || cookieVal === 'dark' || cookieVal === 'system') return cookieVal;
   } catch {

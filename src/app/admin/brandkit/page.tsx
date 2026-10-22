@@ -228,11 +228,11 @@ export default function AdminBrandKit() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-            <Folder className="text-[#F26522]" />
-            <span>Brand Kit & Pedoman Visual PKS</span>
+            <Folder className="text-red-600" />
+            <span>Brand Kit & Aset Resmi KONI Kepahiang</span>
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Manajemen aset publikasi resmi, berkas logo vektor, palet warna, dan templat presentasi.
+            Manajemen dokumen resmi, berkas logo vektor, formulir atlet, dan materi publikasi keolahragaan.
           </p>
         </div>
 
@@ -509,8 +509,8 @@ export default function AdminBrandKit() {
                       slug: !isCustomSlug && !editingKit ? slugify(newTitle) : prev.slug,
                     }));
                   }}
-                  className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-[#F26522] text-sm font-semibold"
-                  placeholder="Misal: Logo Resmi PKS Vektor"
+                  className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-red-600 text-sm font-semibold"
+                  placeholder="Misal: Logo Resmi KONI Kepahiang Vektor"
                   required
                 />
               </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Compass, PlusCircle, Layers, Users, User } from 'lucide-react';
+import { Home, Trophy, PlusCircle, Sparkles, Layers, User } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { getUserSlug } from '@/lib/slug';
 
@@ -35,9 +35,9 @@ export const MobileBottomNav: React.FC = () => {
 
   const navItems = [
     { label: 'Beranda', href: '/', icon: Home },
-    { label: 'Eksplorasi', href: '/explore', icon: Compass },
+    { label: 'Cabor', href: '/cabor', icon: Trophy },
     { label: 'Unggah', href: '#', icon: PlusCircle, isHighlight: true },
-    { label: 'Aset', href: '/assets', icon: Layers },
+    { label: 'Twibbon', href: '/twibbon', icon: Sparkles },
     { label: 'Profil', href: profileHref, icon: User },
   ];
 
@@ -67,9 +67,9 @@ export const MobileBottomNav: React.FC = () => {
                     href="/upload"
                     prefetch={true}
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 active:bg-orange-100 dark:active:bg-orange-950/40 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 active:bg-red-100 dark:active:bg-red-950/40 transition-colors"
                   >
-                    <div className="bg-[#F26522] text-white p-1.5 rounded-lg">
+                    <div className="bg-red-600 text-white p-1.5 rounded-lg">
                       <PlusCircle size={18} />
                     </div>
                     <span className="text-sm font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Tambah Karya</span>
@@ -78,9 +78,9 @@ export const MobileBottomNav: React.FC = () => {
                     href="/twibbon"
                     prefetch={true}
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 active:bg-orange-100 dark:active:bg-orange-950/40 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 active:bg-red-100 dark:active:bg-red-950/40 transition-colors"
                   >
-                    <div className="bg-[#F26522] text-white p-1.5 rounded-lg">
+                    <div className="bg-red-600 text-white p-1.5 rounded-lg">
                       <Layers size={18} />
                     </div>
                     <span className="text-sm font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">Tambah Twibbon</span>
@@ -91,10 +91,10 @@ export const MobileBottomNav: React.FC = () => {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex flex-col items-center justify-center relative -top-3.5 group outline-none"
                 >
-                  <div className={`w-13 h-13 p-3 rounded-full bg-gradient-to-tr from-[#d85417] to-[#F26522] text-white flex items-center justify-center shadow-lg active:scale-95 transition-all ring-4 ring-white dark:ring-[#0B0F17] ${isMenuOpen ? 'rotate-45 shadow-[#F26522]/40' : ''}`}>
+                  <div className={`w-13 h-13 p-3 rounded-full bg-gradient-to-tr from-red-700 to-red-500 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all ring-4 ring-white dark:ring-[#0B0F17] ${isMenuOpen ? 'rotate-45 shadow-red-600/40' : ''}`}>
                     <PlusCircle size={26} />
                   </div>
-                  <span className="text-[10px] font-extrabold text-[#F26522] mt-0.5">
+                  <span className="text-[10px] font-extrabold text-red-600 mt-0.5">
                     {item.label}
                   </span>
                 </button>
@@ -108,10 +108,10 @@ export const MobileBottomNav: React.FC = () => {
               href={item.href}
               prefetch={true}
               className={`flex flex-col items-center justify-center py-1.5 px-2 min-w-[54px] rounded-xl transition-all ${
-                isActive ? 'text-[#F26522] font-black scale-105' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                isActive ? 'text-red-600 font-black scale-105' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }`}
             >
-              <Icon size={20} className={isActive ? 'stroke-[2.5px] text-[#F26522]' : 'stroke-2'} />
+              <Icon size={20} className={isActive ? 'stroke-[2.5px] text-red-600' : 'stroke-2'} />
               <span className="text-[10px] mt-1 font-semibold tracking-tight">{item.label}</span>
             </Link>
           );

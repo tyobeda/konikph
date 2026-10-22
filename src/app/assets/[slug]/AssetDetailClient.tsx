@@ -49,7 +49,7 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
   const isPublic = brandKit.isPublic !== false;
   const isAccessible = isPublic || !!currentUser;
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : `https://art.pks.id/assets/${brandKit.slug || brandKit.id}`;
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : `https://konikph.site/assets/${brandKit.slug || brandKit.id}`;
 
   const triggerDirectDownload = async (fileUrl: string, fileName?: string) => {
     if (!fileUrl) return;
@@ -105,7 +105,7 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
     }
 
     setIsDownloading(true);
-    triggerDirectDownload(brandKit.fileUrl, `${brandKit.title} - PKSart`);
+    triggerDirectDownload(brandKit.fileUrl, `${brandKit.title} - KONI Kepahiang`);
     setTimeout(() => setIsDownloading(false), 2000);
   };
 
@@ -235,7 +235,7 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
               <div className="flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 pt-3 border-t border-gray-200/60 dark:border-gray-800/80">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck size={14} className="text-emerald-500" />
-                  <span>Aset Resmi PKS</span>
+                  <span>Aset Resmi KONI Kepahiang</span>
                 </span>
                 {downloads > 0 && (
                   <span className="font-mono font-bold text-gray-600 dark:text-gray-400">
@@ -303,7 +303,7 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                     {brandKit.description ||
-                      'Gunakan aset identitas visual resmi ini sesuai pedoman standar komunikasi PKS. Pastikan menjaga proporsi rasio logo, kesesuaian palet warna, dan keterbacaan tipografi pada media publikasi Anda.'}
+                      'Gunakan aset identitas visual dan dokumen resmi ini sesuai pedoman standar komunikasi KONI Kabupaten Kepahiang. Pastikan menjaga proporsi rasio logo, kesesuaian palet warna, dan integritas dokumen pada media publikasi Anda.'}
                   </p>
                 </div>
 
@@ -441,17 +441,17 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="text-[#F26522]" size={20} />
-                  <span>Aset Brand Kit Lainnya</span>
+                  <Sparkles className="text-red-600" size={20} />
+                  <span>Aset & Dokumen Lainnya</span>
                 </h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  Telusuri materi visual dan templat grafis resmi lainnya dari PKS.
+                  Telusuri materi visual, dokumen, dan templat grafis resmi lainnya dari KONI Kabupaten Kepahiang.
                 </p>
               </div>
 
               <Link
                 href="/assets"
-                className="text-xs font-bold text-[#F26522] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1"
               >
                 <span>Lihat Semua</span>
                 <span>&rarr;</span>
@@ -526,7 +526,7 @@ export default function AssetDetailClient({ brandKit, relatedKits = [] }: AssetD
         onClose={() => setIsShareModalOpen(false)}
         url={currentUrl}
         title={brandKit.title}
-        description={brandKit.description || `Unduh aset resmi ${brandKit.title} di PKSart.`}
+        description={brandKit.description || `Unduh dokumen & aset resmi ${brandKit.title} di portal KONI Kepahiang.`}
       />
 
       {/* Copied Toast Alert */}

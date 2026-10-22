@@ -66,13 +66,13 @@ export async function loginUser(email: string, passwordInput: string) {
       if (user.status === 'Pending' || user.status === 'Pending Approval') {
         return { 
           success: false, 
-          message: 'Akun Anda sedang dalam proses persetujuan (Approval) oleh Admin PKSart. Silakan tunggu konfirmasi Admin.' 
+          message: 'Akun Anda sedang dalam proses persetujuan (Approval) oleh Admin KONI Kepahiang. Silakan tunggu konfirmasi Admin.' 
         };
       }
       if (user.status === 'Suspended') {
         return { 
           success: false, 
-          message: 'Akun Anda saat ini ditangguhkan. Silakan hubungi pengurus Admin PKSart.' 
+          message: 'Akun Anda saat ini ditangguhkan. Silakan hubungi pengurus Admin KONI Kepahiang.' 
         };
       }
       return { success: true, user, message: 'Login berhasil!' };
@@ -123,7 +123,7 @@ export async function registerUser(data: {
         password: hashedPassword,
         address: data.address || '',
         region: data.region || '',
-        role: data.role || 'Desainer PKS',
+        role: data.role || 'Pengurus Cabor',
         status: 'Pending', // Memerlukan approval admin
         avatar: data.avatar || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200',
       }

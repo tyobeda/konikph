@@ -1142,14 +1142,14 @@ export default function AdminPageWorkspace() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Slug URL ({pageUseRootPath ? `pks.art/${pageSlug || 'your-slug'}` : `pks.art/p/${pageSlug || 'your-slug'}`})
+                  Slug URL ({pageUseRootPath ? `konikph.site/${pageSlug || 'your-slug'}` : `konikph.site/p/${pageSlug || 'your-slug'}`})
                 </label>
                 <input
                   type="text"
                   value={pageSlug}
                   onChange={(e) => setPageSlug(e.target.value)}
-                  placeholder="contoh: panduan-desainer"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                  placeholder="contoh: panduan-cabor"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/30"
                 />
               </div>
 
@@ -1159,7 +1159,7 @@ export default function AdminPageWorkspace() {
                   id="sidebar-published"
                   checked={pagePublished}
                   onChange={(e) => setPagePublished(e.target.checked)}
-                  className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                  className="w-4.5 h-4.5 text-red-600 focus:ring-red-600 border-gray-300 rounded cursor-pointer accent-red-600"
                 />
                 <label htmlFor="sidebar-published" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
                   Terbitkan Halaman (Public)
@@ -1172,10 +1172,10 @@ export default function AdminPageWorkspace() {
                   id="sidebar-userootpath"
                   checked={pageUseRootPath}
                   onChange={(e) => setPageUseRootPath(e.target.checked)}
-                  className="w-4.5 h-4.5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                  className="w-4.5 h-4.5 text-red-600 focus:ring-red-600 border-gray-300 rounded cursor-pointer accent-red-600"
                 />
                 <label htmlFor="sidebar-userootpath" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
-                  Gunakan Root Link (pks.art/slug)
+                  Gunakan Root Link (konikph.site/slug)
                 </label>
               </div>
 
@@ -1274,7 +1274,7 @@ export default function AdminPageWorkspace() {
                   <span>Aturan Slug Halaman:</span>
                 </div>
                 <p>Slug hanya menggunakan huruf kecil, angka, dan tanda hubung (-).</p>
-                <p>Contoh: <strong className="font-semibold">tentang-pksart</strong></p>
+                <p>Contoh: <strong className="font-semibold">tentang-koni</strong></p>
               </div>
             </div>
           )}
@@ -1970,7 +1970,7 @@ export default function AdminPageWorkspace() {
                             type="text"
                             value={blocks[selectedBlockIndex].imageLink || ''}
                             onChange={(e) => updateBlockField(selectedBlockIndex, 'imageLink', e.target.value)}
-                            placeholder="Contoh: https://pks.art atau /p/kontak"
+                            placeholder="Contoh: https://konikph.site atau /p/kontak"
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
                           />
                         </div>
@@ -3088,14 +3088,14 @@ export default function AdminPageWorkspace() {
 
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Slug URL ({pageUseRootPath ? `pks.art/${pageSlug || 'your-slug'}` : `pks.art/p/${pageSlug || 'your-slug'}`})
+                      Slug URL ({pageUseRootPath ? `konikph.site/${pageSlug || 'your-slug'}` : `konikph.site/p/${pageSlug || 'your-slug'}`})
                     </label>
                     <input
                       type="text"
                       value={pageSlug}
                       onChange={(e) => setPageSlug(e.target.value)}
-                      placeholder="contoh: panduan-desainer"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-[#F26522] focus:ring-1 focus:ring-[#F26522]/30"
+                      placeholder="contoh: panduan-cabor"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-normal text-gray-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/30"
                     />
                   </div>
 
@@ -3105,7 +3105,7 @@ export default function AdminPageWorkspace() {
                       id="mobile-published"
                       checked={pagePublished}
                       onChange={(e) => setPagePublished(e.target.checked)}
-                      className="w-5 h-5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                      className="w-5 h-5 text-red-600 focus:ring-red-600 border-gray-300 rounded cursor-pointer accent-red-600"
                     />
                     <label htmlFor="mobile-published" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
                       Terbitkan Halaman (Public)
@@ -3118,10 +3118,10 @@ export default function AdminPageWorkspace() {
                       id="mobile-rootpath"
                       checked={pageUseRootPath}
                       onChange={(e) => setPageUseRootPath(e.target.checked)}
-                      className="w-5 h-5 text-[#F26522] focus:ring-[#F26522] border-gray-300 rounded cursor-pointer accent-[#F26522]"
+                      className="w-5 h-5 text-red-600 focus:ring-red-600 border-gray-300 rounded cursor-pointer accent-red-600"
                     />
                     <label htmlFor="mobile-rootpath" className="text-xs font-medium text-gray-700 cursor-pointer select-none">
-                      Gunakan Root Link (pks.art/slug)
+                      Gunakan Root Link (konikph.site/slug)
                     </label>
                   </div>
 

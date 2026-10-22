@@ -55,17 +55,17 @@ export default function CreatorsPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Banner Title */}
-        <div className="bg-gradient-to-r from-[#1E293B] via-[#0f172a] to-[#1E293B] rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-red-950 via-slate-900 to-red-900 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden border border-red-900/30">
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F26522] text-white text-xs font-bold rounded-full mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full mb-3">
               <Sparkles size={14} />
-              <span>Komunitas & Struktur Official</span>
+              <span>Struktur & Organisasi Resmi</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Direktori Desainer Grafis & Wilayah PKS
+              Direktori Pengurus & Cabang Olahraga
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-              Jelajahi para perancang grafis, desainer visual, serta koordinator sekretariat Wilayah PKS se-Indonesia yang aktif berkontribusi menyediakan aset publikasi resmi.
+              Jajaran pengurus komite KONI Kabupaten Kepahiang, koordinator bidang, serta ketua dan sekretariat 23 cabang olahraga binaan resmi daerah.
             </p>
           </div>
 
@@ -79,26 +79,26 @@ export default function CreatorsPage() {
           <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
             <button
               onClick={() => setActiveTab('creators')}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 activeTab === 'creators'
-                  ? 'bg-[#F26522] text-white shadow-md'
+                  ? 'bg-red-600 text-white shadow-md'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
               <Users size={16} />
-              <span>Desainer Terdaftar ({users.length})</span>
+              <span>Pengurus & Anggota ({users.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('dpw')}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 activeTab === 'dpw'
-                  ? 'bg-[#F26522] text-white shadow-md'
+                  ? 'bg-red-600 text-white shadow-md'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
               <Building size={16} />
-              <span>Wilayah / Chapter ({dpwList.length})</span>
+              <span>Cabang Olahraga ({dpwList.length})</span>
             </button>
           </div>
 
@@ -162,7 +162,7 @@ export default function CreatorsPage() {
                           <span>{user.region}</span>
                         </p>
                         <span className="inline-block text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded mt-1.5">
-                          {user.role === 'Kreator' || user.role === 'Kreator PKS' || !user.role ? 'Desainer PKS' : user.role}
+                          {user.role || 'Pengurus Cabor'}
                         </span>
                       </div>
                     </div>
@@ -217,46 +217,68 @@ export default function CreatorsPage() {
           </div>
         )}
 
-        {/* DPW TAB */}
+        {/* CABOR TAB */}
         {activeTab === 'dpw' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDpw.map((dpw) => (
               <div
                 key={dpw.id}
-                className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group hover:border-red-200 dark:hover:border-red-950/50"
               >
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
-                      <h3 className="font-extrabold text-base text-gray-900 dark:text-white">
-                        {dpw.name.replace(/^DPW\s+/i, '')}
+                      <h3 className="font-extrabold text-base text-gray-900 dark:text-white group-hover:text-red-600 transition-colors">
+                        {dpw.name}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                        Wilayah {dpw.name.replace(/^DPW\s+/i, '')}
+                      <p className="text-xs text-red-600 dark:text-red-400 font-bold mt-0.5">
+                        {dpw.code} {dpw.category ? `• ${dpw.category}` : ''}
                       </p>
                     </div>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      Aktif
+                    </span>
                   </div>
 
                   <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400 mb-4 bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-xl border border-gray-100 dark:border-gray-800">
                     <p className="font-bold text-gray-900 dark:text-gray-200 flex items-center gap-1.5">
-                      <Users size={14} className="text-[#F26522]" />
-                      <span>Koordinator: {dpw.coordinator}</span>
+                      <Users size={14} className="text-red-600" />
+                      <span>Ketua: {dpw.coordinator}</span>
                     </p>
                     {dpw.phone && (
                       <p className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                        <PhoneCall size={13} className="text-gray-400 dark:text-gray-500" />
+                        <PhoneCall size={13} className="text-emerald-600 dark:text-emerald-400" />
                         <span>{dpw.phone}</span>
+                      </p>
+                    )}
+                    {dpw.address && (
+                      <p className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 truncate">
+                        <MapPin size={13} className="text-gray-400" />
+                        <span className="truncate">{dpw.address}</span>
                       </p>
                     )}
                   </div>
                 </div>
 
-                <Link
-                  href={`/?search=${encodeURIComponent(dpw.name)}`}
-                  className="w-full py-2.5 px-4 bg-[#1E293B] dark:bg-gray-800 hover:bg-slate-800 dark:hover:bg-gray-700 text-white text-xs font-bold rounded-xl text-center transition-colors block"
-                >
-                  Lihat Karya Wilayah {dpw.name.replace(/^DPW\s+/i, '')}
-                </Link>
+                <div className="flex items-center gap-2">
+                  {dpw.phone && (
+                    <a
+                      href={`https://wa.me/${dpw.phone.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 py-2 px-3 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-xl text-center flex items-center justify-center gap-1.5 transition-colors border border-emerald-200 dark:border-emerald-800"
+                    >
+                      <PhoneCall size={13} />
+                      <span>WhatsApp</span>
+                    </a>
+                  )}
+                  <Link
+                    href={`/cabor`}
+                    className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl text-center transition-colors"
+                  >
+                    Profil Cabor
+                  </Link>
+                </div>
               </div>
             ))}
           </div>

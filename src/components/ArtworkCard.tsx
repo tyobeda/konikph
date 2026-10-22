@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Trash2,
   BadgeCheck,
+  Pin,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { Artwork } from '@/lib/types';
@@ -58,7 +59,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     currentUser && artwork.likedUserIds && artwork.likedUserIds.includes(currentUser.id)
   );
 
-  const fallbackImage = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="%23F26522"/><circle cx="300" cy="350" r="120" fill="white" opacity="0.2"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="36" font-weight="bold">PKSart Official</text><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20" opacity="0.9">${encodeURIComponent(artwork.title)}</text></svg>`;
+  const fallbackImage = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="%23DC2626"/><circle cx="300" cy="350" r="120" fill="white" opacity="0.2"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="36" font-weight="bold">KONI Kepahiang</text><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20" opacity="0.9">${encodeURIComponent(artwork.title)}</text></svg>`;
 
   const initialImg = artwork.imageUrl || (artwork.imageUrls && artwork.imageUrls[0]) || '';
   const [likes, setLikes] = useState(artwork.likesCount);
@@ -415,7 +416,8 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       currentUser.role?.toLowerCase() === 'super admin' ||
       currentUser.role?.toLowerCase() === 'admin' ||
       currentUser.role?.toLowerCase().includes('admin') ||
-      currentUser.email?.toLowerCase() === 'admin@pks.art' ||
+      currentUser.email?.toLowerCase() === 'admin@konikph.site' ||
+      currentUser.email?.toLowerCase() === 'kepahiangkoni@gmail.com' ||
       currentUser.id === 'superadmin_1'
     )
   );
@@ -463,6 +465,12 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       <div className="group bg-white dark:bg-[#161B26] rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-800 transition-all duration-200 flex flex-col mb-4 break-inside-avoid">
       {/* Thumbnail Area - 100% Natural Original Ratio (0% Cropping) */}
       <div className="relative block w-full overflow-hidden rounded-t-xl bg-gray-50 dark:bg-gray-900">
+        {artwork.isFeatured && (
+          <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 px-2.5 py-0.5 bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black rounded-full shadow-md border border-red-400/40 pointer-events-none">
+            <Pin size={10} className="fill-white rotate-45" />
+            <span>TERSEMAT</span>
+          </div>
+        )}
         <div className="relative w-full overflow-hidden">
           {artwork.imageUrls && artwork.imageUrls.length > 1 ? (
             <CarouselViewer
@@ -529,8 +537,8 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                   {artwork.author.name}
                 </Link>
                 {(artwork.author?.isVerified || artwork.author?.role === 'Super Admin') && (
-                  <span title="Verified Desainer PKS" className="shrink-0 flex items-center">
-                    <BadgeCheck size={14} className="text-[#F26522] fill-orange-50 dark:fill-orange-950" />
+                  <span title="Verified Pengurus KONI" className="shrink-0 flex items-center">
+                    <BadgeCheck size={14} className="text-red-600 fill-red-50 dark:fill-red-950" />
                   </span>
                 )}
               </div>
@@ -875,7 +883,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
                   <span>Deskripsi Karya</span>
-                  <span className="text-[11px] font-normal text-[#F26522] lowercase">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
+                  <span className="text-[11px] font-normal text-red-600 lowercase">Hashtag dapat diketik langsung di sini (contoh: #Porprov2026 #KepahiangJuara)</span>
                 </label>
                 <textarea
                   rows={3}
@@ -902,18 +910,13 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-[#F26522]"
                 >
                   {[
-                    'Hikmah-Motivasi',
-                    'Logo',
-                    'Mereka Bicara PKS',
-                    'Kegiatan-Event PKS',
-                    'Pemilu-Pemilukada',
-                    'Tokoh PKS Bicara',
-                    'Freehand-Komik-Karikatur',
-                    'Kaligrafi-Kufi Design',
-                    'Infografis-InfoPKS',
-                    'Ucapan Selamat-Selebrasi-Duka Cita',
-                    'Ragam Indonesia',
-                    'Serba Serbi',
+                    'Dokumentasi Kegiatan',
+                    'Poster Event & Kejuaraan',
+                    'Infografis Olahraga',
+                    'Prestasi & Piagam',
+                    'Logo & Lambang Cabor',
+                    'Pengumuman',
+                    'Serba-Serbi Olahraga',
                   ].map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}

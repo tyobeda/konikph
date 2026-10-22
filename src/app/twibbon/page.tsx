@@ -135,11 +135,11 @@ export default function TwibbonGalleryPage() {
         <div className="border-b border-gray-200 dark:border-gray-800 pb-5 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-              <LayoutGrid size={24} className="text-[#F26522]" />
-              <span>Galeri Bingkai Twibbon PKS</span>
+              <LayoutGrid size={24} className="text-red-600" />
+              <span>Galeri Bingkai Twibbon KONI Kepahiang</span>
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Pilih bingkai twibbon resmi PKS dari berbagai wilayah untuk mempercantik foto profil media sosial Anda.
+              Pilih bingkai twibbon resmi KONI Kepahiang dan cabang olahraga untuk menyemarakkan event, kejuaraan, dan kampanye prestasi atlet.
             </p>
           </div>
 

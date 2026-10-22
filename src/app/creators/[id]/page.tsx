@@ -59,14 +59,14 @@ export default function CreatorPublicProfilePage() {
     return false;
   });
 
-  if (!creator && (decodedId === 'super-admin' || decodedId === 'admin' || decodedId === 'u-admin' || decodedId === 'super-admin-pksart')) {
+  if (!creator && (decodedId === 'super-admin' || decodedId === 'admin' || decodedId === 'u-admin' || decodedId === 'super-admin-koni')) {
     creator = {
       id: 'superadmin_1',
-      name: 'Super Admin PKSart',
-      email: 'admin@pks.art',
+      name: 'Super Admin KONI Kepahiang',
+      email: 'admin@konikph.site',
       phone: '081234567890',
-      address: 'DPP PKS, Jakarta',
-      region: 'Nasional',
+      address: 'GOR Tebat Monok, Kepahiang, Bengkulu',
+      region: 'Kabupaten Kepahiang',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
       role: 'Super Admin',
       status: 'Active',
@@ -127,15 +127,15 @@ export default function CreatorPublicProfilePage() {
           <div className="w-16 h-16 bg-orange-50 dark:bg-orange-950/30 text-[#F26522] rounded-full flex items-center justify-center mb-4">
             <LayoutGrid size={30} />
           </div>
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Desainer Tidak Ditemukan</h3>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">Pengurus Tidak Ditemukan</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-6">
-            Profil desainer yang Anda tuju tidak terdaftar atau telah dinonaktifkan dari sistem PKSart.
+            Profil pengurus yang Anda tuju tidak terdaftar atau telah dinonaktifkan dari sistem KONI Kepahiang.
           </p>
           <button
             onClick={() => router.push('/creators')}
             className="px-5 py-2.5 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-bold rounded-xl transition-all"
           >
-            Lihat Semua Desainer
+            Lihat Semua Pengurus
           </button>
         </main>
       </div>
@@ -201,14 +201,14 @@ export default function CreatorPublicProfilePage() {
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">{creator.name}</h1>
                   {(creator.isVerified || creator.role === 'Super Admin') && (
-                    <span title="Verified Desainer PKS">
+                    <span title="Verified Pengurus KONI">
                       <BadgeCheck size={20} className="text-[#F26522] fill-orange-50 dark:fill-orange-950/50" />
                     </span>
                   )}
                 </div>
 
                 <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                  {creator.role || 'Desainer PKSart'}
+                  {creator.role || 'Pengurus KONI'}
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3.5 text-xs text-gray-500 dark:text-gray-400 font-semibold pt-1">
@@ -357,7 +357,7 @@ export default function CreatorPublicProfilePage() {
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mt-1">
                   {activeTab === 'karya'
-                    ? 'Desainer ini belum mengunggah karya poster atau desain apa pun ke galeri PKSart.'
+                    ? 'Pengurus ini belum mengunggah dokumentasi atau poster ke galeri KONI Kepahiang.'
                     : 'Belum ada karya yang ditandai sebagai favorit.'}
                 </p>
               </div>
@@ -442,7 +442,7 @@ export default function CreatorPublicProfilePage() {
 
                     <div>
                       <h4 className="font-extrabold text-sm text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#F26522] transition-colors">
-                        {item.twibbon?.title || 'Frame Twibbon PKS'}
+                        {item.twibbon?.title || 'Frame Twibbon KONI'}
                       </h4>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                         Kategori: {item.twibbon?.category || 'Nasional'} • {item.twibbon?.region || 'Official'}
@@ -463,7 +463,7 @@ export default function CreatorPublicProfilePage() {
                         {item.resultImageUrl && (
                           <a
                             href={item.resultImageUrl}
-                            download={`Twibbon_${item.twibbon?.title || 'PKS'}.png`}
+                            download={`Twibbon_${item.twibbon?.title || 'KONI'}.png`}
                             className="p-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-[#F26522] dark:hover:text-[#F26522] hover:border-orange-200 dark:hover:border-orange-900/50 rounded-lg shadow-sm transition-all"
                             title="Unduh Lagi"
                           >

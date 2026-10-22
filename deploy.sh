@@ -1,11 +1,11 @@
 #!/bin/bash
 echo "=================================================="
-echo "🚀 MEMULAI DEPLOYMENT PKSART KE VPS"
+echo "🚀 MEMULAI DEPLOYMENT KONI KEPAHIANG KE VPS"
 echo "=================================================="
 
 # 1. Masuk ke direktori projek di VPS
-echo "📂 [1/4] Masuk ke direktori /var/www/pks.art..."
-cd /var/www/pks.art
+echo "📂 [1/4] Masuk ke direktori /var/www/konikph.site..."
+cd /var/www/konikph.site
 
 # 2. Ambil update kode terbaru dari GitHub
 echo "📥 [2/4] Mengunduh update kode dari GitHub main branch..."

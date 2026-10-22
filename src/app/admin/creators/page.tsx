@@ -21,7 +21,7 @@ import {
   PhoneCall,
   MapPin,
 } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { ConfirmSuspendModal } from '@/components/ConfirmSuspendModal';
 import { useData } from '@/context/DataContext';
 import { User } from '@/lib/types';
@@ -194,7 +194,7 @@ export default function AdminCreatorsPage() {
 
       if (targetUrl) {
         const waPhone = formatPhoneForWA(req.phone);
-        const text = `Halo ${req.name},\n\nPermintaan reset kata sandi Anda di PKSart telah disetujui. Silakan klik tautan di bawah ini untuk membuat kata sandi baru Anda:\n\n👉 Tautan Reset Kata Sandi:\n${targetUrl}\n\n⚠️ Catatan: Tautan ini HANYA BERLAKU SELAMA 5 MENIT demi keamanan akun Anda.`;
+        const text = `Halo ${req.name},\n\nPermintaan reset kata sandi Anda di KONI Kepahiang telah disetujui. Silakan klik tautan di bawah ini untuk membuat kata sandi baru Anda:\n\n👉 Tautan Reset Kata Sandi:\n${targetUrl}\n\n⚠️ Catatan: Tautan ini HANYA BERLAKU SELAMA 5 MENIT demi keamanan akun Anda.`;
         const waUrl = `https://api.whatsapp.com/send?phone=${waPhone}&text=${encodeURIComponent(text)}`;
         window.open(waUrl, '_blank');
         completeResetRequest(req.id);
@@ -212,11 +212,11 @@ export default function AdminCreatorsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-            <Users className="text-[#F26522]" />
-            <span>Kelola Desainer & Member PKSart</span>
+            <Users className="text-red-600" />
+            <span>Kelola Pengurus & Anggota Cabor</span>
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Verifikasi lencana Desainer PKS Official, kelola kontak WhatsApp/Email, dan kontrol status akun.
+            Verifikasi akun pengurus Cabor, kelola kontak WhatsApp/Email, dan kontrol status hak akses.
           </p>
         </div>
       </div>
@@ -439,8 +439,8 @@ export default function AdminCreatorsPage() {
                                 {creator.name}
                               </Link>
                               {creator.isVerified && (
-                                <span title="Verified Desainer PKS">
-                                  <BadgeCheck size={16} className="text-[#F26522] fill-orange-50 dark:fill-orange-950/40" />
+                                <span title="Verified Pengurus KONI">
+                                  <BadgeCheck size={16} className="text-red-600 fill-red-50 dark:fill-red-950/40" />
                                 </span>
                               )}
                             </div>

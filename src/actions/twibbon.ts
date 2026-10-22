@@ -102,12 +102,12 @@ export async function addTwibbon(data: any) {
         update: {},
         create: {
           id: authorId,
-          name: rest.author?.name || 'Super Admin PKSart',
-          email: 'admin@pks.art',
-          phone: '081199887766',
-          address: 'DPP PKS Official, Jakarta Selatan',
-          region: rest.region || 'DPP PKS Official',
-          avatar: '/img/877859417715829.jpg',
+          name: rest.author?.name || 'Super Admin KONI Kepahiang',
+          email: 'admin@konikph.site',
+          phone: '081234567890',
+          address: 'GOR Tebat Monok, Kepahiang, Bengkulu',
+          region: rest.region || 'KONI Kabupaten Kepahiang',
+          avatar: '/favicon.ico',
           role: 'Super Admin',
         }
       });

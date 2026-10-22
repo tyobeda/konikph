@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
-  allowedDevOrigins: ['192.168.18.14', '192.168.18.14:3000'],
+  ...(process.env.NODE_ENV === 'production' ? { output: 'standalone' as const } : {}),
+  allowedDevOrigins: ['localhost', 'localhost:3000', '127.0.0.1', '127.0.0.1:3000', '192.168.0.127', '192.168.0.127:3000', '192.168.18.14', '192.168.18.14:3000'],
   devIndicators: false,
   images: {
     unoptimized: true,

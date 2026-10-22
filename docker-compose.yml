@@ -4,50 +4,50 @@ services:
   # Database PostgreSQL
   db:
     image: postgres:16-alpine
-    container_name: pksart_postgres
+    container_name: konikph_postgres
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-pksart_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pksart_secure_pass123}
-      POSTGRES_DB: ${POSTGRES_DB:-pksart_db}
+      POSTGRES_USER: ${POSTGRES_USER:-konikph_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-konikph_secure_pass123}
+      POSTGRES_DB: ${POSTGRES_DB:-konikph_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5433:5432" # Port 5433 agar tidak bentrok dengan optikal-db (5432)
+      - "127.0.0.1:5433:5432" # Port 5433 agar tidak bentrok dengan database lain
     networks:
-      - pksart_network
+      - konikph_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pksart_admin} -d ${POSTGRES_DB:-pksart_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-konikph_admin} -d ${POSTGRES_DB:-konikph_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # Aplikasi Next.js (PKS Art)
+  # Aplikasi Next.js (KONI Kepahiang)
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pksart_web
+    container_name: konikph_web
     restart: always
     depends_on:
       db:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-pksart_admin}:${POSTGRES_PASSWORD:-pksart_secure_pass123}@db:5432/${POSTGRES_DB:-pksart_db}?schema=public
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://pks.art}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-konikph_admin}:${POSTGRES_PASSWORD:-konikph_secure_pass123}@db:5432/${POSTGRES_DB:-konikph_db}?schema=public
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://konikph.site}
       PORT: 3000
     ports:
       - "3000:3000"
     volumes:
       - ./public/uploads:/app/public/uploads
     networks:
-      - pksart_network
+      - konikph_network
 
 volumes:
   postgres_data:
-    name: pksart_postgres_data
+    name: konikph_postgres_data
 
 networks:
-  pksart_network:
-    name: pksart_network
+  konikph_network:
+    name: konikph_network

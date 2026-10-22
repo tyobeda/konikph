@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Wrench, ShieldAlert, ArrowLeft, Clock, MessageSquare, RefreshCw, AlertTriangle, Hammer, CheckCircle2 } from 'lucide-react';
-import { PksLogo } from '@/components/PksLogo';
+import { KoniLogo } from '@/components/KoniLogo';
 import { useData } from '@/context/DataContext';
 
 export function MaintenanceContent() {
@@ -14,13 +14,13 @@ export function MaintenanceContent() {
     globalEnabled: true,
     modules: {},
     title: 'Mode Pemeliharaan Sistem',
-    description: 'Kami sedang melakukan pemeliharaan & perawatan sistem rutin untuk meningkatkan kualitas layanan platform PKSart. Terima kasih atas kesabaran Anda.',
+    description: 'Kami sedang melakukan pemeliharaan & perawatan sistem rutin untuk meningkatkan kualitas layanan portal KONI Kabupaten Kepahiang. Terima kasih atas kesabaran Anda.',
     estimatedTime: 'Estimasi Selesai: 1 - 2 Jam',
     allowAdminBypass: true,
   };
 
-  const adminWa = (siteSettings?.adminWhatsapp || '6281199887766').replace(/[^0-9]/g, '');
-  const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20PKSart,%20saya%20ingin%20menanyakan%20status%20pemeliharaan%20sistem.`;
+  const adminWa = (siteSettings?.adminWhatsapp || '6281234567890').replace(/[^0-9]/g, '');
+  const waUrl = `https://wa.me/${adminWa}?text=Halo%20Admin%20KONI%20Kepahiang,%20saya%20ingin%20menanyakan%20status%20pemeliharaan%20sistem.`;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-800 dark:text-gray-100 flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden z-50 transition-colors duration-200">
@@ -30,7 +30,7 @@ export function MaintenanceContent() {
 
       {/* Top Header */}
       <div className="max-w-xl w-full mx-auto flex items-center justify-center relative z-10">
-        <PksLogo size="md" />
+        <KoniLogo size="md" />
       </div>
 
       {/* Main Content Box (Clean White Card) */}
@@ -96,7 +96,7 @@ export function MaintenanceContent() {
 
       {/* Footer */}
       <div className="max-w-xl w-full mx-auto text-center text-gray-500 text-xs font-medium relative z-10">
-        &copy; {new Date().getFullYear()} PKSart Designer Community. Official Creative Platform.
+        &copy; {new Date().getFullYear()} KONI Kabupaten Kepahiang.
       </div>
     </div>
   );

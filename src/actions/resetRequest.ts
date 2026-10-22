@@ -101,33 +101,33 @@ export async function addResetRequest(data: { name: string; email: string; phone
     } catch (e) {
       // Fallback
     }
-    if (!baseUrl) baseUrl = 'https://art.pks.id';
+    if (!baseUrl) baseUrl = 'https://konikph.site';
 
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-    const emailName = data.name || 'Desainer PKSart';
+    const emailName = data.name || 'Pengurus KONI Kepahiang';
 
     // Fire email asynchronously in background
     sendEmail({
       to: cleanEmail,
-      subject: '🔒 Petunjuk Pemulihan Kata Sandi Akun PKSart Anda',
+      subject: '🔒 Petunjuk Pemulihan Kata Sandi Akun KONI Kepahiang Anda',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background-color: #ffffff; border: 1px solid #f0f0f0; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <h2 style="color: #111827; font-size: 22px; font-weight: 800; margin: 0;">PKS<span style="color: #F26522;">art</span></h2>
-            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Galeri Desain & Foto PKS Official</p>
+            <h2 style="color: #111827; font-size: 22px; font-weight: 800; margin: 0;">KONI <span style="color: #DC2626;">KEPAHIANG</span></h2>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Komite Olahraga Nasional Indonesia Kab. Kepahiang</p>
           </div>
 
           <div style="padding: 20px; bg-color: #f9fafb; border-radius: 12px; margin-bottom: 20px;">
             <h3 style="color: #1f2937; font-size: 16px; margin-top: 0;">Halo ${emailName},</h3>
             <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">
-              Kami menerima permintaan untuk mereset kata sandi akun desainer PKSart Anda.
+              Kami menerima permintaan untuk mereset kata sandi akun pengurus KONI Kepahiang Anda.
             </p>
             <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">
               Silakan klik tombol di bawah ini untuk membuat kata sandi baru. Tautan ini dibuat secara otomatis dan <strong>hanya berlaku selama 5 menit</strong> demi keamanan akun Anda.
             </p>
 
             <div style="text-align: center; margin: 24px 0;">
-              <a href="${resetUrl}" style="background-color: #F26522; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; text-decoration: none; border-radius: 10px; inline-block: true; box-shadow: 0 2px 4px rgba(242, 101, 34, 0.2);">
+              <a href="${resetUrl}" style="background-color: #DC2626; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; text-decoration: none; border-radius: 10px; inline-block: true; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
                 Reset Kata Sandi Sekarang
               </a>
             </div>
@@ -138,7 +138,7 @@ export async function addResetRequest(data: { name: string; email: string; phone
           </div>
 
           <div style="border-t: 1px solid #f3f4f6; pt: 16px; text-align: center;">
-            <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} PKSart Official. All rights reserved.</p>
+            <p style="color: #9ca3af; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} KONI Kabupaten Kepahiang. All rights reserved.</p>
           </div>
         </div>
       `,
@@ -193,7 +193,7 @@ export async function generateResetLinkAction(id: string) {
       );
     } else {
       await (prisma as any).$executeRawUnsafe(
-        `INSERT INTO "ResetRequest" ("id", "name", "email", "phone", "token", "expiresAt", "used", "status", "createdAt") VALUES (gen_random_uuid(), 'Desainer PKSart', 'user@pks.art', '', $1, $2, false, 'Pending', NOW())`,
+        `INSERT INTO "ResetRequest" ("id", "name", "email", "phone", "token", "expiresAt", "used", "status", "createdAt") VALUES (gen_random_uuid(), 'Pengurus KONI', 'user@konikph.site', '', $1, $2, false, 'Pending', NOW())`,
         token, expiresAt
       );
     }
@@ -219,7 +219,7 @@ export async function generateResetLinkAction(id: string) {
     } catch (e) {
       // Fallback
     }
-    if (!baseUrl) baseUrl = 'https://art.pks.id';
+    if (!baseUrl) baseUrl = 'https://konikph.site';
 
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
@@ -320,7 +320,7 @@ export async function executePasswordResetAction(token: string, newPassword: str
       },
     });
 
-    if (!user && (request.email.trim().toLowerCase() === 'admin@pks.art' || request.email.trim().toLowerCase().includes('admin'))) {
+    if (!user && (request.email.trim().toLowerCase() === 'admin@konikph.site' || request.email.trim().toLowerCase().includes('admin'))) {
       user = await (prisma as any).user.findFirst({
         where: { role: 'Super Admin' },
       });

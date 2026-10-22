@@ -87,8 +87,7 @@ function parseTrafficSource(referer: string | null | undefined, currentHost: str
     if (refHost.includes('twitter.com') || refHost.includes('x.com') || refHost.includes('t.co')) return 'Twitter / X';
     if (refHost.includes('youtube.com') || refHost.includes('youtu.be')) return 'YouTube';
     if (refHost.includes('telegram.org') || refHost.includes('t.me')) return 'Telegram';
-    if (refHost.includes('bing.com') || refHost.includes('yahoo.com') || refHost.includes('duckduckgo.com')) return 'Search Engine';
-    if (refHost.includes('pks.id') || refHost.includes('pksart.id') || refHost.includes('fraksipks.id')) return 'PKS Official Network';
+    if (refHost.includes('koni.or.id') || refHost.includes('kepahiangkab.go.id') || refHost.includes('bengkuluprov.go.id')) return 'KONI / Pemda Network';
 
     return `Rujukan: ${refHost.replace(/^www\./, '')}`;
   } catch (e) {

@@ -18,13 +18,13 @@ export interface WelcomePopupConfig {
 }
 
 export const DEFAULT_WELCOME_POPUP: WelcomePopupConfig = {
-  isEnabled: true,
-  displayFrequency: 'once', // Default: Sekali per Pengunjung / IP / Device
-  title: 'Selamat Datang di PKSart Official!',
-  subtitle: 'Temukan dan unduh ribuan aset desain resmi poster, spanduk, feeds instagram, dan templat twibbon untuk publikasi daerah Anda.',
-  imageUrl: '/img/877859417715829.jpg',
-  ctaText: 'Jelajahi Karya Populer',
-  ctaLink: '/#eksplorasi',
+  isEnabled: false, // Default: non-aktif agar tidak mengganggu, bisa diaktifkan admin jika ada pengumuman Porprov/event
+  displayFrequency: 'once',
+  title: 'Selamat Datang di Portal Resmi KONI Kabupaten Kepahiang!',
+  subtitle: 'Pusat publikasi olahraga, warta kejuaraan daerah, direktori 23 Cabang Olahraga, dan bingkai twibbon resmi atlet Bumi Sehasen.',
+  imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&q=80&w=1200',
+  ctaText: 'Jelajahi Berita & Cabor',
+  ctaLink: '/berita',
 };
 
 export const WelcomePopup: React.FC = () => {
@@ -49,14 +49,12 @@ export const WelcomePopup: React.FC = () => {
         if (config.displayFrequency === 'always') {
           setIsOpen(true);
         } else if (config.displayFrequency === 'session') {
-          // Check if user dismissed popup in current browser session cookie
-          const dismissed = getClientCookie('pksart_popup_dismissed');
+          const dismissed = getClientCookie('koni_popup_dismissed');
           if (!dismissed) {
             setIsOpen(true);
           }
         } else {
-          // Default 'once': Persistent cookie (expires in 365 days)
-          const shownOnce = getClientCookie('pksart_popup_shown_once_device');
+          const shownOnce = getClientCookie('koni_popup_shown_once_device');
           if (!shownOnce) {
             setIsOpen(true);
           }
@@ -69,8 +67,8 @@ export const WelcomePopup: React.FC = () => {
 
   const handleClose = () => {
     setIsOpen(false);
-    setClientCookie('pksart_popup_dismissed', 'true');
-    setClientCookie('pksart_popup_shown_once_device', 'true', 365);
+    setClientCookie('koni_popup_dismissed', 'true');
+    setClientCookie('koni_popup_shown_once_device', 'true', 365);
   };
 
   if (!isMounted || !isOpen || !popupData.isEnabled) return null;
@@ -82,9 +80,8 @@ export const WelcomePopup: React.FC = () => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-300 cursor-default"
+        className="relative bg-white dark:bg-[#1E293B] rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-300 cursor-default"
       >
-        
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -94,27 +91,27 @@ export const WelcomePopup: React.FC = () => {
           <X size={18} />
         </button>
 
-        {/* Banner Image - Uncropped Natural Fit */}
+        {/* Banner Image */}
         <div className="relative w-full max-h-[320px] bg-slate-900 flex items-center justify-center overflow-hidden">
           <img
             src={popupData.imageUrl}
             alt={popupData.title}
-            className="w-full h-auto max-h-[300px] object-contain opacity-95"
+            className="w-full h-auto max-h-[300px] object-cover opacity-95"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
           
           <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/20">
             <Sparkles size={14} className="text-amber-400" />
-            <span>Pengumuman Resmi PKSart</span>
+            <span>Pengumuman Resmi KONI Kepahiang</span>
           </div>
         </div>
 
         {/* Content Section */}
         <div className="p-6 sm:p-7 text-center">
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
             {popupData.title}
           </h2>
-          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mt-2.5">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-2.5">
             {popupData.subtitle}
           </p>
 
@@ -122,7 +119,7 @@ export const WelcomePopup: React.FC = () => {
             <Link
               href={popupData.ctaLink}
               onClick={handleClose}
-              className="w-full sm:flex-1 py-3 px-5 bg-[#F26522] hover:bg-[#d85417] text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+              className="w-full sm:flex-1 py-3 px-5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2"
             >
               <span>{popupData.ctaText}</span>
               <ArrowRight size={16} />
@@ -130,14 +127,15 @@ export const WelcomePopup: React.FC = () => {
 
             <button
               onClick={handleClose}
-              className="w-full sm:w-auto py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
+              className="w-full sm:w-auto py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all"
             >
               Tutup
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );
 };
+
+export default WelcomePopup;

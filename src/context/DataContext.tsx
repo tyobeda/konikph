@@ -46,10 +46,17 @@ export interface DpwOffice {
   address?: string;
   lat?: number | null;
   lng?: number | null;
+  category?: string;
+  logoUrl?: string;
+  schedule?: string;
+  description?: string;
+  orderIndex?: number;
   activeCreators: number;
   totalArtworks: number;
   isActive?: boolean;
 }
+
+export type Cabor = DpwOffice;
 
 export interface DataContextType {
   // Artworks
@@ -92,11 +99,15 @@ export interface DataContextType {
   updateCustomPage: (id: string, updated: Partial<CustomPage>) => void;
   deleteCustomPage: (id: string) => void;
 
-  // DPW
+  // Cabor / DPW
   dpwList: DpwOffice[];
+  caborList: DpwOffice[];
   addDpw: (dpw: Omit<DpwOffice, 'id' | 'activeCreators' | 'totalArtworks'>) => void;
   updateDpw: (id: string, updated: Partial<DpwOffice>) => void;
   deleteDpw: (id: string) => void;
+  addCabor: (cabor: Omit<DpwOffice, 'id' | 'activeCreators' | 'totalArtworks'>) => void;
+  updateCabor: (id: string, updated: Partial<DpwOffice>) => void;
+  deleteCabor: (id: string) => void;
   seedDpw38: () => Promise<{ success: boolean; count?: number; error?: string }>;
 
   // Site Settings
@@ -176,12 +187,12 @@ export interface DataContextType {
 
 export const SUPER_ADMIN_USER: User = {
   id: 'superadmin_1',
-  name: 'Super Admin PKSart',
-  email: 'admin@pks.art',
+  name: 'Super Admin KONI Kepahiang',
+  email: 'admin@konikph.site',
   phone: '+6281199887766',
-  address: 'DPP PKS Official, Jakarta Selatan',
-  region: 'DPP PKS Official',
-  avatar: '/img/877859417715829.jpg',
+  address: 'Sekretariat KONI GOR Tebat Monok, Kepahiang',
+  region: 'KONI Kepahiang',
+  avatar: '/favicon.ico',
   role: 'Super Admin',
   isVerified: true,
 };
@@ -228,41 +239,40 @@ export const DataProvider: React.FC<{
           }
         } catch (e) {}
       };
-      loadCache('pksart_artworks', setArtworks);
-      loadCache('pksart_users', setUsers);
-      loadCache('pksart_twibbons', (val) => { setTwibbons(val); setIsTwibbonsLoaded(true); });
-      loadCache('pksart_dpwlist', setDpwList);
-      loadCache('pksart_custompages', (val) => { setCustomPages(val); setIsPagesLoaded(true); });
-      loadCache('pksart_brandkits', (val) => { setBrandKits(val); setIsBrandKitsLoaded(true); });
+      loadCache('konikph_artworks', setArtworks);
+      loadCache('konikph_users', setUsers);
+      loadCache('konikph_twibbons', (val) => { setTwibbons(val); setIsTwibbonsLoaded(true); });
+      loadCache('konikph_dpwlist', setDpwList);
+      loadCache('konikph_custompages', (val) => { setCustomPages(val); setIsPagesLoaded(true); });
+      loadCache('konikph_brandkits', (val) => { setBrandKits(val); setIsBrandKitsLoaded(true); });
     }
   }, []);
 
   // 5. Site Settings State — use server-injected initialSettings to prevent logo flash
   const DEFAULT_SETTINGS = {
-    siteName: 'PKSart - Galeri Desain & Foto PKS Official',
-    siteDescription: 'Platform galeri poster, spanduk, social media kit, dan aset desain resmi PKS.',
-    logoUrl: '/uploads/1785832971571.png',
-    logoAdminUrl: '/uploads/1785832976919.png',
-    logoFooterUrl: '/uploads/1785833539740.png',
+    siteName: 'KONI Kabupaten Kepahiang',
+    siteDescription: 'Website Resmi Komite Olahraga Nasional Indonesia (KONI) Kabupaten Kepahiang. Media informasi, cabor, kegiatan, dan twibbon.',
+    logoUrl: '/favicon.ico',
+    logoAdminUrl: '/favicon.ico',
+    logoFooterUrl: '/favicon.ico',
     faviconUrl: '/favicon.ico',
-    ctaTitle: 'Ayo Gabung Jadi Desainer PKSart!',
-    ctaDescription: 'Seluruh produk desain dan infografis yang tersaji di web ini adalah OFFICIAL milik PKSART.\nPKSART tidak bertanggungjawab atas penyalahgunaan elemen desain untuk kepentingan tertentu.\nSemua grafis yang tersebar di internet dan tidak tersaji di web ini adalah TIDAK OFFICIAL.',
-    ctaButtonText: 'Daftar Sekarang',
-    ctaButtonLink: '/register',
+    ctaTitle: 'Dukung Kemajuan Olahraga Kabupaten Kepahiang!',
+    ctaDescription: 'Media resmi informasi cabang olahraga, agenda kegiatan, berita olahraga, serta twibbon kampanye dan prestasi atlet Kabupaten Kepahiang.',
+    ctaButtonText: 'Lihat Cabor',
+    ctaButtonLink: '/cabor',
     ctaLogoUrl: '',
     ctaImageUrl: '',
     ctaBgUrl: '',
     ctaEnabled: true,
     ctaLinks: [
       { label: 'Beranda', url: '/' },
-      { label: 'Tentang PKSART', url: '/p/profil' },
-      { label: 'Galeri PKSART', url: '/explore' },
-      { label: 'Jejaring', url: '/creators' },
-      { label: 'Gabung', url: '/register' },
-      { label: 'Download', url: '/assets' },
-      { label: 'Login/Upload', url: '/login' }
+      { label: 'Berita', url: '/berita' },
+      { label: 'Cabor', url: '/cabor' },
+      { label: 'Twibbon', url: '/twibbon' },
+      { label: 'Profil', url: '/p/profil' },
+      { label: 'Kontak', url: '/p/kontak' }
     ],
-    ctaSocialText: 'Follow @pksart',
+    ctaSocialText: 'Media Sosial Resmi',
     ctaSocialUrl: '#',
     allowCommentLinks: true,
     forbiddenWords: 'judi, slot, gacor, bokep, porno, sara, rasis, penipu',
@@ -283,7 +293,7 @@ export const DataProvider: React.FC<{
     // Priority 2: LocalStorage cache (fast instant client hydration)
     if (typeof window !== 'undefined') {
       try {
-        const cachedStorage = localStorage.getItem('pksart_site_settings');
+        const cachedStorage = localStorage.getItem('konikph_site_settings');
         if (cachedStorage) {
           const parsed = JSON.parse(cachedStorage);
           if (parsed && (parsed.logoUrl || parsed.siteName)) {
@@ -293,13 +303,10 @@ export const DataProvider: React.FC<{
       } catch (e) {}
 
       // Priority 3: Cookie cache (returning visitors)
-      const cached = getClientCookie('pksart_site_settings');
+      const cached = getClientCookie('konikph_site_settings');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          if (parsed && Array.isArray(parsed.ctaLinks)) {
-            parsed.ctaLinks = parsed.ctaLinks.filter((l: any) => l.label !== 'PKS Bicara' && l.label !== 'Khidmat PKS');
-          }
           if (parsed && parsed.logoUrl) return { ...DEFAULT_SETTINGS, ...parsed };
         } catch (e) {}
       }
@@ -312,8 +319,8 @@ export const DataProvider: React.FC<{
     if (initialSettings) {
       setSiteSettings(initialSettings);
       if (typeof window !== 'undefined') {
-        try { localStorage.setItem('pksart_site_settings', JSON.stringify(initialSettings)); } catch (e) {}
-        setClientCookie('pksart_site_settings', JSON.stringify(initialSettings), 365);
+        try { localStorage.setItem('konikph_site_settings', JSON.stringify(initialSettings)); } catch (e) {}
+        setClientCookie('konikph_site_settings', JSON.stringify(initialSettings), 365);
       }
     }
   }, [initialSettings]);
@@ -343,7 +350,7 @@ export const DataProvider: React.FC<{
     if (typeof window !== 'undefined') {
       // Restore cached user session synchronously on mount to prevent top-right header UI flash
       try {
-        const cachedUser = localStorage.getItem('pksart_user_cache');
+        const cachedUser = localStorage.getItem('konikph_user_cache');
         if (cachedUser) {
           const parsed = JSON.parse(cachedUser);
           if (parsed && parsed.id) {
@@ -359,14 +366,14 @@ export const DataProvider: React.FC<{
           if (data.authenticated && data.user) {
             setCurrentUser(data.user as User);
             try {
-              localStorage.setItem('pksart_user_cache', JSON.stringify(data.user));
+              localStorage.setItem('konikph_user_cache', JSON.stringify(data.user));
             } catch (_) {}
           } else {
             setCurrentUser(null);
             try {
-              localStorage.removeItem('pksart_user_cache');
+              localStorage.removeItem('konikph_user_cache');
             } catch (_) {}
-            deleteClientCookie('pksart_current_user');
+            deleteClientCookie('konikph_current_user');
           }
         })
         .catch(() => {});
@@ -375,15 +382,15 @@ export const DataProvider: React.FC<{
   // If initialSettings was provided from server, mark as loaded immediately
       if (initialSettings) {
         setIsSettingsLoaded(true);
-        setClientCookie('pksart_site_settings', JSON.stringify(initialSettings), 365);
+        setClientCookie('konikph_site_settings', JSON.stringify(initialSettings), 365);
       }
       getDBSiteSettings().then(res => {
         if (res.success && res.data) {
           setSiteSettings(res.data as any);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('pksart_site_settings', JSON.stringify(res.data)); } catch (e) {}
+            try { localStorage.setItem('konikph_site_settings', JSON.stringify(res.data)); } catch (e) {}
           }
-          setClientCookie('pksart_site_settings', JSON.stringify(res.data), 365);
+          setClientCookie('konikph_site_settings', JSON.stringify(res.data), 365);
         }
         setIsSettingsLoaded(true);
       }).catch(() => {
@@ -398,7 +405,7 @@ export const DataProvider: React.FC<{
         if (res.success && res.data) {
           setArtworks(res.data as any);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('pksart_artworks', JSON.stringify((res.data as any[]).slice(0, 50))); } catch (e) {}
+            try { localStorage.setItem('konikph_artworks', JSON.stringify((res.data as any[]).slice(0, 50))); } catch (e) {}
           }
         }
       });
@@ -408,7 +415,7 @@ export const DataProvider: React.FC<{
         if (res.success && res.data) {
           setUsers(res.data as any);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('pksart_users', JSON.stringify(res.data)); } catch (e) {}
+            try { localStorage.setItem('konikph_users', JSON.stringify(res.data)); } catch (e) {}
           }
         }
       });
@@ -418,7 +425,7 @@ export const DataProvider: React.FC<{
         if (pagesRes.success && pagesRes.data) {
           setCustomPages(pagesRes.data as any);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('pksart_custompages', JSON.stringify(pagesRes.data)); } catch (e) {}
+            try { localStorage.setItem('konikph_custompages', JSON.stringify(pagesRes.data)); } catch (e) {}
           }
         }
         setIsPagesLoaded(true);
@@ -435,14 +442,14 @@ export const DataProvider: React.FC<{
         if (twibbonsRes.success && twibbonsRes.data) {
           setTwibbons(twibbonsRes.data as any);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('pksart_twibbons', JSON.stringify(twibbonsRes.data)); } catch (e) {}
+            try { localStorage.setItem('konikph_twibbons', JSON.stringify(twibbonsRes.data)); } catch (e) {}
           }
         }
         setIsTwibbonsLoaded(true);
         if (dpwRes.success && dpwRes.data) {
           setDpwList(dpwRes.data as any);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('pksart_dpwlist', JSON.stringify(dpwRes.data)); } catch (e) {}
+            try { localStorage.setItem('konikph_dpwlist', JSON.stringify(dpwRes.data)); } catch (e) {}
           }
         }
         if (brandKitsRes.success && brandKitsRes.data) {
@@ -453,7 +460,7 @@ export const DataProvider: React.FC<{
           setBrandKits(mapped);
           if (typeof window !== 'undefined') {
             try {
-              localStorage.setItem('pksart_brandkits', JSON.stringify(mapped));
+              localStorage.setItem('konikph_brandkits', JSON.stringify(mapped));
             } catch (e) {}
           }
         }
@@ -511,9 +518,9 @@ export const DataProvider: React.FC<{
   useEffect(() => {
     if (!isMounted) return;
     if (currentUser) {
-      setClientCookie('pksart_current_user', JSON.stringify(currentUser), 30);
+      setClientCookie('konikph_current_user', JSON.stringify(currentUser), 30);
     } else {
-      deleteClientCookie('pksart_current_user');
+      deleteClientCookie('konikph_current_user');
     }
   }, [currentUser, isMounted]);
 
@@ -575,9 +582,6 @@ export const DataProvider: React.FC<{
               comments: serverArt.comments || a.comments || [],
             };
           }
-          if (updated.isFeatured === true) {
-            return { ...a, isFeatured: false };
-          }
           return a;
         })
       );
@@ -586,9 +590,6 @@ export const DataProvider: React.FC<{
         prev.map((a) => {
           if (a.id === id) {
             return { ...a, ...updated };
-          }
-          if (updated.isFeatured === true) {
-            return { ...a, isFeatured: false };
           }
           return a;
         })
@@ -717,7 +718,7 @@ export const DataProvider: React.FC<{
   const updateUser = async (id: string, updated: Partial<User>) => {
     setUsers((prev) => {
       const next = prev.map((u) => (u.id === id ? { ...u, ...updated } : u));
-      if (typeof window !== 'undefined') localStorage.setItem('pksart_users', JSON.stringify(next));
+      if (typeof window !== 'undefined') localStorage.setItem('konikph_users', JSON.stringify(next));
       return next;
     });
 
@@ -729,7 +730,7 @@ export const DataProvider: React.FC<{
     if (res.success && res.user) {
       setUsers((prev) => {
         const next = prev.map((u) => (u.id === id ? { ...u, ...res.user } : u));
-        if (typeof window !== 'undefined') localStorage.setItem('pksart_users', JSON.stringify(next));
+        if (typeof window !== 'undefined') localStorage.setItem('konikph_users', JSON.stringify(next));
         return next;
       });
     }
@@ -754,7 +755,7 @@ export const DataProvider: React.FC<{
   const deleteUser = async (id: string) => {
     setUsers((prev) => {
       const next = prev.filter((u) => u.id !== id);
-      if (typeof window !== 'undefined') localStorage.setItem('pksart_users', JSON.stringify(next));
+      if (typeof window !== 'undefined') localStorage.setItem('konikph_users', JSON.stringify(next));
       return next;
     });
     await dbDeleteUser(id);
@@ -771,7 +772,7 @@ export const DataProvider: React.FC<{
       if (data.success && data.user) {
         setCurrentUser(data.user as User);
         try {
-          localStorage.setItem('pksart_user_cache', JSON.stringify(data.user));
+          localStorage.setItem('konikph_user_cache', JSON.stringify(data.user));
         } catch (_) {}
       }
       return { success: data.success, message: data.message, user: data.user };
@@ -785,7 +786,7 @@ export const DataProvider: React.FC<{
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (_) {}
     try {
-      localStorage.removeItem('pksart_user_cache');
+      localStorage.removeItem('konikph_user_cache');
     } catch (_) {}
     setCurrentUser(null);
   };
@@ -798,8 +799,8 @@ export const DataProvider: React.FC<{
         phone: user.phone || '',
         password: (user as any).password || '',
         address: user.address || '',
-        region: user.region || 'Wilayah Jawa Barat',
-        role: user.role || 'Desainer PKS',
+        region: user.region || 'Kabupaten Kepahiang',
+        role: user.role || 'Pengurus Cabor',
         avatar: user.avatar || '',
       });
 
@@ -914,14 +915,20 @@ export const DataProvider: React.FC<{
   const updateSiteSettings = async (updated: Partial<DataContextType['siteSettings']>) => {
     setSiteSettings((prev: DataContextType['siteSettings']) => {
       const newSettings = { ...prev, ...updated };
-      setClientCookie('pksart_site_settings', JSON.stringify(newSettings), 365);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('konikph_site_settings', JSON.stringify(newSettings)); } catch (e) {}
+      }
+      setClientCookie('konikph_site_settings', JSON.stringify(newSettings), 365);
       return newSettings;
     });
 
     const res = await updateDBSiteSettings(updated);
     if (res && res.success && res.data) {
       setSiteSettings(res.data as any);
-      setClientCookie('pksart_site_settings', JSON.stringify(res.data), 365);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('konikph_site_settings', JSON.stringify(res.data)); } catch (e) {}
+      }
+      setClientCookie('konikph_site_settings', JSON.stringify(res.data), 365);
     }
   };
 
@@ -997,13 +1004,13 @@ export const DataProvider: React.FC<{
 
   const massDeletePosts = async () => {
     setArtworks([]);
-    if (typeof window !== 'undefined') localStorage.removeItem('pksart_artworks');
+    if (typeof window !== 'undefined') localStorage.removeItem('konikph_artworks');
     await deleteAllArtworksDB();
   };
 
   const massDeleteUsers = async () => {
     setUsers((prev) => prev.filter((u) => u.id === 'superadmin_1'));
-    if (typeof window !== 'undefined') localStorage.removeItem('pksart_users');
+    if (typeof window !== 'undefined') localStorage.removeItem('konikph_users');
     await deleteAllUsersDB();
   };
 
@@ -1016,7 +1023,7 @@ export const DataProvider: React.FC<{
     };
     setBrandKits(prev => {
       const next = [...prev, tempKit];
-      if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+      if (typeof window !== 'undefined') localStorage.setItem('konikph_brandkits', JSON.stringify(next));
       return next;
     });
 
@@ -1025,7 +1032,7 @@ export const DataProvider: React.FC<{
       const realCreatedAt = res.data.createdAt ? new Date(res.data.createdAt).toISOString() : tempKit.createdAt;
       setBrandKits(prev => {
         const next = prev.map(k => k.id === tempId ? { ...res.data, createdAt: realCreatedAt } : k);
-        if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+        if (typeof window !== 'undefined') localStorage.setItem('konikph_brandkits', JSON.stringify(next));
         return next;
       });
     }
@@ -1034,7 +1041,7 @@ export const DataProvider: React.FC<{
   const updateBrandKit = async (id: string, updated: Partial<BrandKit>) => {
     setBrandKits(prev => {
       const next = prev.map(k => k.id === id ? { ...k, ...updated } : k);
-      if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+      if (typeof window !== 'undefined') localStorage.setItem('konikph_brandkits', JSON.stringify(next));
       return next;
     });
 
@@ -1043,7 +1050,7 @@ export const DataProvider: React.FC<{
       const realCreatedAt = res.data.createdAt ? new Date(res.data.createdAt).toISOString() : new Date().toISOString();
       setBrandKits(prev => {
         const next = prev.map(k => k.id === id ? { ...res.data, createdAt: realCreatedAt } : k);
-        if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+        if (typeof window !== 'undefined') localStorage.setItem('konikph_brandkits', JSON.stringify(next));
         return next;
       });
     }
@@ -1052,7 +1059,7 @@ export const DataProvider: React.FC<{
   const deleteBrandKit = async (id: string) => {
     setBrandKits(prev => {
       const next = prev.filter(k => k.id !== id);
-      if (typeof window !== 'undefined') localStorage.setItem('pksart_brandkits', JSON.stringify(next));
+      if (typeof window !== 'undefined') localStorage.setItem('konikph_brandkits', JSON.stringify(next));
       return next;
     });
     await dbDeleteBrandKit(id);
@@ -1065,11 +1072,11 @@ export const DataProvider: React.FC<{
     setDpwList([]);
     setCustomPages([]);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('pksart_artworks');
-      localStorage.removeItem('pksart_users');
-      localStorage.removeItem('pksart_twibbons');
-      localStorage.removeItem('pksart_dpwlist');
-      localStorage.removeItem('pksart_custompages');
+      localStorage.removeItem('konikph_artworks');
+      localStorage.removeItem('konikph_users');
+      localStorage.removeItem('konikph_twibbons');
+      localStorage.removeItem('konikph_dpwlist');
+      localStorage.removeItem('konikph_custompages');
     }
     await deleteAllArtworksDB();
     await deleteAllUsersDB();
@@ -1109,9 +1116,13 @@ export const DataProvider: React.FC<{
         deleteTwibbon,
 
         dpwList,
+        caborList: dpwList,
         addDpw,
         updateDpw,
         deleteDpw,
+        addCabor: addDpw,
+        updateCabor: updateDpw,
+        deleteCabor: deleteDpw,
         seedDpw38,
 
         customPages,

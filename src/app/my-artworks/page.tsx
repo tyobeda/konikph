@@ -409,13 +409,13 @@ export default function MyArtworksPage() {
               Kelola Postingan Karya Saya
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-              Daftar desain poster, spanduk, dan templat yang pernah Anda unggah ke PKSart.
+              Daftar dokumentasi, poster, dan infografis cabang olahraga yang Anda unggah ke portal KONI Kepahiang.
             </p>
           </div>
 
           <Link
             href="/upload"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F26522] hover:bg-[#d85417] text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all active:scale-95"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all active:scale-95"
           >
             <Plus size={18} />
             <span>Unggah Karya Baru</span>
@@ -529,12 +529,12 @@ export default function MyArtworksPage() {
                'Belum Ada Karya'}
             </h3>
             <p className="text-xs text-gray-500 mt-1">
-              {filterTab === 'all' || filterTab === 'Disetujui' ? 'Unggah karya desain baru Anda untuk mulai membagikannya kepada kader PKS.' : 'Tidak ada data untuk kategori ini saat ini.'}
+              {filterTab === 'all' || filterTab === 'Disetujui' ? 'Unggah karya dokumentasi atau poster baru Anda untuk mulai membagikannya kepada masyarakat dan pegiat olahraga.' : 'Tidak ada data untuk kategori ini saat ini.'}
             </p>
             {(filterTab === 'all' || filterTab === 'Disetujui') && (
               <Link
                 href="/upload"
-                className="inline-block mt-4 px-4 py-2 bg-[#F26522] text-white text-xs font-bold rounded-xl shadow-md"
+                className="inline-block mt-4 px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl shadow-md"
               >
                 Unggah Karya Sekarang
               </Link>
@@ -749,7 +749,7 @@ export default function MyArtworksPage() {
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
                     <span>Deskripsi Karya</span>
-                    <span className="text-[11px] font-normal text-[#F26522] lowercase">Hashtag dapat diketik langsung di sini (contoh: #PKS #JawaBarat)</span>
+                    <span className="text-[11px] font-normal text-red-600 lowercase">Hashtag dapat diketik langsung di sini (contoh: #Porprov2026 #KepahiangJuara)</span>
                   </label>
                   <textarea
                     rows={3}

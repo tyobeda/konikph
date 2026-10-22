@@ -38,7 +38,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, ti
       const descSnippet = description.length > 500 ? `${description.slice(0, 500)}...` : description;
       captionText += `${descSnippet}\n\n`;
     }
-    captionText += `Lihat selengkapnya di PKSart:\n${url}`;
+    captionText += `Lihat selengkapnya di KONI Kabupaten Kepahiang:\n${url}`;
 
     const text = encodeURIComponent(captionText);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');

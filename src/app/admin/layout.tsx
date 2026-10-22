@@ -10,6 +10,7 @@ import {
   Image as ImageIcon,
   Users,
   Building,
+  Trophy,
   Sparkles,
   Settings,
   ArrowUpRight,
@@ -17,6 +18,7 @@ import {
   X,
   FileText,
   Bell,
+  Newspaper,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -40,7 +42,7 @@ export default function AdminLayout({
   const adminLogoUrl =
     siteSettings?.logoAdminUrl?.trim() && siteSettings.logoAdminUrl !== '/favicon.ico'
       ? siteSettings.logoAdminUrl
-      : '/uploads/1785832976919.png';
+      : '/uploads/1792673968064_t0rm3q.png';
   const hasCustomAdminLogo = Boolean(adminLogoUrl);
 
   const isLogoReady = isMounted && isSettingsLoaded;
@@ -53,9 +55,10 @@ export default function AdminLayout({
   const navLinks = [
     { label: 'Dashboard Overview', href: '/admin', icon: LayoutDashboard },
     { label: 'Analisis Pengunjung', href: '/admin/analytics', icon: BarChart3 },
+    { label: 'Kelola Berita', href: '/admin/berita', icon: Newspaper },
     { label: 'Kelola Karya', href: '/admin/artworks', icon: ImageIcon },
-    { label: 'Kelola Desainer', href: '/admin/creators', icon: Users },
-    { label: 'Kelola Wilayah', href: '/admin/wilayah', icon: Building },
+    { label: 'Pengurus & Desainer', href: '/admin/creators', icon: Users },
+    { label: 'Cabang Olahraga', href: '/admin/wilayah', icon: Trophy },
     { label: 'Kelola Twibbon', href: '/admin/twibbon', icon: Sparkles },
     { label: 'Brand Kit', href: '/admin/brandkit', icon: LayoutDashboard },
     { label: 'Kelola Halaman', href: '/admin/pages', icon: FileText },
@@ -74,22 +77,20 @@ export default function AdminLayout({
       {/* 📱 MOBILE STICKY HEADER WITH BURGER MENU */}
       <header className="md:hidden sticky top-0 z-50 bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-slate-700/60">
         <Link href="/admin" className="flex items-center gap-2 min-h-[28px]">
-          {hasCustomAdminLogo ? (
-            <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-7 w-auto object-contain" />
-          ) : !isMounted || !isSettingsLoaded ? (
+          {!isMounted || !isSettingsLoaded ? (
             <div className="h-6 w-20 bg-slate-800 animate-pulse rounded" />
           ) : (
             <>
-              <div className="w-7 h-7 rounded-full bg-[#F26522] text-white font-black flex items-center justify-center text-[10px]">
-                PKS
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm tracking-tight text-white">
-                  PKS<span className="text-[#F26522]">art</span>
-                </span>
-                <span className="text-[9px] uppercase font-bold bg-[#F26522] px-1.5 py-0.5 rounded text-white">
-                  Admin
-                </span>
+              {hasCustomAdminLogo ? (
+                <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-7 w-auto object-contain" />
+              ) : (
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-red-600 to-amber-500 text-white font-black flex items-center justify-center text-[9px] shadow-sm shrink-0">
+                  KONI
+                </div>
+              )}
+              <div className="flex flex-col leading-none gap-0.5">
+                <span className="font-black text-[10px] tracking-widest text-white uppercase">KONI</span>
+                <span className="font-black text-[10px] tracking-widest text-red-400 uppercase">KEPAHIANG</span>
               </div>
             </>
           )}
@@ -144,11 +145,11 @@ export default function AdminLayout({
                 <div className="h-7 w-24 bg-slate-800 animate-pulse rounded" />
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
-                    PKS
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-red-600 to-amber-500 text-white font-black flex items-center justify-center text-[10px] shadow-sm">
+                    KONI
                   </div>
                   <span className="font-extrabold text-base tracking-tight text-white">
-                    PKS<span className="text-[#F26522]">art</span> Panel
+                    KONI <span className="text-red-500">Panel</span>
                   </span>
                 </>
               )}
@@ -180,7 +181,7 @@ export default function AdminLayout({
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
                     isActive
-                      ? 'bg-[#F26522] text-white shadow-md'
+                      ? 'bg-red-600 text-white shadow-md'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
@@ -195,6 +196,8 @@ export default function AdminLayout({
           <div className="p-4 border-t border-slate-700/60 mt-auto bg-[#1E293B]">
             <Link
               href="/"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center justify-between px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all"
             >
@@ -211,22 +214,20 @@ export default function AdminLayout({
           {/* Brand Area */}
           <div className="p-5 border-b border-slate-700/60 flex items-center justify-between shrink-0">
             <Link href="/admin" className="flex items-center gap-2 min-h-[36px]">
-              {hasCustomAdminLogo ? (
-                <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-9 w-auto object-contain" />
-              ) : !isMounted || !isSettingsLoaded ? (
+              {!isMounted || !isSettingsLoaded ? (
                 <div className="h-8 w-24 bg-slate-800 animate-pulse rounded" />
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-full bg-[#F26522] text-white font-bold flex items-center justify-center text-xs">
-                    PKS
-                  </div>
-                  <div>
-                    <span className="font-extrabold text-base tracking-tight text-white">
-                      PKS<span className="text-[#F26522]">art</span>
-                    </span>
-                    <span className="ml-2 text-[10px] uppercase font-bold bg-[#F26522] px-1.5 py-0.5 rounded text-white">
-                      Admin
-                    </span>
+                  {hasCustomAdminLogo ? (
+                    <img src={adminLogoUrl} alt="Logo Admin" fetchPriority="high" decoding="sync" className="h-9 w-auto object-contain" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-red-600 to-amber-500 text-white font-black flex items-center justify-center text-[10px] shadow-sm shrink-0">
+                      KONI
+                    </div>
+                  )}
+                  <div className="flex flex-col leading-none gap-0.5">
+                    <span className="font-black text-[11px] tracking-widest text-white uppercase">KONI</span>
+                    <span className="font-black text-[11px] tracking-widest text-red-400 uppercase">KEPAHIANG</span>
                   </div>
                 </>
               )}
@@ -257,7 +258,7 @@ export default function AdminLayout({
                   prefetch={true}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     isActive
-                      ? 'bg-[#F26522] text-white shadow-md'
+                      ? 'bg-red-600 text-white shadow-md'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
@@ -273,6 +274,8 @@ export default function AdminLayout({
         <div className="p-4 border-t border-slate-700/60 shrink-0 mt-auto bg-[#1E293B]">
           <Link
             href="/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center justify-between px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all"
           >
             <span>Lihat Website Utama</span>

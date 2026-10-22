@@ -9,8 +9,8 @@ import { cookies } from 'next/headers';
 import { createHmac } from 'crypto';
 import prisma from '@/lib/prisma';
 
-const SESSION_COOKIE = 'pksart_session';
-const SECRET = process.env.ADMIN_SECRET || 'pksart_fallback_secret';
+const SESSION_COOKIE = 'konikph_session';
+const SECRET = process.env.ADMIN_SECRET || 'konikph_fallback_secret';
 const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
 
 // ─── Token helpers ───────────────────────────────────────────────────────────
@@ -122,16 +122,17 @@ export async function getCurrentServerUser(): Promise<{
     if (!session) return null;
 
     if (session.userId === 'superadmin_1' || session.role === 'Super Admin') {
+      const dbUser = await prisma.user.findUnique({ where: { id: 'superadmin_1' } });
       return {
         id: 'superadmin_1',
-        name: 'Super Admin PKSart',
-        email: session.email,
+        name: dbUser?.name || 'Super Admin KONI Kepahiang',
+        email: dbUser?.email || session.email,
         role: 'Super Admin',
         isVerified: true,
-        avatar: '/img/877859417715829.jpg',
-        phone: '',
-        address: 'DPP PKS Official',
-        region: 'DPP PKS Official',
+        avatar: dbUser?.avatar || '/uploads/1792673968064_t0rm3q.png',
+        phone: dbUser?.phone || '',
+        address: dbUser?.address || 'Sekretariat KONI GOR Tebat Monok, Kepahiang',
+        region: dbUser?.region || 'KONI Kepahiang',
         status: 'Active',
       };
     }
@@ -148,7 +149,7 @@ export async function getCurrentServerUser(): Promise<{
       phone: user.phone || '',
       address: user.address || '',
       region: user.region || '',
-      role: user.role || 'Desainer PKS',
+      role: user.role || 'Pengurus Cabor',
       avatar: user.avatar || '',
       isVerified: Boolean((user as any).isVerified),
       status: user.status || 'Aktif',
