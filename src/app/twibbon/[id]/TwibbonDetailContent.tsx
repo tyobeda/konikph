@@ -79,12 +79,41 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
   }, [activeTwibbon]);
 
   const [selectedFrameIndex, setSelectedFrameIndex] = useState(0);
+  const [framesDimensions, setFramesDimensions] = useState<{
+    [url: string]: { width: number; height: number; ratio: string };
+  }>({});
 
   useEffect(() => {
     setSelectedFrameIndex(0);
   }, [activeTwibbon?.id]);
 
   const currentFrameUrl = frames[selectedFrameIndex] || activeTwibbon?.imageUrl || '';
+
+  // Auto detect dimensions & aspect ratio for every frame variant in this twibbon
+  useEffect(() => {
+    if (!frames || frames.length === 0) return;
+    frames.forEach((url: string) => {
+      if (!url) return;
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth || img.width || 1080;
+        const h = img.naturalHeight || img.height || 1080;
+        const ratioVal = w / h;
+        let detectedPreset = 'custom';
+        if (Math.abs(ratioVal - 1) < 0.04) detectedPreset = '1:1';
+        else if (Math.abs(ratioVal - (9 / 16)) < 0.04) detectedPreset = '9:16';
+        else if (Math.abs(ratioVal - (4 / 5)) < 0.04) detectedPreset = '4:5';
+        else if (Math.abs(ratioVal - (2 / 3)) < 0.04) detectedPreset = '2:3';
+        else if (Math.abs(ratioVal - (16 / 9)) < 0.04) detectedPreset = '16:9';
+
+        setFramesDimensions((prev) => ({
+          ...prev,
+          [url]: { width: w, height: h, ratio: detectedPreset },
+        }));
+      };
+      img.src = url;
+    });
+  }, [frames]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -419,9 +448,11 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
 
   const otherTwibbons = twibbons.filter((t) => t.id !== activeTwibbon.id).slice(0, 4);
 
-  const targetW = activeTwibbon.width || 1080;
-  const targetH = activeTwibbon.height || 1080;
-  const ratioMeta = getAspectRatioMeta(activeTwibbon.aspectRatio, targetW, targetH);
+  const currentDim = framesDimensions[currentFrameUrl];
+  const targetW = currentDim?.width || activeTwibbon.width || 1080;
+  const targetH = currentDim?.height || activeTwibbon.height || 1080;
+  const targetRatio = currentDim?.ratio || activeTwibbon.aspectRatio || '1:1';
+  const ratioMeta = getAspectRatioMeta(targetRatio, targetW, targetH);
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
@@ -526,6 +557,9 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                   {frames.map((frameUrl: string, idx: number) => {
                     const isSelected = idx === selectedFrameIndex;
+                    const fDim = framesDimensions[frameUrl];
+                    const fMeta = fDim ? getAspectRatioMeta(fDim.ratio, fDim.width, fDim.height) : null;
+
                     return (
                       <button
                         key={idx}
@@ -536,7 +570,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                             ? 'border-[#F26522] bg-orange-50/70 dark:bg-orange-950/50 shadow-sm scale-[1.03]'
                             : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-600'
                         }`}
-                        title={`Pilih Bingkai ${idx + 1}`}
+                        title={fMeta ? `${fMeta.label} (${fMeta.dimensions})` : `Pilih Bingkai ${idx + 1}`}
                       >
                         <div className="w-14 h-14 rounded-lg overflow-hidden relative flex items-center justify-center bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:6px_6px] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] bg-white dark:bg-gray-900 shadow-2xs">
                           <img
@@ -550,7 +584,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
                             ? 'bg-[#F26522] text-white shadow-2xs'
                             : 'text-gray-600 dark:text-gray-400'
                         }`}>
-                          Bingkai {idx + 1}
+                          {fMeta ? fMeta.badge : `Desain ${idx + 1}`}
                         </span>
                       </button>
                     );
