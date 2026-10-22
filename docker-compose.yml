@@ -36,7 +36,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-konikph_admin}:${POSTGRES_PASSWORD:-konikph_secure_pass123}@db:5432/${POSTGRES_DB:-konikph_db}?schema=public
       DIRECT_URL: postgresql://${POSTGRES_USER:-konikph_admin}:${POSTGRES_PASSWORD:-konikph_secure_pass123}@db:5432/${POSTGRES_DB:-konikph_db}?schema=public
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://konikph.site}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://koni-kph.site}
       ADMIN_SECRET: ${ADMIN_SECRET:-konikph_super_secret_change_me_in_production_2026}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-konikph2026}
       NEXT_PUBLIC_CARTO_API_KEY: ${NEXT_PUBLIC_CARTO_API_KEY:-cb1_33fp_1_49a64373e8a67929f8e566ca}
