@@ -23,6 +23,8 @@ import {
   MapPin,
   HelpCircle,
   ShieldAlert,
+  Image as ImageIcon,
+  User,
 } from 'lucide-react';
 import {
   getBoardMembers,
@@ -34,6 +36,7 @@ import {
   updateProfileConfig,
 } from '@/actions/board';
 import { ConfirmSuspendModal as ConfirmModal } from '@/components/ConfirmSuspendModal';
+import { MediaGalleryModal } from '@/components/admin/MediaGalleryModal';
 
 export default function AdminProfilPage() {
   const [activeTab, setActiveTab] = useState<'board' | 'visimisi' | 'hero' | 'facilities'>('board');
@@ -58,6 +61,7 @@ export default function AdminProfilPage() {
     photo: '',
   });
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [deletingMember, setDeletingMember] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -942,39 +946,69 @@ export default function AdminProfilPage() {
             </div>
 
             <form onSubmit={handleSaveMember} className="space-y-4 mt-4">
-              {/* Photo Preview & Upload */}
+              {/* Photo Preview & Selection */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
                   Foto Resmi Pengurus
                 </label>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-red-500/20 shrink-0 shadow-2xs">
-                    <img
-                      src={memberFormData.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400'}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
+                <div className="flex items-start gap-4 p-3.5 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700/80">
+                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-orange-500/30 shrink-0 shadow-xs flex items-center justify-center">
+                    {memberFormData.photo ? (
+                      <img
+                        src={memberFormData.photo}
+                        alt="Preview Foto"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={32} className="text-gray-400 dark:text-gray-500" />
+                    )}
+                    {isUploadingPhoto && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white text-[10px] font-bold">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mb-1" />
+                        <span>Upload...</span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex-1 space-y-2">
-                    <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-orange-50 dark:bg-orange-950/40 text-[#F26522] border border-orange-200 dark:border-orange-900 rounded-xl text-xs font-bold cursor-pointer hover:bg-orange-100 transition-all">
-                      <Upload size={14} />
-                      <span>{isUploadingPhoto ? 'Mengunggah...' : 'Pilih Foto Dari Perangkat'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        disabled={isUploadingPhoto}
-                        className="hidden"
-                      />
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Atau tempel URL gambar langsung..."
-                      value={memberFormData.photo}
-                      onChange={(e) => setMemberFormData({ ...memberFormData, photo: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-800 text-[11px] text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none"
-                    />
+                  <div className="flex-1 space-y-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F26522] hover:bg-[#d85417] text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs">
+                        <Upload size={14} />
+                        <span>{isUploadingPhoto ? 'Mengunggah...' : 'Upload Baru'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          disabled={isUploadingPhoto}
+                          className="hidden"
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsMediaModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      >
+                        <ImageIcon size={14} className="text-[#F26522]" />
+                        <span>Pilih dari Galeri Media</span>
+                      </button>
+
+                      {memberFormData.photo && (
+                        <button
+                          type="button"
+                          onClick={() => setMemberFormData((prev) => ({ ...prev, photo: '' }))}
+                          className="inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all cursor-pointer"
+                          title="Hapus foto saat ini"
+                        >
+                          <Trash2 size={13} />
+                          <span>Hapus</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Pilih dari galeri media atau unggah file foto dari perangkat. Format JPG, PNG, atau WebP.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1074,6 +1108,17 @@ export default function AdminProfilPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL: MEDIA GALLERY PICKER */}
+      <MediaGalleryModal
+        isOpen={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        mode="thumbnail"
+        onSelect={(result) => {
+          setMemberFormData((prev) => ({ ...prev, photo: result.url }));
+          setIsMediaModalOpen(false);
+        }}
+      />
 
       {/* MODAL: KONFIRMASI HAPUS PENGURUS */}
       {deletingMember && (
