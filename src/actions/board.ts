@@ -159,8 +159,182 @@ export async function createBoardMember(data: {
       },
     });
     revalidatePath('/profil');
+    revalidatePath('/admin/profil');
     return { success: true, data: member };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateBoardMember(id: string, data: {
+  name?: string;
+  role?: string;
+  hierarchy?: number;
+  department?: string;
+  orderIndex?: number;
+  photo?: string | null;
+}) {
+  try {
+    const member = await prisma.boardMember.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.role !== undefined && { role: data.role }),
+        ...(data.hierarchy !== undefined && { hierarchy: data.hierarchy }),
+        ...(data.department !== undefined && { department: data.department }),
+        ...(data.orderIndex !== undefined && { orderIndex: data.orderIndex }),
+        ...(data.photo !== undefined && { photo: data.photo }),
+      },
+    });
+    revalidatePath('/profil');
+    revalidatePath('/admin/profil');
+    return { success: true, data: member };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteBoardMember(id: string) {
+  try {
+    await prisma.boardMember.delete({
+      where: { id },
+    });
+    revalidatePath('/profil');
+    revalidatePath('/admin/profil');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function reorderBoardMembers(items: { id: string; orderIndex: number; hierarchy?: number }[]) {
+  try {
+    await prisma.$transaction(
+      items.map((item) =>
+        prisma.boardMember.update({
+          where: { id: item.id },
+          data: {
+            orderIndex: item.orderIndex,
+            ...(item.hierarchy !== undefined && { hierarchy: item.hierarchy }),
+          },
+        })
+      )
+    );
+    revalidatePath('/profil');
+    revalidatePath('/admin/profil');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+const DEFAULT_PROFILE_CONFIG = {
+  heroBadge: 'Komite Olahraga Nasional Indonesia',
+  heroTitle: 'KONI Kabupaten Kepahiang',
+  heroSubtitle: 'Wadah pembinaan prestasi keolahragaan resmi di Bumi Sehasen, menaungi 23 Cabang Olahraga prestasi guna mencetak patriot olahraga yang tangguh, berkarakter, dan berdaya saing tinggi.',
+  secretariatAddress: 'Sekretariat GOR Tebat Monok',
+  visiTitle: 'Visi Utama',
+  visiText: 'Mewujudkan Kabupaten Kepahiang sebagai lumbung atlet berprestasi tinggi di tingkat Provinsi Bengkulu dan Nasional dengan tata kelola olahraga yang modern, transparan, dan berintegritas.',
+  targetText: 'Target: Tembus Peringkat 3 Besar Porprov Bengkulu 2026',
+  misiTitle: '5 Pilar Misi KONI Kepahiang',
+  misiList: [
+    {
+      title: 'Deteksi & Pembinaan Dini',
+      desc: 'Menyelenggarakan program "KONI Masuk Desa" guna menyaring bakat atletik alami anak-anak di 8 kecamatan Kepahiang.',
+    },
+    {
+      title: 'Peningkatan Kualitas Pelatih & Wasit',
+      desc: 'Mendorong standarisasi lisensi pelatih dan wasit bersertifikasi tingkat provinsi hingga nasional di setiap cabor.',
+    },
+    {
+      title: 'Modernisasi Fasilitas Olahraga',
+      desc: 'Mengoptimalkan sarana prasarana di GOR Tebat Monok, Stadion Mini Padang Lekat, dan fasilitas cabor pegunungan.',
+    },
+    {
+      title: 'Penerapan Sport Science & Gizi Atlet',
+      desc: 'Mengadopsi pendekatan ilmiah dalam latihan fisik kontur perbukitan Kabawetan dan pemantauan kebugaran berkala.',
+    },
+    {
+      title: 'Transparansi & Akuntabilitas Hibah',
+      desc: 'Menerapkan tata kelola anggaran pembinaan yang akuntabel, efisien, dan tepat sasaran bagi atlet dan pelatih.',
+    },
+  ],
+  facilitiesTitle: 'Fasilitas Olahraga Kabupaten Kepahiang',
+  facilitiesSubtitle: 'Pusat latihan dan penyelenggaraan event olahraga resmi di Kabupaten Kepahiang',
+  facilitiesList: [
+    {
+      name: 'GOR Tebat Monok',
+      type: 'Indoor & Sekretariat',
+      desc: 'Gelanggang Olahraga serbaguna indoor untuk pertandingan Bulutangkis, Bola Voli, Futsal, Basket, dan Sekretariat Utama KONI.',
+      icon: 'Building',
+    },
+    {
+      name: 'Stadion Mini Padang Lekat',
+      type: 'Outdoor & Lapangan',
+      desc: 'Pusat pertandingan Sepak Bola, lintasan Atletik, dan lokasi kejuaraan akbar tahunan Bupati Cup.',
+      icon: 'Trophy',
+    },
+    {
+      name: 'Pusat Latihan Kabawetan',
+      type: 'Alam & Ketinggian',
+      desc: 'Kawasan perkebunan teh berkontur pegunungan untuk latihan daya tahan (endurance) atletik, balap sepeda (ISSI), dan panjat tebing.',
+      icon: 'Sparkles',
+    },
+  ],
+};
+
+export async function getProfileConfig() {
+  try {
+    const settings = await prisma.siteSettings.findUnique({
+      where: { id: 'settings' },
+      select: { profileConfig: true },
+    });
+
+    if (settings?.profileConfig) {
+      try {
+        const parsed = JSON.parse(settings.profileConfig);
+        return {
+          success: true,
+          data: {
+            ...DEFAULT_PROFILE_CONFIG,
+            ...parsed,
+          },
+        };
+      } catch (e) {
+        console.error('Error parsing profileConfig JSON:', e);
+      }
+    }
+
+    return { success: true, data: DEFAULT_PROFILE_CONFIG };
+  } catch (error) {
+    console.error('Error fetching profileConfig:', error);
+    return { success: true, data: DEFAULT_PROFILE_CONFIG };
+  }
+}
+
+export async function updateProfileConfig(config: any) {
+  try {
+    const jsonStr = JSON.stringify(config);
+    await prisma.siteSettings.upsert({
+      where: { id: 'settings' },
+      update: { profileConfig: jsonStr },
+      create: {
+        id: 'settings',
+        siteName: 'KONI Kabupaten Kepahiang',
+        siteDescription: 'Website Resmi KONI Kepahiang',
+        logoUrl: '/favicon.ico',
+        logoAdminUrl: '/favicon.ico',
+        logoFooterUrl: '/favicon.ico',
+        faviconUrl: '/favicon.ico',
+        profileConfig: jsonStr,
+      },
+    });
+
+    revalidatePath('/profil');
+    revalidatePath('/admin/profil');
+    return { success: true, data: config };
+  } catch (error: any) {
+    console.error('Error saving profileConfig:', error);
     return { success: false, error: error.message };
   }
 }

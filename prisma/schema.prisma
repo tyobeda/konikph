@@ -216,6 +216,7 @@ model SiteSettings {
   forbiddenWords  String?  // Comma-separated list or newline-separated list of prohibited words for auto moderation
   onlyAdminCanCreateTwibbon Boolean @default(false) // Batasi pembuatan template twibbon hanya untuk Super Admin
   masterFileFormats String? // JSON string storing array of master file formats: [{ id, label }]
+  profileConfig   String?  // JSON string storing dynamic profile content (visi, misi, hero, fasilitas)
   updatedAt       DateTime @updatedAt
 }
 

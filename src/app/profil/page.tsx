@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getBoardMembers } from '@/actions/board';
+import { getBoardMembers, getProfileConfig } from '@/actions/board';
 import prisma from '@/lib/prisma';
 
 export const metadata: Metadata = {
@@ -30,10 +30,14 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function ProfilPage() {
-  const resBoard = await getBoardMembers();
-  const boardMembers = resBoard.success && resBoard.data ? resBoard.data : [];
+  const [resBoard, resProfile, caborCount] = await Promise.all([
+    getBoardMembers(),
+    getProfileConfig(),
+    prisma.dpwOffice.count({ where: { isActive: true } }),
+  ]);
 
-  const caborCount = await prisma.dpwOffice.count({ where: { isActive: true } });
+  const boardMembers = resBoard.success && resBoard.data ? resBoard.data : [];
+  const profile = resProfile.data;
 
   const pimpinanUtama = boardMembers.filter((m: any) => m.hierarchy === 1 || m.hierarchy === 2);
   const ketuaBidang = boardMembers.filter((m: any) => m.hierarchy === 3);
@@ -59,15 +63,19 @@ export default async function ProfilPage() {
           <div className="relative z-10 max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-600/30 border border-red-500/30 text-red-300 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
               <Award size={14} className="text-amber-400" />
-              <span>Komite Olahraga Nasional Indonesia</span>
+              <span>{profile.heroBadge || 'Komite Olahraga Nasional Indonesia'}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-              KONI Kabupaten <span className="text-red-500">Kepahiang</span>
+              {profile.heroTitle ? (
+                profile.heroTitle
+              ) : (
+                <>KONI Kabupaten <span className="text-red-500">Kepahiang</span></>
+              )}
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Wadah pembinaan prestasi keolahragaan resmi di Bumi Sehasen, menaungi 23 Cabang Olahraga prestasi guna mencetak patriot olahraga yang tangguh, berkarakter, dan berdaya saing tinggi.
+              {profile.heroSubtitle || 'Wadah pembinaan prestasi keolahragaan resmi di Bumi Sehasen, menaungi 23 Cabang Olahraga prestasi guna mencetak patriot olahraga yang tangguh, berkarakter, dan berdaya saing tinggi.'}
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-bold">
@@ -77,7 +85,7 @@ export default async function ProfilPage() {
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
                 <MapPin size={16} className="text-red-400" />
-                <span>Sekretariat GOR Tebat Monok</span>
+                <span>{profile.secretariatAddress || 'Sekretariat GOR Tebat Monok'}</span>
               </div>
             </div>
           </div>
@@ -94,16 +102,18 @@ export default async function ProfilPage() {
               <span className="text-xs uppercase font-extrabold tracking-widest text-red-200">
                 Arah & Pandangan Masa Depan
               </span>
-              <h2 className="text-2xl font-black">Visi Utama</h2>
+              <h2 className="text-2xl font-black">{profile.visiTitle || 'Visi Utama'}</h2>
               <p className="text-sm sm:text-base text-red-50 leading-relaxed font-medium">
-                "Mewujudkan Kabupaten Kepahiang sebagai lumbung atlet berprestasi tinggi di tingkat Provinsi Bengkulu dan Nasional dengan tata kelola olahraga yang modern, transparan, dan berintegritas."
+                "{profile.visiText || 'Mewujudkan Kabupaten Kepahiang sebagai lumbung atlet berprestasi tinggi di tingkat Provinsi Bengkulu dan Nasional dengan tata kelola olahraga yang modern, transparan, dan berintegritas.'}"
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-xs text-red-100 flex items-center gap-2">
-              <Sparkles size={16} className="text-amber-300 shrink-0" />
-              <span>Target: Tembus Peringkat 3 Besar Porprov Bengkulu 2026</span>
-            </div>
+            {profile.targetText && (
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-xs text-red-100 flex items-center gap-2">
+                <Sparkles size={16} className="text-amber-300 shrink-0" />
+                <span>{profile.targetText}</span>
+              </div>
+            )}
           </div>
 
           {/* Misi */}
@@ -113,33 +123,12 @@ export default async function ProfilPage() {
                 Strategi & Langkah Nyata
               </span>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-                5 Pilar Misi KONI Kepahiang
+                {profile.misiTitle || 'Pilar Misi KONI Kepahiang'}
               </h2>
             </div>
 
             <div className="space-y-3.5">
-              {[
-                {
-                  title: 'Deteksi & Pembinaan Dini',
-                  desc: 'Menyelenggarakan program "KONI Masuk Desa" guna menyaring bakat atletik alami anak-anak di 8 kecamatan Kepahiang.',
-                },
-                {
-                  title: 'Peningkatan Kualitas Pelatih & Wasit',
-                  desc: 'Mendorong standarisasi lisensi pelatih dan wasit bersertifikasi tingkat provinsi hingga nasional di setiap cabor.',
-                },
-                {
-                  title: 'Modernisasi Fasilitas Olahraga',
-                  desc: 'Mengoptimalkan sarana prasarana di GOR Tebat Monok, Stadion Mini Padang Lekat, dan fasilitas cabor pegunungan.',
-                },
-                {
-                  title: 'Penerapan Sport Science & Gizi Atlet',
-                  desc: 'Mengadopsi pendekatan ilmiah dalam latihan fisik kontur perbukitan Kabawetan dan pemantauan kebugaran berkala.',
-                },
-                {
-                  title: 'Transparansi & Akuntabilitas Hibah',
-                  desc: 'Menerapkan tata kelola anggaran pembinaan yang akuntabel, efisien, dan tepat sasaran bagi atlet dan pelatih.',
-                },
-              ].map((misi, i) => (
+              {(profile.misiList || []).map((misi: any, i: number) => (
                 <div
                   key={i}
                   className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80"
@@ -236,49 +225,53 @@ export default async function ProfilPage() {
               Sarana & Prasarana
             </span>
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-              Fasilitas Olahraga Kabupaten Kepahiang
+              {profile.facilitiesTitle || 'Fasilitas Olahraga Kabupaten Kepahiang'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Pusat latihan dan penyelenggaraan event olahraga resmi di Kabupaten Kepahiang
+              {profile.facilitiesSubtitle || 'Pusat latihan dan penyelenggaraan event olahraga resmi di Kabupaten Kepahiang'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="rounded-2xl p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 flex items-center justify-center font-bold">
-                <Building size={20} />
-              </div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                GOR Tebat Monok
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Gelanggang Olahraga serbaguna indoor untuk pertandingan Bulutangkis, Bola Voli, Futsal, Basket, dan Sekretariat Utama KONI.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(profile.facilitiesList || []).map((fac: any, idx: number) => {
+              const iconColors = [
+                'bg-red-100 dark:bg-red-950/60 text-red-600',
+                'bg-amber-100 dark:bg-amber-950/60 text-amber-600',
+                'bg-blue-100 dark:bg-blue-950/60 text-blue-600',
+                'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600',
+                'bg-purple-100 dark:bg-purple-950/60 text-purple-600',
+              ];
+              const colorClass = iconColors[idx % iconColors.length];
 
-            <div className="rounded-2xl p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center font-bold">
-                <Trophy size={20} />
-              </div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                Stadion Mini Padang Lekat
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Pusat pertandingan Sepak Bola, lintasan Atletik, dan lokasi kejuaraan akbar tahunan Bupati Cup.
-              </p>
-            </div>
-
-            <div className="rounded-2xl p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center font-bold">
-                <Sparkles size={20} />
-              </div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                Pusat Latihan Kabawetan
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Kawasan perkebunan teh berkontur pegunungan untuk latihan daya tahan (endurance) atletik, balap sepeda (ISSI), dan panjat tebing.
-              </p>
-            </div>
+              return (
+                <div key={idx} className="rounded-2xl p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-2">
+                  <div className={`w-10 h-10 rounded-xl ${colorClass} flex items-center justify-center font-bold`}>
+                    {fac.icon === 'Trophy' ? (
+                      <Trophy size={20} />
+                    ) : fac.icon === 'Sparkles' ? (
+                      <Sparkles size={20} />
+                    ) : fac.icon === 'MapPin' ? (
+                      <MapPin size={20} />
+                    ) : (
+                      <Building size={20} />
+                    )}
+                  </div>
+                  <div>
+                    {fac.type && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 block">
+                        {fac.type}
+                      </span>
+                    )}
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                      {fac.name}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    {fac.desc}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </section>
 
