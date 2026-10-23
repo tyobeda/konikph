@@ -455,6 +455,12 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
   const targetRatio = currentDim?.ratio || activeTwibbon.aspectRatio || '1:1';
   const ratioMeta = getAspectRatioMeta(targetRatio, targetW, targetH);
 
+  // Exact file aspect ratio calculation (strictly prevents squishing / distortion)
+  const fileRatio = targetW / targetH;
+  const maxAllowedH = 500;
+  const maxAllowedW = 420;
+  const dynamicMaxW = Math.round(Math.min(maxAllowedW, maxAllowedH * fileRatio));
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] flex flex-col font-sans pt-[110px] md:pt-[70px] pb-20 md:pb-6 transition-colors duration-200">
       <Header />
@@ -477,7 +483,7 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
             <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-amber-200/80 dark:border-gray-800 text-[11px] font-black text-gray-800 dark:text-gray-200 shadow-2xs">
                 <Maximize2 size={12} className="text-[#F26522] shrink-0" />
-                <span>{ratioMeta.label}</span>
+                <span>{ratioMeta.badge} • Rasio Asli</span>
                 <span className="text-[#F26522] font-black">({targetW} × {targetH} px)</span>
               </span>
             </div>
@@ -487,12 +493,11 @@ export default function TwibbonDetailContent({ initialTwibbon }: TwibbonDetailCo
               onClick={handleCanvasClick}
               style={{
                 aspectRatio: `${targetW} / ${targetH}`,
-                maxWidth: targetW >= targetH ? 'min(100%, 420px)' : 'min(100%, 300px)',
-                maxHeight: '480px',
                 width: '100%',
+                maxWidth: `min(100%, ${dynamicMaxW}px, calc(65vh * ${fileRatio.toFixed(4)}))`,
               }}
-              className={`relative mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800 bg-amber-50/50 dark:bg-gray-900/50 flex items-center justify-center transition-all ${
-                photoUrl ? 'cursor-move touch-none' : 'cursor-pointer hover:border-[#F26522] transition-colors group'
+              className={`relative mx-auto rounded-2xl overflow-hidden shadow-2xl ring-4 ring-white dark:ring-gray-800 bg-amber-50/50 dark:bg-gray-900/50 flex items-center justify-center transition-all ${
+                photoUrl ? 'cursor-move touch-none' : 'cursor-pointer hover:ring-[#F26522] transition-colors group'
               }`}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}

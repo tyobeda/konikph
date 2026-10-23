@@ -133,64 +133,48 @@ export const ASPECT_RATIO_PRESETS: AspectRatioOption[] = [
 export function getAspectRatioMeta(aspectRatio?: string | null, width?: number | null, height?: number | null) {
   const w = width || 1080;
   const h = height || 1080;
+  const ratioVal = w / h;
+  const cssAspect = `${w} / ${h}`;
+  const isPortrait = h > w;
+  const isSquare = Math.abs(ratioVal - 1) < 0.03;
+  const isLandscape = w > h && !isSquare;
 
-  switch (aspectRatio) {
-    case '9:16':
-      return {
-        id: '9:16',
-        label: '9:16 Story / Status',
-        badge: '9:16 Story',
-        dimensions: `${w} × ${h} px`,
-        cssAspect: '9/16',
-        isPortrait: true,
-      };
-    case '4:5':
-      return {
-        id: '4:5',
-        label: '4:5 Feed Portrait',
-        badge: '4:5 Portrait',
-        dimensions: `${w} × ${h} px`,
-        cssAspect: '4/5',
-        isPortrait: true,
-      };
-    case '2:3':
-      return {
-        id: '2:3',
-        label: '2:3 Poster / Portrait',
-        badge: '2:3 Poster',
-        dimensions: `${w} × ${h} px`,
-        cssAspect: '2/3',
-        isPortrait: true,
-      };
-    case '16:9':
-      return {
-        id: '16:9',
-        label: '16:9 Landscape',
-        badge: '16:9 Wide',
-        dimensions: `${w} × ${h} px`,
-        cssAspect: '16/9',
-        isLandscape: true,
-      };
-    case 'custom':
-      return {
-        id: 'custom',
-        label: `Kustom (${w} × ${h} px)`,
-        badge: `${w}×${h}`,
-        dimensions: `${w} × ${h} px`,
-        cssAspect: `${w}/${h}`,
-        isCustom: true,
-      };
-    case '1:1':
-    default:
-      return {
-        id: '1:1',
-        label: '1:1 Persegi',
-        badge: '1:1 Persegi',
-        dimensions: `${w} × ${h} px`,
-        cssAspect: '1/1',
-        isSquare: true,
-      };
+  let label = '1:1 Persegi';
+  let badge = '1:1';
+
+  if (isSquare) {
+    label = '1:1 Persegi';
+    badge = '1:1';
+  } else if (Math.abs(ratioVal - (9 / 16)) < 0.035) {
+    label = '9:16 Story / Status';
+    badge = '9:16 Story';
+  } else if (Math.abs(ratioVal - (2 / 3)) < 0.035) {
+    label = '2:3 Poster';
+    badge = '2:3 Poster';
+  } else if (Math.abs(ratioVal - (4 / 5)) < 0.035) {
+    label = '4:5 Feed Portrait';
+    badge = '4:5 Portrait';
+  } else if (Math.abs(ratioVal - (16 / 9)) < 0.035) {
+    label = '16:9 Landscape';
+    badge = '16:9 Wide';
+  } else {
+    label = isPortrait ? 'Potret Proporsional' : 'Lanskap Proporsional';
+    badge = `${w}×${h}`;
   }
+
+  return {
+    id: aspectRatio || 'custom',
+    label,
+    badge,
+    dimensions: `${w} × ${h} px`,
+    cssAspect,
+    isPortrait,
+    isSquare,
+    isLandscape,
+    width: w,
+    height: h,
+    ratio: ratioVal,
+  };
 }
 
 export function detectImageDimensions(file: File): Promise<{ width: number; height: number; matchedPreset: AspectRatioType }> {
